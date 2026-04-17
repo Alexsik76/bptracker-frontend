@@ -28,10 +28,27 @@ class App {
     async handleFormSubmit(e) {
         e.preventDefault();
         const formData = new FormData(e.target);
+        
+        const sysVal = formData.get('sys');
+        const diaVal = formData.get('dia');
+        const pulseVal = formData.get('pulse');
+
+        // If all fields are empty, just close the modal (treat as cancel)
+        if (!sysVal && !diaVal && !pulseVal) {
+            this.ui.hideModal();
+            return;
+        }
+
+        // Basic validation for partial data
+        if (!sysVal || !diaVal || !pulseVal) {
+            this.ui.showStatus('Please fill all fields or clear all to cancel', true);
+            return;
+        }
+
         const data = {
-            sys: parseInt(formData.get('sys')),
-            dia: parseInt(formData.get('dia')),
-            pulse: parseInt(formData.get('pulse'))
+            sys: parseInt(sysVal),
+            dia: parseInt(diaVal),
+            pulse: parseInt(pulseVal)
         };
 
         try {
@@ -51,13 +68,34 @@ class App {
         const form = document.getElementById('bp-form');
         const modal = document.getElementById('modal');
 
-        if (addBtn) addBtn.onclick = () => this.ui.showModal();
-        if (closeModalBtn) closeModalBtn.onclick = () => this.ui.hideModal();
-        if (form) form.onsubmit = (e) => this.handleFormSubmit(e);
+        if (addBtn) {
+            addBtn.addEventListener('click', () => this.ui.showModal());
+        }
+
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => {
+                this.ui.hideModal();
+                if (form) form.reset();
+            });
+        }
+
+        if (form) {
+            form.addEventListener('submit', (e) => this.handleFormSubmit(e));
+        }
         
-        window.onclick = (e) => {
-            if (e.target === modal) this.ui.hideModal();
-        };
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.ui.hideModal();
+                if (form) form.reset();
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                this.ui.hideModal();
+                if (form) form.reset();
+            }
+        });
     }
 }
 

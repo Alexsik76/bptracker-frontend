@@ -4,11 +4,11 @@ export class ApiClient {
     async getMeasurements() {
         try {
             const response = await fetch(`${CONFIG.API_BASE_URL}/measurements`);
-            if (!response.ok) throw new Error('Помилка при завантаженні замірів');
+            if (!response.ok) return [];
             return await response.json();
         } catch (error) {
-            console.error(error);
-            throw error;
+            console.error('Network error fetching measurements:', error);
+            return [];
         }
     }
 
@@ -19,10 +19,10 @@ export class ApiClient {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-            if (!response.ok) throw new Error('Помилка при збереженні заміру');
+            if (!response.ok) throw new Error('Помилка при збереженні');
             return await response.json();
         } catch (error) {
-            console.error(error);
+            console.error('Error adding measurement:', error);
             throw error;
         }
     }
@@ -31,10 +31,10 @@ export class ApiClient {
         try {
             const response = await fetch(`${CONFIG.API_BASE_URL}/schemas/active`);
             if (response.status === 404) return null;
-            if (!response.ok) throw new Error('Помилка при завантаженні схеми лікування');
+            if (!response.ok) return null;
             return await response.json();
         } catch (error) {
-            console.error(error);
+            // Тихо ігноруємо помилки мережі для схеми, щоб не забивати лог
             return null;
         }
     }
