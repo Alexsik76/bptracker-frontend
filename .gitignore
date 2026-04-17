@@ -1,0 +1,13 @@
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Dependencies (якщо з'являться)
+node_modules/
+package-lock.json
+
+# Build (про всяк випадок)
+dist/
+build/
