@@ -27,6 +27,19 @@ export class ApiClient {
         }
     }
 
+    async deleteMeasurement(id) {
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/measurements/${id}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) throw new Error('Помилка при видаленні');
+            return true;
+        } catch (error) {
+            console.error('Error deleting measurement:', error);
+            throw error;
+        }
+    }
+
     async getActiveSchema() {
         try {
             const response = await fetch(`${CONFIG.API_BASE_URL}/schemas/active`);

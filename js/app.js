@@ -10,6 +10,19 @@ class App {
             this.ui = new UIManager();
             this.chart = new ChartManager('bp-chart');
             
+            // Set up delete handler
+            this.ui.onDelete = async (id) => {
+                if (confirm('Ви впевнені, що хочете видалити цей замір?')) {
+                    try {
+                        await this.api.deleteMeasurement(id);
+                        this.ui.showStatus('Замір успішно видалено!');
+                        await this.refresh();
+                    } catch (error) {
+                        this.ui.showStatus('Помилка при видаленні', true);
+                    }
+                }
+            };
+            
             this._initEventListeners();
             this.refresh();
             console.log('App initialized successfully');

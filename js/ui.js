@@ -6,6 +6,7 @@ export class UIManager {
         this.toastMsg = document.getElementById('toast-message');
         this.schemaSection = document.getElementById('schema-section');
         this.schemaContent = document.getElementById('schema-content');
+        this.onDelete = null; // Callback for delete action
     }
 
     renderMeasurements(measurements) {
@@ -16,8 +17,25 @@ export class UIManager {
                     <td class="py-3 text-sm text-gray-600">${new Date(m.recordedAt).toLocaleString('uk-UA')}</td>
                     <td class="py-3 font-bold text-lg">${m.sys}/${m.dia} <span class="text-xs text-gray-400 font-normal">мм рт.ст.</span></td>
                     <td class="py-3 text-gray-500 font-medium text-right">${m.pulse} <span class="text-xs">уд/хв</span></td>
+                    <td class="py-3 text-right">
+                        <button class="text-red-400 hover:text-red-600 transition p-1 delete-btn" data-id="${m.id}" title="Видалити">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </td>
                 </tr>
             `).join('');
+
+        // Attach event listeners to delete buttons
+        this.list.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.currentTarget.getAttribute('data-id');
+                if (this.onDelete && id) {
+                    this.onDelete(id);
+                }
+            });
+        });
     }
 
     renderSchema(schema) {
