@@ -26,7 +26,6 @@ export class UIManager {
         }
         this.schemaSection.classList.remove('hidden');
         
-        // Тут логіка форматування JSONB схеми
         const doc = schema.scheduleDocument;
         let html = '';
         for (const [time, meds] of Object.entries(doc)) {

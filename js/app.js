@@ -21,7 +21,7 @@ class App {
             this.chart.update(measurements);
             this.ui.renderSchema(schema);
         } catch (error) {
-            this.ui.showStatus('Помилка оновлення даних', true);
+            this.ui.showStatus('Error updating data', true);
         }
     }
 
@@ -38,24 +38,27 @@ class App {
             await this.api.addMeasurement(data);
             this.ui.hideModal();
             e.target.reset();
-            this.ui.showStatus('Замір збережено успішно!');
+            this.ui.showStatus('Measurement saved successfully!');
             await this.refresh();
         } catch (error) {
-            this.ui.showStatus('Помилка при збереженні', true);
+            this.ui.showStatus('Error saving measurement', true);
         }
     }
 
     _initEventListeners() {
-        document.getElementById('add-btn').onclick = () => this.ui.showModal();
-        document.getElementById('close-modal').onclick = () => this.ui.hideModal();
-        document.getElementById('bp-form').onsubmit = (e) => this.handleFormSubmit(e);
+        const addBtn = document.getElementById('add-btn');
+        const closeModalBtn = document.getElementById('close-modal');
+        const form = document.getElementById('bp-form');
+        const modal = document.getElementById('modal');
+
+        if (addBtn) addBtn.onclick = () => this.ui.showModal();
+        if (closeModalBtn) closeModalBtn.onclick = () => this.ui.hideModal();
+        if (form) form.onsubmit = (e) => this.handleFormSubmit(e);
         
-        // Закриття модалки при кліку поза нею
         window.onclick = (e) => {
-            if (e.target === document.getElementById('modal')) this.ui.hideModal();
+            if (e.target === modal) this.ui.hideModal();
         };
     }
 }
 
-// Запуск програми
 window.onload = () => new App();

@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BP Tracker</title>
-    <!-- UnoCSS JIT CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@unocss/runtime"></script>
-    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- PWA Settings -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/822/822143.png">
@@ -33,39 +30,35 @@
     <header class="bg-blue-600 text-white p-4 shadow-md">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-bold">BP Tracker</h1>
-            <button id="add-btn" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
-                Додати замір
+            <button id="add-btn" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition focus:outline-none">
+                Add Measurement
             </button>
         </div>
     </header>
 
     <main class="max-w-4xl mx-auto p-4 space-y-6">
         
-        <!-- Схема лікування (якщо активна) -->
         <section id="schema-section" class="hidden bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
-            <h2 class="text-sm font-semibold text-gray-500 uppercase">Поточна схема лікування</h2>
+            <h2 class="text-sm font-semibold text-gray-500 uppercase">Current Treatment Schema</h2>
             <div id="schema-content" class="mt-2 text-lg font-medium"></div>
         </section>
 
-        <!-- Графік -->
         <section class="bg-white p-4 rounded-xl shadow-sm">
             <canvas id="bp-chart"></canvas>
         </section>
 
-        <!-- Останні записи -->
         <section class="bg-white p-4 rounded-xl shadow-sm overflow-hidden">
-            <h2 class="text-xl font-bold mb-4">Історія замірів</h2>
+            <h2 class="text-xl font-bold mb-4">Measurement History</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-gray-100 text-gray-500 text-sm">
-                            <th class="py-2">Дата</th>
-                            <th class="py-2">Тиск (SYS/DIA)</th>
-                            <th class="py-2">Пульс</th>
+                            <th class="py-2">Date</th>
+                            <th class="py-2">Pressure (SYS/DIA)</th>
+                            <th class="py-2">Pulse</th>
                         </tr>
                     </thead>
                     <tbody id="measurements-list">
-                        <!-- Сюди будуть додаватися рядки -->
                     </tbody>
                 </table>
             </div>
@@ -73,39 +66,37 @@
 
     </main>
 
-    <!-- Модальне вікно для додавання -->
     <div id="modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl">
-            <h2 class="text-2xl font-bold mb-4">Новий замір</h2>
+        <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl box-border">
+            <h2 class="text-2xl font-bold mb-4">New Measurement</h2>
             <form id="bp-form" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Систолічний (SYS)</label>
+                    <label class="block text-sm font-medium text-gray-700">Systolic (SYS)</label>
                     <input type="number" name="sys" required min="40" max="300" 
-                           class="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                           class="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none box-border">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Діастолічний (DIA)</label>
+                    <label class="block text-sm font-medium text-gray-700">Diastolic (DIA)</label>
                     <input type="number" name="dia" required min="20" max="200" 
-                           class="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                           class="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none box-border">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Пульс</label>
+                    <label class="block text-sm font-medium text-gray-700">Pulse</label>
                     <input type="number" name="pulse" required min="30" max="250" 
-                           class="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                           class="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none box-border">
                 </div>
                 <div class="flex space-x-3 pt-2">
-                    <button type="button" id="close-modal" class="flex-1 py-3 text-gray-600 font-semibold hover:bg-gray-100 rounded-xl transition">
-                        Скасувати
+                    <button type="button" id="close-modal" class="flex-1 py-3 text-gray-600 font-semibold hover:bg-gray-100 rounded-xl transition border-none outline-none cursor-pointer">
+                        Cancel
                     </button>
-                    <button type="submit" class="flex-1 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-xl transition shadow-lg shadow-blue-200">
-                        Зберегти
+                    <button type="submit" class="flex-1 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-xl transition shadow-lg shadow-blue-200 border-none outline-none cursor-pointer">
+                        Save
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Нотифікації -->
     <div id="toast" class="fixed bottom-6 right-6 translate-y-20 opacity-0 transition duration-300 pointer-events-none bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center space-x-3">
         <span id="toast-message"></span>
     </div>
