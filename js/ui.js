@@ -6,9 +6,12 @@ export class UIManager {
         this.toastMsg = document.getElementById('toast-message');
         this.schemaSection = document.getElementById('schema-section');
         this.schemaContent = document.getElementById('schema-content');
+        
+        if (!this.modal) console.error('Modal element not found!');
     }
 
     renderMeasurements(measurements) {
+        if (!this.list) return;
         this.list.innerHTML = measurements
             .map(m => `
                 <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
@@ -20,11 +23,11 @@ export class UIManager {
     }
 
     renderSchema(schema) {
-        if (!schema) {
-            this.schemaSection.classList.add('hidden');
+        if (!schema || !this.schemaSection) {
+            if (this.schemaSection) this.schemaSection.style.display = 'none';
             return;
         }
-        this.schemaSection.classList.remove('hidden');
+        this.schemaSection.style.display = 'block';
         
         const doc = schema.scheduleDocument;
         let html = '';
@@ -34,12 +37,24 @@ export class UIManager {
         this.schemaContent.innerHTML = html;
     }
 
-    showModal() { this.modal.classList.remove('hidden'); }
-    hideModal() { this.modal.classList.add('hidden'); }
+    showModal() { 
+        if (this.modal) {
+            this.modal.style.setProperty('display', 'flex', 'important');
+            this.modal.classList.remove('hidden');
+        }
+    }
+
+    hideModal() { 
+        if (this.modal) {
+            this.modal.style.setProperty('display', 'none', 'important');
+            this.modal.classList.add('hidden');
+        }
+    }
 
     showStatus(message, isError = false) {
+        if (!this.toast || !this.toastMsg) return;
         this.toastMsg.innerText = message;
-        this.toast.classList.remove('translate-y-20', 'opacity-0');
+        this.toast.classList.remove('translate-y-20', 'opacity-0', 'bg-red-600', 'bg-gray-900');
         this.toast.classList.add(isError ? 'bg-red-600' : 'bg-gray-900');
         
         setTimeout(() => {

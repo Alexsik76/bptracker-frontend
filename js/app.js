@@ -4,44 +4,53 @@ import { ChartManager } from './chartManager.js';
 
 class App {
     constructor() {
-        this.api = new ApiClient();
-        this.ui = new UIManager();
-        this.chart = new ChartManager('bp-chart');
-        
-        this._initEventListeners();
-        this.refresh();
+        try {
+            console.log('App initializing...');
+            this.api = new ApiClient();
+            this.ui = new UIManager();
+            this.chart = new ChartManager('bp-chart');
+            
+            this._initEventListeners();
+            this.refresh();
+            console.log('App initialized successfully');
+        } catch (e) {
+            console.error('Critical app initialization error:', e);
+        }
     }
 
     async refresh() {
         try {
-            const measurements = await this.api.getMeasurements();
-            const schema = await this.api.getActiveSchema();
+            const [measurements, schema] = await Promise.all([
+                this.api.getMeasurements(),
+                this.api.getActiveSchema()
+            ]);
             
             this.ui.renderMeasurements(measurements);
             this.chart.update(measurements);
             this.ui.renderSchema(schema);
         } catch (error) {
-            this.ui.showStatus('Error updating data', true);
+            console.warn('Refresh failed:', error);
+            this.ui.showStatus('Помилка оновлення даних', true);
         }
     }
 
     async handleFormSubmit(e) {
         e.preventDefault();
-        const formData = new FormData(e.target);
+        console.log('Form submitted');
         
+        const formData = new FormData(e.target);
         const sysVal = formData.get('sys');
         const diaVal = formData.get('dia');
         const pulseVal = formData.get('pulse');
 
-        // If all fields are empty, just close the modal (treat as cancel)
         if (!sysVal && !diaVal && !pulseVal) {
+            console.log('Empty form, closing modal');
             this.ui.hideModal();
             return;
         }
 
-        // Basic validation for partial data
         if (!sysVal || !diaVal || !pulseVal) {
-            this.ui.showStatus('Please fill all fields or clear all to cancel', true);
+            this.ui.showStatus('Будь ласка, заповніть усі поля', true);
             return;
         }
 
@@ -52,13 +61,19 @@ class App {
         };
 
         try {
+            console.log('Sending data to API:', data);
             await this.api.addMeasurement(data);
+            console.log('Data saved');
             this.ui.hideModal();
             e.target.reset();
-            this.ui.showStatus('Measurement saved successfully!');
+            this.ui.showStatus('Замір успішно збережено!');
             await this.refresh();
         } catch (error) {
-            this.ui.showStatus('Error saving measurement', true);
+            console.error('Save failed:', error);
+            this.ui.showStatus('Помилка при збереженні', true);
+            // Навіть при помилці краще закрити вікно, якщо користувач ввів дані, 
+            // але ми вже показали статус помилки. 
+            // Або залишити - залежить від юзеркейсу. Залишимо відкритим для виправлення.
         }
     }
 
@@ -69,11 +84,15 @@ class App {
         const modal = document.getElementById('modal');
 
         if (addBtn) {
-            addBtn.addEventListener('click', () => this.ui.showModal());
+            addBtn.addEventListener('click', () => {
+                console.log('Add button clicked');
+                this.ui.showModal();
+            });
         }
 
         if (closeModalBtn) {
             closeModalBtn.addEventListener('click', () => {
+                console.log('Cancel button clicked');
                 this.ui.hideModal();
                 if (form) form.reset();
             });
@@ -85,13 +104,15 @@ class App {
         
         window.addEventListener('click', (e) => {
             if (e.target === modal) {
+                console.log('Backdrop clicked');
                 this.ui.hideModal();
                 if (form) form.reset();
             }
         });
 
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+            if (e.key === 'Escape' && modal && modal.style.display !== 'none') {
+                console.log('Escape pressed');
                 this.ui.hideModal();
                 if (form) form.reset();
             }
@@ -99,4 +120,7 @@ class App {
     }
 }
 
-window.onload = () => new App();
+// Використовуємо DOMContentLoaded замість onload для швидшого спрацювання
+document.addEventListener('DOMContentLoaded', () => {
+    window.app = new App();
+});
