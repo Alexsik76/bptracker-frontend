@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BP Tracker</title>
+    <title>Контроль тиску</title>
     <script src="https://cdn.jsdelivr.net/npm/@unocss/runtime"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -31,18 +31,18 @@
 
     <header class="bg-blue-600 text-white p-4 shadow-md">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold">BP Tracker</h1>
-            <button id="add-btn" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition focus:outline-none">
-                Add Measurement
+            <h1 class="text-2xl font-bold italic tracking-tight">BP Tracker</h1>
+            <button id="add-btn" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition focus:outline-none shadow-sm">
+                + Додати замір
             </button>
         </div>
     </header>
 
     <main class="max-w-4xl mx-auto p-4 space-y-6">
         
-        <section id="schema-section" class="hidden bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
-            <h2 class="text-sm font-semibold text-gray-500 uppercase">Current Treatment Schema</h2>
-            <div id="schema-content" class="mt-2 text-lg font-medium"></div>
+        <section id="schema-section" style="display: none;" class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
+            <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Поточна схема лікування</h2>
+            <div id="schema-content" class="text-lg font-medium"></div>
         </section>
 
         <section class="bg-white p-4 rounded-xl shadow-sm">
@@ -50,14 +50,14 @@
         </section>
 
         <section class="bg-white p-4 rounded-xl shadow-sm overflow-hidden">
-            <h2 class="text-xl font-bold mb-4">Measurement History</h2>
+            <h2 class="text-xl font-bold mb-4">Історія замірів</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-gray-100 text-gray-500 text-sm">
-                            <th class="py-2">Date</th>
-                            <th class="py-2">Pressure (SYS/DIA)</th>
-                            <th class="py-2">Pulse</th>
+                            <th class="py-2">Дата і час</th>
+                            <th class="py-2">Тиск (СИС/ДІА)</th>
+                            <th class="py-2 text-right">Пульс</th>
                         </tr>
                     </thead>
                     <tbody id="measurements-list">
@@ -70,29 +70,29 @@
 
     <div id="modal" style="display: none;" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl box-border">
-            <h2 class="text-2xl font-bold mb-4">New Measurement</h2>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Новий замір</h2>
             <form id="bp-form" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Systolic (SYS)</label>
-                    <input type="number" name="sys" min="40" max="300" 
+                    <label class="block text-sm font-medium text-gray-600">Систолічний (верхній, СИС)</label>
+                    <input type="number" name="sys" min="40" max="300" placeholder="120"
                            class="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none box-border">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Diastolic (DIA)</label>
-                    <input type="number" name="dia" min="20" max="200" 
+                    <label class="block text-sm font-medium text-gray-600">Діастолічний (нижній, ДІА)</label>
+                    <input type="number" name="dia" min="20" max="200" placeholder="80"
                            class="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none box-border">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Pulse</label>
-                    <input type="number" name="pulse" min="30" max="250" 
+                    <label class="block text-sm font-medium text-gray-600">Пульс (уд/хв)</label>
+                    <input type="number" name="pulse" min="30" max="250" placeholder="70"
                            class="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none box-border">
                 </div>
-                <div class="flex space-x-3 pt-2">
-                    <button type="button" id="close-modal" class="flex-1 py-3 text-gray-600 font-semibold hover:bg-gray-100 rounded-xl transition border-none outline-none cursor-pointer">
-                        Cancel
+                <div class="flex space-x-3 pt-4">
+                    <button type="button" id="close-modal" class="flex-1 py-3 text-gray-500 font-semibold hover:bg-gray-100 rounded-xl transition border-none outline-none cursor-pointer">
+                        Скасувати
                     </button>
                     <button type="submit" class="flex-1 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-xl transition shadow-lg shadow-blue-200 border-none outline-none cursor-pointer">
-                        Save
+                        Зберегти
                     </button>
                 </div>
             </form>
