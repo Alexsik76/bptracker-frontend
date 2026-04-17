@@ -37,19 +37,15 @@ export class UIManager {
         this.schemaContent.innerHTML = html;
     }
 
-    showModal() { 
-        if (this.modal) {
-            this.modal.style.setProperty('display', 'flex', 'important');
-            this.modal.classList.remove('hidden');
-        }
-    }
+   showModal() { 
+    this.modal.classList.remove('hidden');
+    this.modal.classList.add('flex');
+}
 
-    hideModal() { 
-        if (this.modal) {
-            this.modal.style.setProperty('display', 'none', 'important');
-            this.modal.classList.add('hidden');
-        }
-    }
+hideModal() { 
+    this.modal.classList.add('hidden');
+    this.modal.classList.remove('flex');
+}
 
     showStatus(message, isError = false) {
         if (!this.toast || !this.toastMsg) return;
