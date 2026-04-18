@@ -11,6 +11,9 @@ export class UIManager {
 
     renderMeasurements(measurements) {
         if (!this.list) return;
+        const recent = [...measurements]
+            .sort((a, b) => new Date(b.recordedAt) - new Date(a.recordedAt))
+            .slice(0, 10);
         this.list.innerHTML = (measurements || [])
             .map(m => `
                 <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
@@ -45,8 +48,14 @@ export class UIManager {
         }
         
         this.schemaSection.style.display = 'block';
+        
+        const titleEl = document.getElementById('schema-title');
+        if (titleEl) {
+            titleEl.textContent = `Схема: ${schema.id}`;
+        }
+
         const doc = schema.scheduleDocument;
-        let html = `<div class="text-xs text-blue-400 mb-2 uppercase tracking-wider font-bold border-b border-blue-50 pb-1">${schema.id}</div>`;
+        let html = '';
         
         const timeTranslations = {
             'Morning': 'Ранок',
@@ -60,23 +69,65 @@ export class UIManager {
         for (const time of times) {
             const meds = doc[time];
             const displayTime = timeTranslations[time] || time;
+            
+            const unconditional = [];
+            const conditionalGroups = {};
+
+            meds.forEach(m => {
+                const cond = m.Condition ? m.Condition.trim() : 'None';
+                if (!cond || cond.toLowerCase() === 'none') {
+                    unconditional.push(m);
+                } else {
+                    if (!conditionalGroups[cond]) {
+                        conditionalGroups[cond] = [];
+                    }
+                    conditionalGroups[cond].push(m);
+                }
+            });
+            
             html += `
-                <div class="mb-4 last:mb-0">
-                    <div class="flex items-center mb-2">
-                        <span class="bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-bold mr-2 shadow-sm">${displayTime}</span>
-                        <div class="h-px bg-gray-100 flex-1"></div>
+                <div class="mb-6 last:mb-0 mt-6 pt-6 border-t border-gray-200 first:mt-0 first:pt-0 first:border-0">
+                    <div class="text-blue-700 font-bold text-lg uppercase tracking-wide mb-4 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                        ${displayTime}
                     </div>
-                    <div class="space-y-2 ml-2">
-                        ${meds.map(m => `
-                            <div class="flex flex-col">
-                                <div class="flex justify-between items-baseline">
-                                    <span class="font-semibold text-gray-800">${m.Medicine}</span>
-                                    <span class="text-blue-600 font-bold bg-blue-50 px-2 rounded text-sm">${m.Amount}</span>
+                    <div class="space-y-3 pl-1">
+            `;
+
+            unconditional.forEach(m => {
+                html += `
+                        <div class="flex items-center text-lg">
+                            <span class="text-gray-900 font-medium">${m.Medicine}</span>
+                            <span class="mx-2 text-gray-300">➔</span>
+                            <span class="text-blue-600 font-bold">${m.Amount}</span>
+                        </div>
+                `;
+            });
+
+            for (const [condition, groupMeds] of Object.entries(conditionalGroups)) {
+                html += `
+                        <div class="mt-2 bg-gray-50/50 p-3 rounded-lg border border-gray-100">
+                            <div class="text-sm font-semibold text-gray-500 mb-2">При ${condition}:</div>
+                            <div class="space-y-2 pl-3 border-l-2 border-blue-200">
+                `;
+                
+                groupMeds.forEach(m => {
+                    html += `
+                                <div class="flex items-center text-lg">
+                                    <span class="text-gray-900 font-medium">${m.Medicine}</span>
+                                    <span class="mx-2 text-gray-300">➔</span>
+                                    <span class="text-blue-600 font-bold">${m.Amount}</span>
                                 </div>
-                                ${m.Condition && m.Condition !== 'None' ? 
-                                    `<span class="text-xs text-orange-600 italic mt-0.5">⚠️ ${m.Condition}</span>` : ''}
+                    `;
+                });
+                
+                html += `
                             </div>
-                        `).join('')}
+                        </div>
+                `;
+            }
+
+            html += `
                     </div>
                 </div>
             `;

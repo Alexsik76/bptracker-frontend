@@ -47,7 +47,6 @@ export class ApiClient {
             if (!response.ok) return null;
             return await response.json();
         } catch (error) {
-            // Тихо ігноруємо помилки мережі для схеми, щоб не забивати лог
             return null;
         }
     }

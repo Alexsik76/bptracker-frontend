@@ -14,9 +14,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('PWA Ready'))
-                    .catch(err => console.log('PWA Failed', err));
+                navigator.serviceWorker.register('./sw.js');
             });
         }
     </script>
@@ -40,9 +38,9 @@
 
     <main class="max-w-4xl mx-auto p-4 space-y-6">
         
-        <section id="schema-section" style="display: none;" class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
-            <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Поточна схема лікування</h2>
-            <div id="schema-content" class="text-lg font-medium"></div>
+        <section id="schema-section" style="display: none;" class="bg-white p-5 rounded-xl shadow-sm">
+            <h2 id="schema-title" class="text-blue-900 font-extrabold text-xl mb-5 pb-3 border-b border-gray-200">Схема лікування</h2>
+            <div id="schema-content" class="space-y-5"></div>
         </section>
 
         <section class="bg-white p-4 rounded-xl shadow-sm">
@@ -51,7 +49,7 @@
 
         <section class="bg-white p-4 rounded-xl shadow-sm overflow-hidden">
             <h2 class="text-xl font-bold mb-4">Історія замірів</h2>
-            <div class="overflow-x-auto">
+                <div class="max-h-80 overflow-y-auto overflow-x-auto pr-2 custom-scrollbar">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-gray-100 text-gray-500 text-sm">
