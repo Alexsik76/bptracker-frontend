@@ -22,6 +22,17 @@ class App {
                     }
                 }
             };
+            this.ui.onSync = async () => {
+                try {
+                    await this.ui.setSyncLoading(true);
+                    const result = await this.api.syncGoogleSheets();
+                    this.ui.showStatus(result);
+                } catch (error) {
+                    this.ui.showStatus('Помилка синхронізації', true);
+                } finally {
+                    await this.ui.setSyncLoading(false);
+                }
+            };
             
             this._initEventListeners();
             this.refresh();
@@ -133,7 +144,6 @@ class App {
     }
 }
 
-// Використовуємо DOMContentLoaded замість onload для швидшого спрацювання
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new App();
 });

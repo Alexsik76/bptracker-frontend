@@ -6,6 +6,13 @@ export class UIManager {
         this.toastMsg = document.getElementById('toast-message');
         this.schemaSection = document.getElementById('schema-section');
         this.schemaContent = document.getElementById('schema-content');
+        this.syncBtn = document.getElementById('sync-btn');
+        this.onSync = null;
+        if (this.syncBtn) {
+    this.syncBtn.addEventListener('click', () => {
+        if (this.onSync) this.onSync();
+    });
+}
         this.onDelete = null; // Callback for delete action
     }
 
@@ -157,4 +164,17 @@ export class UIManager {
             this.toast.classList.add('translate-y-20', 'opacity-0');
         }, 3000);
     }
+
+
+    async setSyncLoading(isLoading) {
+    if (!this.syncBtn) return;
+    if (isLoading) {
+        this.syncBtn.disabled = true;
+        this._oldSyncHtml = this.syncBtn.innerHTML;
+        this.syncBtn.innerHTML = '<span>Обробка...</span>';
+    } else {
+        this.syncBtn.disabled = false;
+        this.syncBtn.innerHTML = this._oldSyncHtml || 'Синхронізувати з Таблицею';
+    }
+}
 }

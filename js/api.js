@@ -50,4 +50,17 @@ export class ApiClient {
             return null;
         }
     }
+
+    async syncGoogleSheets() {
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/sync/google-sheets`, {
+                method: 'POST'
+            });
+            if (!response.ok) throw new Error('Синхронізація не вдалася');
+            return await response.text();
+        } catch (error) {
+            console.error('Error during sync:', error);
+            throw error;
+        }
+    }
 }
