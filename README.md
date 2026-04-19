@@ -1,32 +1,64 @@
-# BP Tracker Frontend
+# BP Tracker — Frontend
 
-A lightweight, high-performance web dashboard for tracking blood pressure and treatment schedules.
+PWA для відстеження артеріального тиску з підтримкою AI-розпізнавання знімків тонометра.
 
-## 🛠 Tech Stack
-- **Language:** Vanilla JavaScript (ES6 Modules, OOP)
-- **Styling:** [UnoCSS](https://unocss.dev/) (via JIT CDN)
-- **Charts:** [Chart.js](https://www.chartjs.org/)
-- **Architecture:** SRP-based modular design
+## Стек
 
-## 🚀 Features
-- **Visual Trends:** Line charts for Systolic, Diastolic, and Pulse data.
-- **Treatment Visibility:** Automatically displays active medical schedules from the backend.
-- **Modern UI:** Responsive design with interactive feedback (toasts, modals).
-- **No Build Step:** Works directly in any modern browser using native ES modules.
+- **Vanilla JavaScript** — ES6 модулі, OOP, без build step
+- **UnoCSS** — JIT CDN (Tailwind-сумісний)
+- **Chart.js** — графіки тиску і пульсу
+- **PWA** — Service Worker, Web Share Target API, офлайн-індикація
 
-## 🌐 Deployment (GitHub Pages)
+## Можливості
 
-This project is configured to be deployed via GitHub Actions.
+- Введення вимірювань вручну або через **AI-сканування фото** тонометра
+- **Дві точки входу для фото:**
+  - Кнопка "Сканувати" в формі — відкриває вбудовану камеру з рамкою наведення
+  - "Поділитися" з камери/галереї → додаток автоматично розпізнає і відкриває форму
+- Графік за останні 30 днів (систолічний, діастолічний, пульс)
+- Відображення активної схеми лікування
+- Синхронізація з Google Sheets
+- **Bottom sheet** на мобільних, centered modal на десктопі
+- Анімований спінер під час розпізнавання AI
 
-### Setup Instructions:
-1. Go to your repository **Settings** > **Pages**.
-2. Under **Build and deployment** > **Source**, select **GitHub Actions**.
-3. Push your code to the `main` branch. The action in `.github/workflows/deploy.yml` will automatically build and deploy the frontend.
+## Структура
 
-## ⚙️ Configuration
-API settings can be adjusted in `config.js`:
+```
+├── index.html          Єдина HTML-сторінка
+├── config.js           API_BASE_URL, CHART_DAYS_LIMIT
+├── manifest.json       PWA маніфест + share_target
+├── sw.js               Service Worker (network-first для JS/HTML, обробка share target)
+└── js/
+    ├── app.js          Головна логіка, камера, AI flow
+    ├── api.js          HTTP-клієнт (measurements, analyze, schemas, sync)
+    ├── ui.js           Рендеринг, модал/шіт, камера, scan overlay
+    └── chartManager.js Графік Chart.js
+```
+
+## Конфігурація
+
+`config.js`:
 ```javascript
 export const CONFIG = {
-    API_BASE_URL: 'https://api-bptracker.home.vn.ua/api'
+    API_BASE_URL: 'https://api-bptracker.home.vn.ua/api',
+    CHART_DAYS_LIMIT: 30
 };
 ```
+
+## PWA — Web Share Target
+
+Додаток зареєстрований як ціль для "Поділитися" зображенням. Потрібно:
+1. Встановити як PWA (додати на головний екран)
+2. В будь-якому додатку → Поділитися → BP Tracker
+
+Service Worker перехоплює POST-запит від ОС, зберігає файл у Cache API, перенаправляє на `/?shared=1`. При відкритті додаток автоматично запускає AI-аналіз.
+
+## Розгортання (GitHub Pages)
+
+Push у гілку `main` → GitHub Actions автоматично деплоїть через `.github/workflows/deploy.yml`.
+
+Кастомний домен: `bptracker.home.vn.ua` (CNAME файл).
+
+## Кешування
+
+Service Worker використовує `network-first` для всіх `.js` і `.html` файлів — нові версії завжди підхоплюються без ручного очищення кешу. Перший раз після встановлення нової версії SW потрібне одноразове очищення кешу.

@@ -59,6 +59,7 @@ export class ApiClient {
             body: formData
         });
         if (!response.ok) {
+            if (response.status === 429) throw new Error('Забагато запитів до AI. Спробуйте за хвилину.');
             const err = await response.json().catch(() => ({}));
             throw new Error(err.error || 'Не вдалося розпізнати зображення');
         }

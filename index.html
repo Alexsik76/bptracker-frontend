@@ -32,6 +32,31 @@
             0%, 100% { transform: translateX(-60px); }
             50%       { transform: translateX(60px); }
         }
+        .sheet-handle {
+            display: none;
+            width: 36px; height: 4px;
+            border-radius: 2px;
+            background: #e5e7eb;
+            margin: 0 auto 14px;
+        }
+        @keyframes sheetUp {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
+        @media (max-width: 767px) {
+            .sheet-handle { display: block; }
+            #modal {
+                align-items: flex-end !important;
+                padding: 0 !important;
+            }
+            .sheet-inner {
+                border-radius: 1.25rem 1.25rem 0 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                padding-bottom: max(1.5rem, env(safe-area-inset-bottom)) !important;
+                animation: sheetUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-900" un-cloak>
@@ -81,7 +106,8 @@
     </main>
 
     <div id="modal" style="display: none;" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl box-border">
+        <div class="sheet-inner bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl box-border">
+            <div class="sheet-handle" aria-hidden="true"></div>
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Новий замір</h2>
             <form id="bp-form" class="space-y-4">
                 <div>
