@@ -166,12 +166,48 @@ export class UIManager {
     }
 
 
-    setScanLoading(isLoading) {
-        const btn = document.getElementById('scan-btn');
-        const text = document.getElementById('scan-btn-text');
-        if (!btn || !text) return;
-        btn.disabled = isLoading;
-        text.textContent = isLoading ? 'Розпізнаю...' : 'Сканувати фото тонометра';
+    showCameraModal() {
+        const el = document.getElementById('camera-modal');
+        if (el) el.style.display = 'flex';
+    }
+
+    hideCameraModal() {
+        const el = document.getElementById('camera-modal');
+        if (el) el.style.display = 'none';
+    }
+
+    showScanOverlay() {
+        const el = document.getElementById('scan-overlay');
+        if (el) el.style.display = 'flex';
+        this._startDigitAnimation();
+    }
+
+    hideScanOverlay() {
+        this._stopDigitAnimation();
+        const el = document.getElementById('scan-overlay');
+        if (el) el.style.display = 'none';
+    }
+
+    _startDigitAnimation() {
+        const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+        const sys = document.getElementById('anim-sys');
+        const dia = document.getElementById('anim-dia');
+        const pulse = document.getElementById('anim-pulse');
+        if (!sys) return;
+        this._digitInterval = setInterval(() => {
+            sys.textContent = rand(90, 180);
+            dia.textContent = rand(55, 115);
+            pulse.textContent = rand(55, 100);
+        }, 80);
+    }
+
+    _stopDigitAnimation() {
+        clearInterval(this._digitInterval);
+        this._digitInterval = null;
+        ['anim-sys', 'anim-dia', 'anim-pulse'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '---';
+        });
     }
 
     async setSyncLoading(isLoading) {

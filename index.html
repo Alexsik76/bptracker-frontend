@@ -23,6 +23,15 @@
     
     <style>
         [un-cloak] { display: none; }
+        @keyframes scanline {
+            0%   { top: 0%; }
+            50%  { top: calc(100% - 2px); }
+            100% { top: 0%; }
+        }
+        @keyframes loupeMove {
+            0%, 100% { transform: translateX(-60px); }
+            50%       { transform: translateX(60px); }
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-900" un-cloak>
@@ -76,7 +85,7 @@
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Новий замір</h2>
             <form id="bp-form" class="space-y-4">
                 <div>
-                    <input type="file" id="scan-input" accept="image/*" capture="environment" class="hidden">
+                    <input type="file" id="scan-input" accept="image/*" class="hidden">
                     <button type="button" id="scan-btn"
                             class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -110,6 +119,70 @@
                 </div>
             </form>
         </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div id="camera-modal" class="fixed inset-0 bg-black flex flex-col" style="display:none; z-index:60;">
+        <div class="relative flex-1 overflow-hidden">
+            <video id="camera-video" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover"></video>
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <div class="relative" style="width:88%; max-width:400px; aspect-ratio:16/9; box-shadow:0 0 0 9999px rgba(0,0,0,0.5);">
+                    <div class="absolute inset-0 border border-white/30 rounded-lg"></div>
+                    <span style="position:absolute;top:-2px;left:-2px;width:22px;height:22px;border-top:3px solid #60a5fa;border-left:3px solid #60a5fa;border-radius:4px 0 0 0;"></span>
+                    <span style="position:absolute;top:-2px;right:-2px;width:22px;height:22px;border-top:3px solid #60a5fa;border-right:3px solid #60a5fa;border-radius:0 4px 0 0;"></span>
+                    <span style="position:absolute;bottom:-2px;left:-2px;width:22px;height:22px;border-bottom:3px solid #60a5fa;border-left:3px solid #60a5fa;border-radius:0 0 0 4px;"></span>
+                    <span style="position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;border-bottom:3px solid #60a5fa;border-right:3px solid #60a5fa;border-radius:0 0 4px 0;"></span>
+                    <div class="absolute left-0 right-0" style="height:2px;background:linear-gradient(90deg,transparent,#60a5fa,transparent);animation:scanline 2s linear infinite;"></div>
+                </div>
+                <p class="mt-4 text-sm font-medium tracking-wide" style="color:rgba(255,255,255,0.7);">Наведіть екран тонометра</p>
+            </div>
+        </div>
+        <div class="flex items-center justify-between px-8 py-6 bg-black">
+            <button id="camera-close-btn" class="p-2 transition" style="color:rgba(255,255,255,0.6);">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <button id="camera-capture-btn" class="w-16 h-16 rounded-full bg-white shadow-xl flex items-center justify-center active:scale-95 transition-transform">
+                <div class="w-12 h-12 rounded-full border-2 border-gray-200"></div>
+            </button>
+            <div style="width:44px;"></div>
+        </div>
+    </div>
+
+    <!-- Scan Overlay -->
+    <div id="scan-overlay" class="fixed inset-0 flex flex-col items-center justify-center gap-8" style="display:none; z-index:70; background:rgba(0,0,0,0.88);">
+        <div class="relative" style="width:200px; height:110px;">
+            <div class="absolute inset-0 rounded-xl border border-gray-700 flex flex-col justify-center gap-2 px-5" style="background:#1f2937;">
+                <div class="rounded-full" style="height:8px;width:70%;background:#4b5563;"></div>
+                <div class="rounded" style="height:16px;width:100%;background:rgba(30,58,138,0.7);"></div>
+                <div class="rounded-full" style="height:8px;width:55%;background:#4b5563;"></div>
+                <div class="rounded" style="height:16px;width:100%;background:rgba(30,58,138,0.7);"></div>
+            </div>
+            <div class="absolute" style="top:-18px; left:calc(50% - 20px); animation:loupeMove 1.6s ease-in-out infinite;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#60a5fa" stroke-width="1.8">
+                    <circle cx="11" cy="11" r="7"/>
+                    <line x1="16.5" y1="16.5" x2="21" y2="21" stroke-linecap="round"/>
+                </svg>
+            </div>
+        </div>
+        <div class="flex items-end gap-3">
+            <div class="text-center">
+                <div class="text-xs uppercase tracking-widest mb-1" style="color:#6b7280;">СИС</div>
+                <div id="anim-sys" class="font-mono font-bold" style="font-size:2rem;min-width:56px;text-align:center;color:#93c5fd;">---</div>
+            </div>
+            <div class="font-light pb-1" style="font-size:1.5rem;color:#374151;">/</div>
+            <div class="text-center">
+                <div class="text-xs uppercase tracking-widest mb-1" style="color:#6b7280;">ДІА</div>
+                <div id="anim-dia" class="font-mono font-bold" style="font-size:2rem;min-width:56px;text-align:center;color:#93c5fd;">---</div>
+            </div>
+            <div class="pb-1" style="font-size:1.2rem;color:#374151;padding:0 2px 4px;">·</div>
+            <div class="text-center">
+                <div class="text-xs uppercase tracking-widest mb-1" style="color:#6b7280;">ПУЛЬС</div>
+                <div id="anim-pulse" class="font-mono font-bold" style="font-size:2rem;min-width:56px;text-align:center;color:#86efac;">---</div>
+            </div>
+        </div>
+        <p class="text-sm tracking-wide" style="color:rgba(255,255,255,0.45);">Розпізнаю зображення...</p>
     </div>
 
     <div id="toast" class="fixed bottom-6 right-6 translate-y-20 opacity-0 transition duration-300 pointer-events-none bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center space-x-3">

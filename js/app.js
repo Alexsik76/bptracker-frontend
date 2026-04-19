@@ -106,18 +106,64 @@ class App {
     _initScanListeners() {
         const scanBtn = document.getElementById('scan-btn');
         const scanInput = document.getElementById('scan-input');
-        if (!scanBtn || !scanInput) return;
+        const captureBtn = document.getElementById('camera-capture-btn');
+        const cameraCloseBtn = document.getElementById('camera-close-btn');
 
-        scanBtn.addEventListener('click', () => scanInput.click());
-        scanInput.addEventListener('change', async (e) => {
+        scanBtn?.addEventListener('click', () => {
+            if (navigator.mediaDevices?.getUserMedia) {
+                this._openCamera();
+            } else {
+                scanInput?.click();
+            }
+        });
+
+        scanInput?.addEventListener('change', async (e) => {
             const file = e.target.files?.[0];
             if (file) await this._analyzeAndFill(file);
             scanInput.value = '';
         });
+
+        captureBtn?.addEventListener('click', () => this._captureAndAnalyze());
+        cameraCloseBtn?.addEventListener('click', () => this._closeCamera());
+    }
+
+    async _openCamera() {
+        try {
+            this._cameraStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+            });
+            const track = this._cameraStream.getVideoTracks()[0];
+            try { await track.applyConstraints({ advanced: [{ torch: false }] }); } catch {}
+            document.getElementById('camera-video').srcObject = this._cameraStream;
+            this.ui.showCameraModal();
+        } catch {
+            document.getElementById('scan-input')?.click();
+        }
+    }
+
+    _closeCamera() {
+        this._cameraStream?.getTracks().forEach(t => t.stop());
+        this._cameraStream = null;
+        document.getElementById('camera-video').srcObject = null;
+        this.ui.hideCameraModal();
+    }
+
+    _captureAndAnalyze() {
+        const video = document.getElementById('camera-video');
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        this._closeCamera();
+        canvas.toBlob(async (blob) => {
+            const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
+            this.ui.showModal();
+            await this._analyzeAndFill(file);
+        }, 'image/jpeg', 0.9);
     }
 
     async _analyzeAndFill(file) {
-        this.ui.setScanLoading(true);
+        this.ui.showScanOverlay();
         try {
             const result = await this.api.analyzeImage(file);
             document.querySelector('[name="sys"]').value = result.sys;
@@ -127,7 +173,7 @@ class App {
         } catch (err) {
             this.ui.showStatus(err.message || 'Помилка розпізнавання', true);
         } finally {
-            this.ui.setScanLoading(false);
+            this.ui.hideScanOverlay();
         }
     }
 
