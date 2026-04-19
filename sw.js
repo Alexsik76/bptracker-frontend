@@ -22,5 +22,11 @@ self.addEventListener('fetch', event => {
         return;
     }
 
+    // JS and HTML always network-first to avoid stale deploys
+    if (url.pathname.endsWith('.js') || url.pathname.endsWith('.html') || url.pathname === '/') {
+        event.respondWith(fetch(event.request, { cache: 'no-store' }));
+        return;
+    }
+
     event.respondWith(fetch(event.request));
 });
