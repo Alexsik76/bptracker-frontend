@@ -35,7 +35,9 @@ class App {
             };
             
             this._initEventListeners();
+            this._initScanListeners();
             this.refresh();
+            this._checkSharedImage();
             console.log('App initialized successfully');
         } catch (e) {
             console.error('Critical app initialization error:', e);
@@ -98,6 +100,51 @@ class App {
             // Навіть при помилці краще закрити вікно, якщо користувач ввів дані, 
             // але ми вже показали статус помилки. 
             // Або залишити - залежить від юзеркейсу. Залишимо відкритим для виправлення.
+        }
+    }
+
+    _initScanListeners() {
+        const scanBtn = document.getElementById('scan-btn');
+        const scanInput = document.getElementById('scan-input');
+        if (!scanBtn || !scanInput) return;
+
+        scanBtn.addEventListener('click', () => scanInput.click());
+        scanInput.addEventListener('change', async (e) => {
+            const file = e.target.files?.[0];
+            if (file) await this._analyzeAndFill(file);
+            scanInput.value = '';
+        });
+    }
+
+    async _analyzeAndFill(file) {
+        this.ui.setScanLoading(true);
+        try {
+            const result = await this.api.analyzeImage(file);
+            document.querySelector('[name="sys"]').value = result.sys;
+            document.querySelector('[name="dia"]').value = result.dia;
+            document.querySelector('[name="pulse"]').value = result.pulse;
+            this.ui.showStatus('Дані розпізнано! Перевірте і збережіть.');
+        } catch (err) {
+            this.ui.showStatus(err.message || 'Помилка розпізнавання', true);
+        } finally {
+            this.ui.setScanLoading(false);
+        }
+    }
+
+    async _checkSharedImage() {
+        if (!location.search.includes('shared=1')) return;
+        history.replaceState({}, '', location.pathname);
+        try {
+            const cache = await caches.open('share-target-v1');
+            const response = await cache.match('/shared-image');
+            if (!response) return;
+            const blob = await response.blob();
+            await cache.delete('/shared-image');
+            const file = new File([blob], 'shared.jpg', { type: blob.type || 'image/jpeg' });
+            this.ui.showModal();
+            await this._analyzeAndFill(file);
+        } catch (err) {
+            console.error('Share target error:', err);
         }
     }
 

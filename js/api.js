@@ -51,6 +51,20 @@ export class ApiClient {
         }
     }
 
+    async analyzeImage(file) {
+        const formData = new FormData();
+        formData.append('image', file);
+        const response = await fetch(`${CONFIG.API_BASE_URL}/measurements/analyze`, {
+            method: 'POST',
+            body: formData
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || 'Не вдалося розпізнати зображення');
+        }
+        return await response.json();
+    }
+
     async syncGoogleSheets() {
         try {
             const response = await fetch(`${CONFIG.API_BASE_URL}/sync/google-sheets`, {

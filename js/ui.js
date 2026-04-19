@@ -166,6 +166,14 @@ export class UIManager {
     }
 
 
+    setScanLoading(isLoading) {
+        const btn = document.getElementById('scan-btn');
+        const text = document.getElementById('scan-btn-text');
+        if (!btn || !text) return;
+        btn.disabled = isLoading;
+        text.textContent = isLoading ? 'Розпізнаю...' : 'Сканувати фото тонометра';
+    }
+
     async setSyncLoading(isLoading) {
     if (!this.syncBtn) return;
     if (isLoading) {
