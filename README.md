@@ -1,8 +1,8 @@
 # BP Tracker — Frontend (Vue 3 SPA)
 
-Сучасний Single Page Application (SPA) для відстеження артеріального тиску. Побудований на **Vue 3** (Composition API) з використанням **TypeScript** та **Vite**.
+Single Page Application для відстеження артеріального тиску. Побудований на **Vue 3** (Composition API) з використанням **TypeScript** та **Vite**.
 
-## 🛠 Технологічний стек
+## Технологічний стек
 
 - **Фреймворк:** Vue 3 (`<script setup>`)
 - **Збірка:** Vite
@@ -14,90 +14,84 @@
 - **Графіки:** Chart.js
 - **Автентифікація:** WebAuthn (Passkeys) через `@simplewebauthn/browser`
 
-## 📂 Структура проекту
-
-Проект організовано за модульними принципами для легкого масштабування та підтримки.
+## Структура проекту
 
 ```text
 bptracker-frontend/
-├── public/                 # Статичні файли, які не обробляються Vite
+├── public/
 │   ├── config.js           # Глобальна конфігурація (API_BASE_URL)
 │   ├── manifest.json       # PWA маніфест
-│   └── sw.js               # Service Worker для кешування та Web Share Target
+│   ├── sw.js               # Service Worker (кешування app shell, SPA навігація, Web Share Target)
+│   └── CNAME               # GitHub Pages custom domain
 ├── src/
-│   ├── components/         # Перевикористовувані UI компоненти
-│   │   ├── AiReview.vue      # Анімація під час розпізнавання AI
-│   │   ├── BpChart.vue       # Обгортка для Chart.js
-│   │   ├── CameraCapture.vue # Компонент для сканування фото (getUserMedia)
+│   ├── components/
+│   │   ├── AiReview.vue        # Анімація під час розпізнавання AI
+│   │   ├── BpChart.vue         # Графік Chart.js з лініями норм (120/140 мм рт.ст.)
+│   │   ├── CameraCapture.vue   # Сканування фото (getUserMedia)
 │   │   ├── MeasurementForm.vue # Форма ручного введення з валідацією
-│   │   └── MeasurementList.vue # Таблиця історії вимірювань
-│   ├── composables/        # Перевикористовувана логіка (Vue Composables)
-│   │   ├── useApi.ts         # Типізований клієнт для взаємодії з Backend API
-│   │   └── useOfflineQueue.ts# Логіка збереження в IndexedDB при відсутності мережі
-│   ├── pages/              # Сторінки (Views) для Vue Router
-│   │   ├── DashboardPage.vue # Головний екран (графік + історія)
-│   │   ├── LoginPage.vue     # Форма входу (Passkey + Magic Link)
-│   │   ├── MeasurementPage.vue # Сторінка додавання заміру (камера/вручну)
-│   │   └── SettingsPage.vue  # Налаштування профілю
-│   ├── router/             # Налаштування маршрутизації
-│   │   └── index.ts          # Визначення маршрутів та Navigation Guards (захист)
-│   ├── stores/             # Управління глобальним станом (Pinia)
-│   │   ├── auth.ts           # Стан користувача, сесія, логіка логіну
-│   │   ├── measurements.ts   # Список вимірювань, CRUD операції
-│   │   └── settings.ts       # Користувацькі налаштування (Gemini URL, Email)
-│   ├── styles/             # Глобальні стилі
-│   │   ├── global.css        # Базові правила (reset, typography)
-│   │   └── tokens.css        # CSS-змінні (кольори, відступи, підтримка Dark Mode)
-│   ├── types/              # TypeScript інтерфейси
-│   │   └── api.ts            # Типи DTO, User, Measurement
-│   ├── App.vue             # Кореневий компонент
-│   └── main.ts             # Точка входу в додаток
-├── index.html              # HTML шаблон
-├── package.json            # Залежності та скрипти
-├── tsconfig.json           # Налаштування TypeScript
-└── vite.config.ts          # Налаштування збірки Vite
+│   │   ├── MeasurementList.vue # Історія з групуванням по днях та кольоровим кодуванням
+│   │   └── SchemaCard.vue      # Відображення схеми лікування (розклад прийому ліків)
+│   ├── composables/
+│   │   ├── useApi.ts           # Типізований HTTP-клієнт (credentials: include)
+│   │   └── useOfflineQueue.ts  # Офлайн-черга в IndexedDB
+│   ├── pages/
+│   │   ├── DashboardPage.vue   # Головний екран (KPI-картки, графік, історія, схема)
+│   │   ├── LoginPage.vue       # Вхід (Passkey + Magic Link, обробка ?token=)
+│   │   ├── MeasurementPage.vue # Додавання заміру (камера / вручну)
+│   │   └── SettingsPage.vue    # Налаштування (export email, gemini URL, logout)
+│   ├── router/
+│   │   └── index.ts            # Маршрути та Navigation Guard (checkSession перед першим переходом)
+│   ├── stores/
+│   │   ├── auth.ts             # Стан користувача, Passkey/magic link логіка
+│   │   ├── measurements.ts     # CRUD вимірювань + офлайн sync
+│   │   └── settings.ts         # Користувацькі налаштування
+│   ├── styles/
+│   │   ├── global.css          # Reset, base rules
+│   │   └── tokens.css          # CSS-змінні: кольори, відступи, dark mode
+│   ├── types/
+│   │   └── api.ts              # DTO-типи: User, Measurement, UserSettings, TreatmentSchema
+│   ├── utils/
+│   │   └── bp.ts               # classifyBP(), BP_CLASS_COLOR, BP_CLASS_LABEL (класифікація ВОЗ)
+│   ├── App.vue                 # Кореневий компонент (spinner під час auth check)
+│   └── main.ts                 # Точка входу
+├── index.html
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
 ```
 
-## ⚙️ Конфігурація
+## Конфігурація
 
-Базова адреса бекенду налаштовується у файлі `public/config.js`. Цей файл завантажується перед ініціалізацією Vue, що дозволяє змінювати адресу API без перезбірки проекту:
+Базова адреса бекенду налаштовується у `public/config.js`. Завантажується синхронно до Vue bundle, тому зміна не потребує перезбірки:
 
 ```javascript
 window.CONFIG = {
-    API_BASE_URL: 'https://api-bptracker.home.vn.ua/api/v1',
-    CHART_DAYS_LIMIT: 30
+    API_BASE_URL: 'https://api-bptracker.home.vn.ua/api/v1'
 };
 ```
 
-## 🚀 Розробка та Збірка
+## Розробка та збірка
 
-### Встановлення залежностей
 ```bash
 npm install
+npm run dev      # dev-сервер
+npm run build    # production збірка → dist/
 ```
 
-### Запуск сервера розробки
-```bash
-npm run dev
-```
+Скрипт `build` автоматично копіює `dist/index.html` у `dist/404.html` для коректної роботи SPA-роутингу на GitHub Pages.
 
-### Збірка для Production
-```bash
-npm run build
-```
-Ця команда збере оптимізовані файли в папку `dist/`. Також скрипт автоматично скопіює `index.html` у `404.html`, що необхідно для коректної роботи Vue Router на GitHub Pages.
+## Деплой (GitHub Pages)
 
-## 🌐 Деплой (GitHub Pages)
+При пуші в гілку `main` GitHub Action (`.github/workflows/deploy.yml`) автоматично збирає проект і публікує `dist/` на GitHub Pages.
 
-Проект налаштований на автоматичне розгортання через **GitHub Actions**.
-При пуші в гілку `main`, GitHub Action (файл `.github/workflows/deploy.yml`) автоматично збере проект і опублікує папку `dist` на вашому GitHub Pages.
+> У Settings → Pages → Source має бути вибрано **GitHub Actions**.
 
-> **Важливо:** У налаштуваннях репозиторію (Settings -> Pages -> Source) має бути вибрано **GitHub Actions**.
-
-## 📱 PWA та Офлайн режим
+## PWA та офлайн режим
 
 Додаток є повноцінним Progressive Web App:
-- Може бути встановлений на головний екран смартфона.
-- Має захист від "чорного екрану" при старті завдяки коректному `base` у роутері та `start_url` у маніфесті.
-- Підтримує **офлайн-додавання вимірювань**: якщо мережі немає, замір зберігається локально в IndexedDB (`useOfflineQueue.ts`) і автоматично відправляється на сервер при наступному завантаженні (або появі зв'язку).
-- Підтримує "Web Share Target": ви можете "поділитися" фотографією з галереї телефону прямо в додаток для розпізнавання.
+
+- **Встановлення** на головний екран (Android/iOS).
+- **SPA-навігація через SW:** Service Worker перехоплює всі navigation requests (`mode === 'navigate'`) і повертає свіжий `index.html`, завдяки чому прямі переходи на `/settings`, `/measurement/new` тощо коректно обслуговуються Vue Router навіть без серверного SPA-fallback.
+- **Кешування:** hashed assets (`/assets/*`) — cache-first (immutable); `index.html` та інші — network-first з cache-fallback для офлайну.
+- **Офлайн-додавання вимірювань:** замір зберігається в IndexedDB і синхронізується при наступному завантаженні.
+- **Web Share Target:** фотографію можна "поділитися" з галереї телефону в додаток для AI-розпізнавання.
