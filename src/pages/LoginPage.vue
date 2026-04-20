@@ -33,19 +33,25 @@ async function handlePasskey() {
     error.value = 'Будь ласка, введіть email';
     return;
   }
-  
+
   error.value = '';
   loading.value = true;
   try {
     try {
       await auth.loginPasskey();
-    } catch (err) {
-      // If login fails (no keys), try registration
+    } catch (err: any) {
+      // User cancelled — do not fall through to registration
+      if (err?.name === 'NotAllowedError') throw err;
+      // No passkeys found — try registration
       await auth.registerPasskey(email.value);
     }
     router.push({ name: 'dashboard' });
   } catch (err: any) {
-    error.value = 'Помилка автентифікації. Перевірте email або спробуйте інший спосіб.';
+    if (err?.name === 'NotAllowedError') {
+      error.value = 'Вхід скасовано.';
+    } else {
+      error.value = 'Помилка автентифікації. Перевірте email або спробуйте інший спосіб.';
+    }
   } finally {
     loading.value = false;
   }
