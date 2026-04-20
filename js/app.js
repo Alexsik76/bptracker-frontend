@@ -1,16 +1,17 @@
 import { ApiClient } from './api.js';
 import { UIManager } from './ui.js';
 import { ChartManager } from './chartManager.js';
+import { AuthManager } from './auth.js';
 
 class App {
     constructor() {
         try {
-            console.log('App initializing...');
             this.api = new ApiClient();
             this.ui = new UIManager();
             this.chart = new ChartManager('bp-chart');
-            
-            // Set up delete handler
+            this.auth = new AuthManager(this.api);
+            this._settings = null;
+
             this.ui.onDelete = async (id) => {
                 if (confirm('Ви впевнені, що хочете видалити цей замір?')) {
                     try {
@@ -22,29 +23,44 @@ class App {
                     }
                 }
             };
-            this.ui.onSync = async () => {
-                try {
-                    await this.ui.setSyncLoading(true);
-                    const result = await this.api.syncGoogleSheets();
-                    this.ui.showStatus(result);
-                } catch (error) {
-                    this.ui.showStatus('Помилка синхронізації', true);
-                } finally {
-                    await this.ui.setSyncLoading(false);
-                }
-            };
-            
+            this.ui.onLogout = () => this.auth.logout();
+            this.ui.onOpenSettings = () => this.ui.showSettingsModal(this.auth.user, this._settings);
+            this.ui.onExport = () => this._handleExport();
+
             this._initEventListeners();
             this._initScanListeners();
-            this.refresh();
-            this._checkSharedImage();
-            console.log('App initialized successfully');
+            this._initAuthListeners();
+            this._initSettingsListeners();
+
+            this.initApp();
         } catch (e) {
             console.error('Critical app initialization error:', e);
         }
     }
 
+    async initApp() {
+        const user = await this.auth.init();
+        if (user) {
+            this.ui.showAuthSection(false);
+            this.ui.updateUserUI(user);
+            await Promise.all([this.refresh(), this._loadSettings()]);
+            this._checkSharedImage();
+        } else {
+            this.ui.showAuthSection(true);
+        }
+    }
+
+    async _loadSettings() {
+        try {
+            this._settings = await this.api.getSettings();
+            this.ui.updateExportButton(this._settings);
+        } catch {
+            // settings are optional — silently ignore
+        }
+    }
+
     async refresh() {
+        if (!this.auth.user) return;
         try {
             const [measurements, schema] = await Promise.all([
                 this.api.getMeasurements(),
@@ -56,7 +72,93 @@ class App {
             this.ui.renderSchema(schema);
         } catch (error) {
             console.warn('Refresh failed:', error);
-            this.ui.showStatus('Помилка оновлення даних', true);
+            if (error.message?.includes('401')) {
+                this.auth.logout();
+            } else {
+                this.ui.showStatus('Помилка оновлення даних', true);
+            }
+        }
+    }
+
+    async _initAuthListeners() {
+        const authForm = document.getElementById('auth-form');
+        const magicLinkBtn = document.getElementById('magic-link-btn');
+        const emailInput = document.getElementById('auth-email');
+
+        authForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value;
+            if (!email) return;
+
+            try {
+                this.ui.setAuthLoading(true);
+                // Try login first
+                try {
+                    await this.auth.login();
+                } catch (err) {
+                    console.log('Login failed, trying registration...', err);
+                    // If login failed (e.g. no keys), try register
+                    await this.auth.register(email);
+                }
+                
+                await this.initApp();
+                this.ui.showStatus('Успішний вхід!');
+            } catch (error) {
+                console.error('Auth error:', error);
+                this.ui.showStatus('Помилка автентифікації', true);
+            } finally {
+                this.ui.setAuthLoading(false);
+            }
+        });
+
+        magicLinkBtn?.addEventListener('click', async () => {
+            const email = emailInput?.value;
+            if (!email) {
+                this.ui.showStatus('Введіть email для посилання', true);
+                return;
+            }
+            try {
+                await this.auth.requestMagicLink(email);
+                this.ui.showStatus('Посилання надіслано на email!');
+            } catch (error) {
+                this.ui.showStatus('Не вдалося надіслати посилання', true);
+            }
+        });
+    }
+
+    _initSettingsListeners() {
+        const form = document.getElementById('settings-form');
+        form?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = this.ui.getSettingsFormData();
+            try {
+                this.ui.setSettingsSaving(true);
+                this._settings = await this.api.patchSettings(data);
+                this.ui.updateExportButton(this._settings);
+                this.ui.hideSettingsModal();
+                this.ui.showStatus('Налаштування збережено');
+            } catch (error) {
+                this.ui.showStatus(error.message || 'Помилка збереження', true);
+            } finally {
+                this.ui.setSettingsSaving(false);
+            }
+        });
+    }
+
+    async _handleExport() {
+        if (!this._settings?.exportEmail) {
+            this.ui.showStatus('Вкажіть email у налаштуваннях', true);
+            this.ui.showSettingsModal(this.auth.user, this._settings);
+            return;
+        }
+        try {
+            this.ui.setExportLoading(true);
+            const result = await this.api.requestEmailExport();
+            this.ui.showStatus(`Експорт надіслано на ${result.email}`);
+        } catch (error) {
+            this.ui.showStatus(error.message || 'Помилка експорту', true);
+        } finally {
+            this.ui.setExportLoading(false);
         }
     }
 

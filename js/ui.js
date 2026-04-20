@@ -6,14 +6,62 @@ export class UIManager {
         this.toastMsg = document.getElementById('toast-message');
         this.schemaSection = document.getElementById('schema-section');
         this.schemaContent = document.getElementById('schema-content');
-        this.syncBtn = document.getElementById('sync-btn');
-        this.onSync = null;
-        if (this.syncBtn) {
-    this.syncBtn.addEventListener('click', () => {
-        if (this.onSync) this.onSync();
-    });
-}
-        this.onDelete = null; // Callback for delete action
+        this.userBtn = document.getElementById('user-btn');
+        this.userEmail = document.getElementById('user-email');
+        this.authSection = document.getElementById('auth-section');
+        this.passkeyBtn = document.getElementById('passkey-btn');
+        this.settingsModal = document.getElementById('settings-modal');
+        this.exportBtn = document.getElementById('export-btn');
+
+        this.onLogout = null;
+        this.onOpenSettings = null;
+        this.onExport = null;
+        this.onDelete = null;
+
+        if (this.userBtn) {
+            this.userBtn.addEventListener('click', () => { if (this.onOpenSettings) this.onOpenSettings(); });
+        }
+        if (this.exportBtn) {
+            this.exportBtn.addEventListener('click', () => { if (this.onExport) this.onExport(); });
+        }
+
+        document.getElementById('settings-close-btn')?.addEventListener('click', () => this.hideSettingsModal());
+        document.getElementById('settings-logout-btn')?.addEventListener('click', () => {
+            if (this.onLogout) this.onLogout();
+        });
+
+        this.settingsModal?.addEventListener('click', (e) => {
+            if (e.target === this.settingsModal) this.hideSettingsModal();
+        });
+    }
+
+    showAuthSection(show) {
+        if (this.authSection) {
+            this.authSection.style.display = show ? 'flex' : 'none';
+        }
+    }
+
+    updateUserUI(user) {
+        if (this.userBtn && this.userEmail) {
+            if (user) {
+                this.userEmail.textContent = user.email;
+                this.userBtn.style.display = 'flex';
+            } else {
+                this.userBtn.style.display = 'none';
+            }
+        }
+    }
+
+    setAuthLoading(isLoading) {
+        if (!this.passkeyBtn) return;
+        if (isLoading) {
+            this.passkeyBtn.disabled = true;
+            this._oldPasskeyHtml = this.passkeyBtn.innerHTML;
+            this.passkeyBtn.innerHTML = '<span>Зачекайте...</span>';
+        } else {
+            this.passkeyBtn.disabled = false;
+            this.passkeyBtn.innerHTML = this._oldPasskeyHtml || 'Увійти через Passkey';
+        }
     }
 
     renderMeasurements(measurements) {
@@ -210,15 +258,48 @@ export class UIManager {
         });
     }
 
-    async setSyncLoading(isLoading) {
-    if (!this.syncBtn) return;
-    if (isLoading) {
-        this.syncBtn.disabled = true;
-        this._oldSyncHtml = this.syncBtn.innerHTML;
-        this.syncBtn.innerHTML = '<span>Обробка...</span>';
-    } else {
-        this.syncBtn.disabled = false;
-        this.syncBtn.innerHTML = this._oldSyncHtml || 'Синхронізувати з Таблицею';
+    showSettingsModal(user, settings) {
+        if (!this.settingsModal) return;
+        const emailEl = document.getElementById('settings-export-email');
+        const geminiEl = document.getElementById('settings-gemini-url');
+        const userEmailEl = document.getElementById('settings-user-email');
+        if (emailEl) emailEl.value = settings?.exportEmail ?? '';
+        if (geminiEl) geminiEl.value = settings?.geminiUrl ?? '';
+        if (userEmailEl) userEmailEl.textContent = user?.email ? `Обліковий запис: ${user.email}` : '';
+        this.settingsModal.style.display = 'flex';
     }
-}
+
+    hideSettingsModal() {
+        if (this.settingsModal) this.settingsModal.style.display = 'none';
+    }
+
+    getSettingsFormData() {
+        return {
+            exportEmail: document.getElementById('settings-export-email')?.value ?? null,
+            geminiUrl: document.getElementById('settings-gemini-url')?.value ?? null
+        };
+    }
+
+    setSettingsSaving(isSaving) {
+        const btn = document.getElementById('settings-save-btn');
+        if (!btn) return;
+        btn.disabled = isSaving;
+        btn.textContent = isSaving ? 'Збереження...' : 'Зберегти';
+    }
+
+    setExportLoading(isLoading) {
+        if (!this.exportBtn) return;
+        const textEl = document.getElementById('export-btn-text');
+        this.exportBtn.disabled = isLoading;
+        if (textEl) textEl.textContent = isLoading ? 'Надсилання...' : 'Надіслати CSV на email';
+    }
+
+    updateExportButton(settings) {
+        if (!this.exportBtn) return;
+        const hasEmail = !!settings?.exportEmail;
+        this.exportBtn.title = hasEmail
+            ? `Надіслати CSV на ${settings.exportEmail}`
+            : 'Вкажіть email у налаштуваннях для використання цієї функції';
+        this.exportBtn.style.opacity = hasEmail ? '1' : '0.5';
+    }
 }
