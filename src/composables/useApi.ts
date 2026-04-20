@@ -148,6 +148,15 @@ export function useApi() {
     return await res.json();
   }
 
+  async function exportCsv() {
+    const res = await _fetch(`${API_BASE_URL}/export/csv`, { method: 'POST' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Помилка експорту');
+    }
+    return await res.json();
+  }
+
   return {
     checkMe,
     logout,
@@ -163,5 +172,6 @@ export function useApi() {
     getSettings,
     patchSettings,
     analyzeImage,
+    exportCsv,
   };
 }
