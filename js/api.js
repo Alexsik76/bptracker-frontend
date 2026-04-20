@@ -64,13 +64,21 @@ export class ApiClient {
     }
 
     async requestMagicLink(email) {
-        const response = await this._fetch(`${CONFIG.API_BASE_URL}/auth/magic-link/request`, {
+        const response = await fetch(`${CONFIG.API_BASE_URL}/auth/magic-link/request`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
         });
         if (!response.ok) throw new Error('Не вдалося надіслати посилання');
         return true;
+    }
+
+    async consumeMagicLink(token) {
+        const response = await fetch(`${CONFIG.API_BASE_URL}/auth/consume?token=${token}`, {
+            method: 'GET'
+        });
+        if (!response.ok) throw new Error('Дія посилання закінчилася або воно недійсне');
+        return true; // Cookie will be set by browser automatically
     }
 
     // Measurements and other methods

@@ -39,6 +39,21 @@ class App {
     }
 
     async initApp() {
+        // Check for magic link token in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        if (token) {
+            this.ui.showStatus('Перевірка посилання...');
+            try {
+                await this.api.consumeMagicLink(token);
+                // Clean up URL without reloading
+                window.history.replaceState({}, document.title, window.location.pathname);
+                this.ui.showStatus('Успішний вхід через Email!');
+            } catch (err) {
+                this.ui.showStatus(err.message, true);
+            }
+        }
+
         const user = await this.auth.init();
         if (user) {
             this.ui.showAuthSection(false);
