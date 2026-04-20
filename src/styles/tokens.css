@@ -9,6 +9,8 @@
   --color-border: #e5e7eb;
   --color-danger: #ef4444;
   --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --text-2xl: 1.5rem;
 
   /* Spacing */
   --space-1: 0.25rem;
