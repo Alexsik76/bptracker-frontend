@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BP Tracker</title>
     
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#2563eb">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/822/822143.png">
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/822/822143.png">
@@ -13,14 +13,16 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js');
+                // Register SW relative to the application base
+                const base = document.querySelector('base')?.href || window.location.pathname.split('/').slice(0, -1).join('/') + '/';
+                navigator.serviceWorker.register('./sw.js');
             });
         }
     </script>
-    <script src="config.js"></script>
+    <script src="/config.js"></script>
 </head>
 <body>
     <div id="app"></div>
-    <script type="module" src="src/main.ts"></script>
+    <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
