@@ -6,7 +6,9 @@ import { useApi } from '../composables/useApi';
 import { useRouter } from 'vue-router';
 import MeasurementList from '../components/MeasurementList.vue';
 import BpChart from '../components/BpChart.vue';
+import SchemaCard from '../components/SchemaCard.vue';
 import { classifyBP, BP_CLASS_COLOR, BP_CLASS_LABEL } from '../utils/bp';
+import type { TreatmentSchema } from '../types/api';
 
 const auth = useAuthStore();
 const measurements = useMeasurementStore();
@@ -15,6 +17,7 @@ const router = useRouter();
 
 const isExporting = ref(false);
 const period = ref<7 | 30 | 90 | 365>(30);
+const schema = ref<TreatmentSchema | null>(null);
 
 const periods = [
   { label: '7д', value: 7 },
@@ -25,6 +28,7 @@ const periods = [
 
 onMounted(() => {
   measurements.fetchMeasurements();
+  api.getActiveSchema().then(s => { schema.value = s; });
 });
 
 const userInitials = computed(() => (auth.user?.email ?? '?').charAt(0).toUpperCase());
@@ -217,6 +221,10 @@ async function handleExport() {
         </div>
 
       </div>
+
+      <!-- Treatment schema (shown only if active schema exists) -->
+      <SchemaCard v-if="schema" :schema="schema" />
+
     </main>
   </div>
 </template>

@@ -1,4 +1,4 @@
-import type { Measurement, CreateMeasurementDto, User, UserSettings } from '../types/api';
+import type { Measurement, CreateMeasurementDto, User, UserSettings, TreatmentSchema } from '../types/api';
 
 declare global {
   interface Window {
@@ -148,6 +148,16 @@ export function useApi() {
     return await res.json();
   }
 
+  async function getActiveSchema(): Promise<TreatmentSchema | null> {
+    try {
+      const res = await _fetch(`${API_BASE_URL}/schemas/active`);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
   async function exportCsv() {
     const res = await _fetch(`${API_BASE_URL}/export/csv`, { method: 'POST' });
     if (!res.ok) {
@@ -173,5 +183,6 @@ export function useApi() {
     patchSettings,
     analyzeImage,
     exportCsv,
+    getActiveSchema,
   };
 }

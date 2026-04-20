@@ -27,3 +27,15 @@ export interface AuthStatus {
   user: User | null;
   status: 'idle' | 'loading' | 'authenticated' | 'anonymous';
 }
+
+export interface MedicationEntry {
+  Medicine: string;
+  Amount: string;
+  Condition?: string;
+}
+
+export interface TreatmentSchema {
+  id: string;
+  isActive: boolean;
+  scheduleDocument: Record<string, MedicationEntry[]> | null;
+}
