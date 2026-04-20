@@ -6,13 +6,12 @@ import { AuthManager } from './auth.js';
 class App {
     constructor() {
         try {
-            console.log('App initializing...');
             this.api = new ApiClient();
             this.ui = new UIManager();
             this.chart = new ChartManager('bp-chart');
             this.auth = new AuthManager(this.api);
-            
-            // Set up handlers
+            this._settings = null;
+
             this.ui.onDelete = async (id) => {
                 if (confirm('Ви впевнені, що хочете видалити цей замір?')) {
                     try {
@@ -24,26 +23,16 @@ class App {
                     }
                 }
             };
-            this.ui.onSync = async () => {
-                try {
-                    await this.ui.setSyncLoading(true);
-                    const result = await this.api.syncGoogleSheets();
-                    this.ui.showStatus(result);
-                } catch (error) {
-                    this.ui.showStatus('Помилка синхронізації', true);
-                } finally {
-                    await this.ui.setSyncLoading(false);
-                }
-            };
             this.ui.onLogout = () => this.auth.logout();
-            
+            this.ui.onOpenSettings = () => this.ui.showSettingsModal(this.auth.user, this._settings);
+            this.ui.onExport = () => this._handleExport();
+
             this._initEventListeners();
             this._initScanListeners();
             this._initAuthListeners();
-            
+            this._initSettingsListeners();
+
             this.initApp();
-            
-            console.log('App initialized successfully');
         } catch (e) {
             console.error('Critical app initialization error:', e);
         }
@@ -54,10 +43,19 @@ class App {
         if (user) {
             this.ui.showAuthSection(false);
             this.ui.updateUserUI(user);
-            await this.refresh();
+            await Promise.all([this.refresh(), this._loadSettings()]);
             this._checkSharedImage();
         } else {
             this.ui.showAuthSection(true);
+        }
+    }
+
+    async _loadSettings() {
+        try {
+            this._settings = await this.api.getSettings();
+            this.ui.updateExportButton(this._settings);
+        } catch {
+            // settings are optional — silently ignore
         }
     }
 
@@ -114,19 +112,54 @@ class App {
         });
 
         magicLinkBtn?.addEventListener('click', async () => {
-            const email = emailInput.value;
+            const email = emailInput?.value;
             if (!email) {
                 this.ui.showStatus('Введіть email для посилання', true);
                 return;
             }
-
             try {
                 await this.auth.requestMagicLink(email);
-                this.ui.showStatus('Посилання надіслано! Перевірте консоль бекенду.');
+                this.ui.showStatus('Посилання надіслано на email!');
             } catch (error) {
                 this.ui.showStatus('Не вдалося надіслати посилання', true);
             }
         });
+    }
+
+    _initSettingsListeners() {
+        const form = document.getElementById('settings-form');
+        form?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = this.ui.getSettingsFormData();
+            try {
+                this.ui.setSettingsSaving(true);
+                this._settings = await this.api.patchSettings(data);
+                this.ui.updateExportButton(this._settings);
+                this.ui.hideSettingsModal();
+                this.ui.showStatus('Налаштування збережено');
+            } catch (error) {
+                this.ui.showStatus(error.message || 'Помилка збереження', true);
+            } finally {
+                this.ui.setSettingsSaving(false);
+            }
+        });
+    }
+
+    async _handleExport() {
+        if (!this._settings?.exportEmail) {
+            this.ui.showStatus('Вкажіть email у налаштуваннях', true);
+            this.ui.showSettingsModal(this.auth.user, this._settings);
+            return;
+        }
+        try {
+            this.ui.setExportLoading(true);
+            const result = await this.api.requestEmailExport();
+            this.ui.showStatus(`Експорт надіслано на ${result.email}`);
+        } catch (error) {
+            this.ui.showStatus(error.message || 'Помилка експорту', true);
+        } finally {
+            this.ui.setExportLoading(false);
+        }
     }
 
     async handleFormSubmit(e) {
