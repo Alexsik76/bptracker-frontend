@@ -7,13 +7,55 @@ export class UIManager {
         this.schemaSection = document.getElementById('schema-section');
         this.schemaContent = document.getElementById('schema-content');
         this.syncBtn = document.getElementById('sync-btn');
+        this.userBtn = document.getElementById('user-btn');
+        this.userEmail = document.getElementById('user-email');
+        this.authSection = document.getElementById('auth-section');
+        this.passkeyBtn = document.getElementById('passkey-btn');
         this.onSync = null;
+        this.onLogout = null;
+        
         if (this.syncBtn) {
-    this.syncBtn.addEventListener('click', () => {
-        if (this.onSync) this.onSync();
-    });
-}
+            this.syncBtn.addEventListener('click', () => {
+                if (this.onSync) this.onSync();
+            });
+        }
+        if (this.userBtn) {
+            this.userBtn.addEventListener('click', () => {
+                if (confirm('Вийти з акаунту?')) {
+                    if (this.onLogout) this.onLogout();
+                }
+            });
+        }
         this.onDelete = null; // Callback for delete action
+    }
+
+    showAuthSection(show) {
+        if (this.authSection) {
+            this.authSection.style.display = show ? 'flex' : 'none';
+        }
+    }
+
+    updateUserUI(user) {
+        if (this.userBtn && this.userEmail) {
+            if (user) {
+                this.userEmail.textContent = user.email;
+                this.userBtn.style.display = 'flex';
+            } else {
+                this.userBtn.style.display = 'none';
+            }
+        }
+    }
+
+    setAuthLoading(isLoading) {
+        if (!this.passkeyBtn) return;
+        if (isLoading) {
+            this.passkeyBtn.disabled = true;
+            this._oldPasskeyHtml = this.passkeyBtn.innerHTML;
+            this.passkeyBtn.innerHTML = '<span>Зачекайте...</span>';
+        } else {
+            this.passkeyBtn.disabled = false;
+            this.passkeyBtn.innerHTML = this._oldPasskeyHtml || 'Увійти через Passkey';
+        }
     }
 
     renderMeasurements(measurements) {

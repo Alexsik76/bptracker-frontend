@@ -1,6 +1,7 @@
 import { ApiClient } from './api.js';
 import { UIManager } from './ui.js';
 import { ChartManager } from './chartManager.js';
+import { AuthManager } from './auth.js';
 
 class App {
     constructor() {
@@ -9,8 +10,9 @@ class App {
             this.api = new ApiClient();
             this.ui = new UIManager();
             this.chart = new ChartManager('bp-chart');
+            this.auth = new AuthManager(this.api);
             
-            // Set up delete handler
+            // Set up handlers
             this.ui.onDelete = async (id) => {
                 if (confirm('Ви впевнені, що хочете видалити цей замір?')) {
                     try {
@@ -33,18 +35,34 @@ class App {
                     await this.ui.setSyncLoading(false);
                 }
             };
+            this.ui.onLogout = () => this.auth.logout();
             
             this._initEventListeners();
             this._initScanListeners();
-            this.refresh();
-            this._checkSharedImage();
+            this._initAuthListeners();
+            
+            this.initApp();
+            
             console.log('App initialized successfully');
         } catch (e) {
             console.error('Critical app initialization error:', e);
         }
     }
 
+    async initApp() {
+        const user = await this.auth.init();
+        if (user) {
+            this.ui.showAuthSection(false);
+            this.ui.updateUserUI(user);
+            await this.refresh();
+            this._checkSharedImage();
+        } else {
+            this.ui.showAuthSection(true);
+        }
+    }
+
     async refresh() {
+        if (!this.auth.user) return;
         try {
             const [measurements, schema] = await Promise.all([
                 this.api.getMeasurements(),
@@ -56,8 +74,59 @@ class App {
             this.ui.renderSchema(schema);
         } catch (error) {
             console.warn('Refresh failed:', error);
-            this.ui.showStatus('Помилка оновлення даних', true);
+            if (error.message?.includes('401')) {
+                this.auth.logout();
+            } else {
+                this.ui.showStatus('Помилка оновлення даних', true);
+            }
         }
+    }
+
+    async _initAuthListeners() {
+        const authForm = document.getElementById('auth-form');
+        const magicLinkBtn = document.getElementById('magic-link-btn');
+        const emailInput = document.getElementById('auth-email');
+
+        authForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value;
+            if (!email) return;
+
+            try {
+                this.ui.setAuthLoading(true);
+                // Try login first
+                try {
+                    await this.auth.login();
+                } catch (err) {
+                    console.log('Login failed, trying registration...', err);
+                    // If login failed (e.g. no keys), try register
+                    await this.auth.register(email);
+                }
+                
+                await this.initApp();
+                this.ui.showStatus('Успішний вхід!');
+            } catch (error) {
+                console.error('Auth error:', error);
+                this.ui.showStatus('Помилка автентифікації', true);
+            } finally {
+                this.ui.setAuthLoading(false);
+            }
+        });
+
+        magicLinkBtn?.addEventListener('click', async () => {
+            const email = emailInput.value;
+            if (!email) {
+                this.ui.showStatus('Введіть email для посилання', true);
+                return;
+            }
+
+            try {
+                await this.auth.requestMagicLink(email);
+                this.ui.showStatus('Посилання надіслано! Перевірте консоль бекенду.');
+            } catch (error) {
+                this.ui.showStatus('Не вдалося надіслати посилання', true);
+            }
+        });
     }
 
     async handleFormSubmit(e) {
