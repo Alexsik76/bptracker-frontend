@@ -24,6 +24,8 @@ button {
 
 input {
   font-family: inherit;
+  color: var(--color-text);
+  color-scheme: light dark;
 }
 
 #app {
