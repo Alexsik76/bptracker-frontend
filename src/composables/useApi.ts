@@ -1,0 +1,167 @@
+import type { Measurement, CreateMeasurementDto, User, UserSettings } from '../types/api';
+
+declare global {
+  interface Window {
+    CONFIG: {
+      API_BASE_URL: string;
+      CHART_DAYS_LIMIT: number;
+    };
+  }
+}
+
+const API_BASE_URL = window.CONFIG?.API_BASE_URL || 'https://api-bptracker.home.vn.ua/api/v1';
+
+export function useApi() {
+  async function _fetch(url: string, options: RequestInit = {}) {
+    const response = await fetch(url, {
+      ...options,
+      credentials: 'include',
+    });
+
+    if (response.status === 401 && !url.includes('/auth/me')) {
+      // Handle session expiration
+      window.dispatchEvent(new CustomEvent('api:unauthorized'));
+    }
+
+    return response;
+  }
+
+  // Auth
+  async function checkMe(): Promise<User | null> {
+    try {
+      const res = await _fetch(`${API_BASE_URL}/auth/me`);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  async function logout() {
+    await _fetch(`${API_BASE_URL}/auth/logout`, { method: 'POST' });
+  }
+
+  async function requestMagicLink(email: string) {
+    const res = await _fetch(`${API_BASE_URL}/auth/magic-link/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) throw new Error('Не вдалося надіслати посилання');
+    return true;
+  }
+
+  async function consumeMagicLink(token: string) {
+    const res = await _fetch(`${API_BASE_URL}/auth/consume?token=${token}`);
+    if (!res.ok) throw new Error('Посилання недійсне');
+    return true;
+  }
+
+  // Passkey
+  async function registerPasskeyBegin(email: string) {
+    const res = await _fetch(`${API_BASE_URL}/auth/passkey/register/begin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) throw new Error('Помилка реєстрації');
+    return await res.json();
+  }
+
+  async function registerPasskeyComplete(data: any) {
+    const res = await _fetch(`${API_BASE_URL}/auth/passkey/register/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Помилка завершення реєстрації');
+    return await res.json();
+  }
+
+  async function loginPasskeyBegin() {
+    const res = await _fetch(`${API_BASE_URL}/auth/login/begin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    if (!res.ok) throw new Error('Помилка входу');
+    return await res.json();
+  }
+
+  async function loginPasskeyComplete(data: any) {
+    const res = await _fetch(`${API_BASE_URL}/auth/login/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Помилка входу');
+    return await res.json();
+  }
+
+  // Measurements
+  async function getMeasurements(): Promise<Measurement[]> {
+    const res = await _fetch(`${API_BASE_URL}/measurements`);
+    if (!res.ok) return [];
+    return await res.json();
+  }
+
+  async function addMeasurement(data: CreateMeasurementDto): Promise<Measurement> {
+    const res = await _fetch(`${API_BASE_URL}/measurements`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Помилка збереження');
+    return await res.json();
+  }
+
+  async function deleteMeasurement(id: string) {
+    const res = await _fetch(`${API_BASE_URL}/measurements/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Помилка видалення');
+  }
+
+  // Settings
+  async function getSettings(): Promise<UserSettings> {
+    const res = await _fetch(`${API_BASE_URL}/settings`);
+    if (!res.ok) throw new Error('Помилка завантаження налаштувань');
+    return await res.json();
+  }
+
+  async function patchSettings(data: Partial<UserSettings>): Promise<UserSettings> {
+    const res = await _fetch(`${API_BASE_URL}/settings`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Помилка збереження налаштувань');
+    return await res.json();
+  }
+
+  async function analyzeImage(file: File) {
+    const formData = new FormData();
+    formData.append('image', file);
+    const res = await _fetch(`${API_BASE_URL}/measurements/analyze`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) throw new Error('AI не вдалося розпізнати фото');
+    return await res.json();
+  }
+
+  return {
+    checkMe,
+    logout,
+    requestMagicLink,
+    consumeMagicLink,
+    registerPasskeyBegin,
+    registerPasskeyComplete,
+    loginPasskeyBegin,
+    loginPasskeyComplete,
+    getMeasurements,
+    addMeasurement,
+    deleteMeasurement,
+    getSettings,
+    patchSettings,
+    analyzeImage,
+  };
+}
