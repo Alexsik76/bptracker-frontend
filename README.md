@@ -87,6 +87,15 @@ npm run dev      # dev-сервер
 npm run build    # production збірка → dist/
 ```
 
+## Тести
+
+```bash
+npm run test:run   # одноразовий запуск (CI)
+npm run test       # watch-режим (розробка)
+```
+
+Покриті юніт-тестами: `useKpi` (медичні агрегати — середні, дельти, класифікація). CI (GitHub Actions) запускає тести перед кожним білдом та на Pull Request.
+
 Скрипт `build` автоматично копіює `dist/index.html` у `dist/404.html` для коректної роботи SPA-роутингу на GitHub Pages.
 
 ## Деплой (GitHub Pages)
