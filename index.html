@@ -13,9 +13,8 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Register SW relative to the application base
-                const base = document.querySelector('base')?.href || window.location.pathname.split('/').slice(0, -1).join('/') + '/';
-                navigator.serviceWorker.register('./sw.js');
+                navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                    .catch(function(err) { console.error('[SW] register failed', err); });
             });
         }
     </script>
