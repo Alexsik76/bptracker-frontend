@@ -1,4 +1,5 @@
 import type { Measurement, CreateMeasurementDto, User, UserSettings, TreatmentSchema } from '../types/api';
+import type { RegistrationResponseJSON, AuthenticationResponseJSON } from '@simplewebauthn/browser';
 
 declare global {
   interface Window {
@@ -92,7 +93,7 @@ export function useApi() {
     return await res.json();
   }
 
-  async function registerPasskeyComplete(data: any) {
+  async function registerPasskeyComplete(data: RegistrationResponseJSON) {
     const res = await _fetch(`${API_BASE_URL}/auth/passkey/register/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -112,7 +113,7 @@ export function useApi() {
     return await res.json();
   }
 
-  async function loginPasskeyComplete(data: any) {
+  async function loginPasskeyComplete(data: AuthenticationResponseJSON) {
     const res = await _fetch(`${API_BASE_URL}/auth/login/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

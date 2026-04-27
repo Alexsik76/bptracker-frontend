@@ -15,6 +15,7 @@ const { confirm } = useConfirm();
 const form = reactive({
   geminiUrl: '',
   exportEmail: '',
+  sheetsTemplateUrl: '',
 });
 
 const loading = ref(false);
@@ -23,6 +24,7 @@ onMounted(async () => {
   await settingsStore.fetchSettings();
   form.geminiUrl = settingsStore.settings.geminiUrl || '';
   form.exportEmail = settingsStore.settings.exportEmail || '';
+  form.sheetsTemplateUrl = settingsStore.settings.sheetsTemplateUrl || '';
 });
 
 async function save() {
@@ -79,6 +81,13 @@ async function handleLogout() {
             <label>
               Gemini API URL (custom)
               <input v-model="form.geminiUrl" type="url" placeholder="https://...">
+            </label>
+          </div>
+
+          <div class="field">
+            <label>
+              Шаблон Google Sheets для імпорту CSV
+              <input v-model="form.sheetsTemplateUrl" type="url" placeholder="https://docs.google.com/spreadsheets/...">
             </label>
           </div>
 
