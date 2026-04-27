@@ -52,7 +52,11 @@ export function useApi() {
   }
 
   async function consumeMagicLink(token: string) {
-    const res = await _fetch(`${API_BASE_URL}/auth/consume?token=${token}`);
+    const res = await _fetch(`${API_BASE_URL}/auth/magic-link/consume`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    });
     if (!res.ok) throw new Error('Посилання недійсне');
     return true;
   }
@@ -100,7 +104,7 @@ export function useApi() {
 
   // Measurements
   async function getMeasurements(): Promise<Measurement[]> {
-    const res = await _fetch(`${API_BASE_URL}/measurements`);
+    const res = await _fetch(`${API_BASE_URL}/measurements?days=90`);
     if (!res.ok) return [];
     return await res.json();
   }

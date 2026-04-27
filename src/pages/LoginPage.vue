@@ -19,6 +19,7 @@ onMounted(async () => {
     message.value = 'Перевірка посилання...';
     try {
       await auth.consumeMagicLink(token);
+      window.history.replaceState({}, '', '/login');
       router.push({ name: 'dashboard' });
     } catch (err: any) {
       error.value = err.message || 'Посилання недійсне';
