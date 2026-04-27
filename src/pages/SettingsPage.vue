@@ -69,13 +69,17 @@ async function handleLogout() {
         <h2>Параметри</h2>
         <form @submit.prevent="save">
           <div class="field">
-            <label>Email для експорту CSV</label>
-            <input v-model="form.exportEmail" type="email" placeholder="email@example.com">
+            <label>
+              Email для експорту CSV
+              <input v-model="form.exportEmail" type="email" placeholder="email@example.com">
+            </label>
           </div>
 
           <div class="field">
-            <label>Gemini API URL (custom)</label>
-            <input v-model="form.geminiUrl" type="url" placeholder="https://...">
+            <label>
+              Gemini API URL (custom)
+              <input v-model="form.geminiUrl" type="url" placeholder="https://...">
+            </label>
           </div>
 
           <button type="submit" class="btn primary" :disabled="loading">
