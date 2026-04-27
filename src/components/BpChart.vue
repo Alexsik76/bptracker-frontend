@@ -12,7 +12,15 @@ import {
   Tooltip,
 } from 'chart.js';
 
-Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Legend, Tooltip);
+Chart.register(
+  LineController,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Legend,
+  Tooltip,
+);
 import type { Measurement } from '../types/api';
 import { cssVar } from '../utils/theme';
 
@@ -185,7 +193,10 @@ function buildLabel(m: Measurement, prev: Measurement | undefined): string | str
 
   if (!prev) return [dayStr, timeStr];
 
-  const prevDay = new Date(prev.recordedAt).toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
+  const prevDay = new Date(prev.recordedAt).toLocaleDateString('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+  });
   // Same day: show only time to avoid duplicate date labels
   return prevDay === dayStr ? timeStr : [dayStr, timeStr];
 }
@@ -200,9 +211,9 @@ function updateChart() {
   const labels = sorted.map((m, i) => buildLabel(m, sorted[i - 1]));
 
   chart.data.labels = labels;
-  chart.data.datasets[0]!.data = sorted.map(m => m.sys);
-  chart.data.datasets[1]!.data = sorted.map(m => m.dia);
-  chart.data.datasets[2]!.data = sorted.map(m => m.pulse);
+  chart.data.datasets[0]!.data = sorted.map((m) => m.sys);
+  chart.data.datasets[1]!.data = sorted.map((m) => m.dia);
+  chart.data.datasets[2]!.data = sorted.map((m) => m.pulse);
   chart.update();
 }
 </script>

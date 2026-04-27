@@ -1,28 +1,30 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useMeasurementStore } from '../stores/measurements'
-import { useApi } from '../composables/useApi'
-import DashboardHeader from '../components/dashboard/DashboardHeader.vue'
-import KpiGrid from '../components/dashboard/KpiGrid.vue'
-import ChartPanel from '../components/dashboard/ChartPanel.vue'
-import HistoryPanel from '../components/dashboard/HistoryPanel.vue'
-import SchemaCard from '../components/SchemaCard.vue'
-import type { TreatmentSchema } from '../types/api'
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useMeasurementStore } from '../stores/measurements';
+import { useApi } from '../composables/useApi';
+import DashboardHeader from '../components/dashboard/DashboardHeader.vue';
+import KpiGrid from '../components/dashboard/KpiGrid.vue';
+import ChartPanel from '../components/dashboard/ChartPanel.vue';
+import HistoryPanel from '../components/dashboard/HistoryPanel.vue';
+import SchemaCard from '../components/SchemaCard.vue';
+import type { TreatmentSchema } from '../types/api';
 
-const measurements = useMeasurementStore()
-const api = useApi()
-const schema = ref<TreatmentSchema | null>(null)
-const controller = new AbortController()
-const recentMeasurements = computed(() => measurements.items.slice(0, 7))
+const measurements = useMeasurementStore();
+const api = useApi();
+const schema = ref<TreatmentSchema | null>(null);
+const controller = new AbortController();
+const recentMeasurements = computed(() => measurements.items.slice(0, 7));
 
 onMounted(() => {
-  measurements.fetchMeasurements(controller.signal)
-  api.getActiveSchema(controller.signal).then(s => { schema.value = s })
-})
+  measurements.fetchMeasurements(controller.signal);
+  api.getActiveSchema(controller.signal).then((s) => {
+    schema.value = s;
+  });
+});
 
 onUnmounted(() => {
-  controller.abort()
-})
+  controller.abort();
+});
 </script>
 
 <template>

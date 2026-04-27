@@ -1,4 +1,10 @@
-import type { Measurement, CreateMeasurementDto, User, UserSettings, TreatmentSchema } from '../types/api';
+import type {
+  Measurement,
+  CreateMeasurementDto,
+  User,
+  UserSettings,
+  TreatmentSchema,
+} from '../types/api';
 import type { RegistrationResponseJSON, AuthenticationResponseJSON } from '@simplewebauthn/browser';
 
 declare global {

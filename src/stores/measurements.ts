@@ -45,7 +45,7 @@ export const useMeasurementStore = defineStore('measurements', () => {
 
   async function remove(id: string) {
     await api.deleteMeasurement(id);
-    items.value = items.value.filter(m => m.id !== id);
+    items.value = items.value.filter((m) => m.id !== id);
   }
 
   function reset() {

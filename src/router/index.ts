@@ -42,7 +42,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, _from, next) => {
   const auth = useAuthStore();
-  
+
   if (auth.status === 'idle') {
     await auth.checkSession();
   }

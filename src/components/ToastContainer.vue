@@ -8,14 +8,9 @@ const { toasts, dismiss } = useToast();
   <Teleport to="body">
     <div class="toast-wrap" aria-live="polite" aria-atomic="false">
       <TransitionGroup name="toast" tag="div" class="toast-list">
-        <div
-          v-for="t in toasts"
-          :key="t.id"
-          :class="['toast', t.type]"
-          role="status"
-        >
+        <div v-for="t in toasts" :key="t.id" :class="['toast', t.type]" role="status">
           <span class="toast-msg">{{ t.message }}</span>
-          <button class="toast-close" @click="dismiss(t.id)" aria-label="Закрити">✕</button>
+          <button class="toast-close" aria-label="Закрити" @click="dismiss(t.id)">✕</button>
         </div>
       </TransitionGroup>
     </div>
@@ -76,7 +71,9 @@ const { toasts, dismiss } = useToast();
   }
 }
 
-.toast-msg { flex: 1; }
+.toast-msg {
+  flex: 1;
+}
 
 .toast-close {
   background: none;
@@ -89,12 +86,22 @@ const { toasts, dismiss } = useToast();
   padding: 0;
   flex-shrink: 0;
 
-  &:hover { opacity: 1; }
+  &:hover {
+    opacity: 1;
+  }
 }
 
 .toast-enter-active,
-.toast-leave-active { transition: all 0.25s ease; }
+.toast-leave-active {
+  transition: all 0.25s ease;
+}
 
-.toast-enter-from { opacity: 0; transform: translateY(12px); }
-.toast-leave-to   { opacity: 0; transform: translateX(20px); }
+.toast-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
 </style>

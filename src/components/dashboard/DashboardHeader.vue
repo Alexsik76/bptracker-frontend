@@ -1,37 +1,67 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useAuthStore } from '../../stores/auth'
-import { useRouter } from 'vue-router'
+import { computed } from 'vue';
+import { useAuthStore } from '../../stores/auth';
+import { useRouter } from 'vue-router';
 
-const auth = useAuthStore()
-const router = useRouter()
+const auth = useAuthStore();
+const router = useRouter();
 
-const userInitials = computed(() => (auth.user?.email ?? '?').charAt(0).toUpperCase())
+const userInitials = computed(() => (auth.user?.email ?? '?').charAt(0).toUpperCase());
 </script>
 
 <template>
   <header class="header">
     <div class="header-content">
       <div class="logo">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
         </svg>
         <h1>BP Tracker</h1>
       </div>
       <div class="header-actions">
-        <button @click="router.push({ name: 'settings' })" class="settings-btn" title="Налаштування" aria-label="Налаштування">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button
+          class="settings-btn"
+          title="Налаштування"
+          aria-label="Налаштування"
+          @click="router.push({ name: 'settings' })"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+            ></path>
           </svg>
         </button>
-        <RouterLink :to="{ name: 'settings' }" class="user-chip" title="Профіль" :aria-label="`Профіль: ${auth.user?.email}`">
+        <RouterLink
+          :to="{ name: 'settings' }"
+          class="user-chip"
+          title="Профіль"
+          :aria-label="`Профіль: ${auth.user?.email}`"
+        >
           <span class="avatar" aria-hidden="true">{{ userInitials }}</span>
           <span class="user-email">{{ auth.user?.email }}</span>
         </RouterLink>
-        <button @click="router.push({ name: 'measurement-new' })" class="add-btn">
-          + Додати
-        </button>
+        <button class="add-btn" @click="router.push({ name: 'measurement-new' })">+ Додати</button>
       </div>
     </div>
   </header>
@@ -75,10 +105,12 @@ const userInitials = computed(() => (auth.user?.email ?? '?').charAt(0).toUpperC
 }
 
 .settings-btn {
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   transition: color 0.2s;
 
-  &:hover { color: white; }
+  &:hover {
+    color: white;
+  }
 }
 
 .user-chip {
@@ -86,16 +118,18 @@ const userInitials = computed(() => (auth.user?.email ?? '?').charAt(0).toUpperC
   align-items: center;
   gap: var(--space-2);
   cursor: pointer;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
   transition: color 0.2s;
 
-  &:hover { color: white; }
+  &:hover {
+    color: white;
+  }
 
   & .avatar {
     width: 28px;
     height: 28px;
-    background: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -108,7 +142,9 @@ const userInitials = computed(() => (auth.user?.email ?? '?').charAt(0).toUpperC
   & .user-email {
     font-size: var(--text-sm);
     display: none;
-    @media (min-width: 640px) { display: inline; }
+    @media (min-width: 640px) {
+      display: inline;
+    }
   }
 }
 
@@ -119,14 +155,18 @@ const userInitials = computed(() => (auth.user?.email ?? '?').charAt(0).toUpperC
   border-radius: var(--radius-md);
   font-weight: 700;
   font-size: var(--text-sm);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  transition: box-shadow 0.15s, transform 0.1s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition:
+    box-shadow 0.15s,
+    transform 0.1s;
 
   &:hover {
-    box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
     transform: translateY(-1px);
   }
 
-  &:active { transform: scale(0.97); }
+  &:active {
+    transform: scale(0.97);
+  }
 }
 </style>

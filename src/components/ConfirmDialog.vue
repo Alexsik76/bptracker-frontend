@@ -71,7 +71,9 @@ watch(state, (val) => {
   border: 1px solid var(--color-border);
   cursor: pointer;
 
-  &:hover { border-color: var(--color-text-muted); }
+  &:hover {
+    border-color: var(--color-text-muted);
+  }
 }
 
 .btn-confirm {
@@ -83,6 +85,8 @@ watch(state, (val) => {
   color: white;
   cursor: pointer;
 
-  &:hover { background: var(--color-primary-hover); }
+  &:hover {
+    background: var(--color-primary-hover);
+  }
 }
 </style>

@@ -1,15 +1,15 @@
 <script setup lang="ts">
 interface Props {
-  label: string
-  value: string
-  sub?: string
-  accentColor?: string
-  valueColor?: string
+  label: string;
+  value: string;
+  sub?: string;
+  accentColor?: string;
+  valueColor?: string;
 }
 withDefaults(defineProps<Props>(), {
   accentColor: 'var(--color-border)',
   valueColor: 'var(--color-text)',
-})
+});
 </script>
 
 <template>

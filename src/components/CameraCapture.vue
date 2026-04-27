@@ -13,16 +13,16 @@ const error = ref('');
 onMounted(async () => {
   try {
     stream.value = await navigator.mediaDevices.getUserMedia({
-      video: { 
-        facingMode: 'environment', 
-        width: { ideal: 1280 }, 
-        height: { ideal: 720 } 
-      }
+      video: {
+        facingMode: 'environment',
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
     });
     if (videoRef.value) {
       videoRef.value.srcObject = stream.value;
     }
-  } catch (err) {
+  } catch {
     error.value = 'Не вдалося отримати доступ до камери. Перевірте дозволи.';
   }
 });
@@ -32,7 +32,7 @@ onUnmounted(() => {
 });
 
 function stopCamera() {
-  stream.value?.getTracks().forEach(t => t.stop());
+  stream.value?.getTracks().forEach((t) => t.stop());
   stream.value = null;
 }
 
@@ -46,12 +46,16 @@ function capture() {
   if (!ctx) return;
 
   ctx.drawImage(videoRef.value, 0, 0);
-  canvas.toBlob((blob) => {
-    if (blob) {
-      const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
-      emit('capture', file);
-    }
-  }, 'image/jpeg', 0.9);
+  canvas.toBlob(
+    (blob) => {
+      if (blob) {
+        const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
+        emit('capture', file);
+      }
+    },
+    'image/jpeg',
+    0.9,
+  );
 }
 </script>
 
@@ -59,19 +63,19 @@ function capture() {
   <div class="camera-container">
     <div v-if="error" class="error-state">
       <p>{{ error }}</p>
-      <button @click="emit('cancel')" class="btn secondary">Назад</button>
+      <button class="btn secondary" @click="emit('cancel')">Назад</button>
     </div>
-    
+
     <div v-else class="video-wrapper">
       <video ref="videoRef" autoplay playsinline muted class="camera-video"></video>
       <div class="overlay">
         <div class="focus-box"></div>
         <p class="hint">Наведіть на екран тонометра</p>
       </div>
-      
+
       <div class="controls">
-        <button @click="emit('cancel')" class="control-btn cancel">Скасувати</button>
-        <button @click="capture" class="capture-btn">
+        <button class="control-btn cancel" @click="emit('cancel')">Скасувати</button>
+        <button class="capture-btn" @click="capture">
           <div class="inner-circle"></div>
         </button>
         <div class="spacer"></div>

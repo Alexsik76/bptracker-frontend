@@ -32,7 +32,7 @@ async function save() {
   try {
     await settingsStore.updateSettings({ ...form });
     toast.success('Налаштування збережено!');
-  } catch (err) {
+  } catch {
     toast.error('Помилка при збереженні');
   } finally {
     loading.value = false;
@@ -51,8 +51,18 @@ async function handleLogout() {
 <template>
   <div class="settings-page">
     <header class="header">
-      <button @click="router.back()" class="back-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button class="back-btn" @click="router.back()">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
@@ -64,7 +74,7 @@ async function handleLogout() {
       <section class="user-info card">
         <h2>Акаунт</h2>
         <p class="email">{{ auth.user?.email }}</p>
-        <button @click="handleLogout" class="btn-link danger">Вийти з системи</button>
+        <button class="btn-link danger" @click="handleLogout">Вийти з системи</button>
       </section>
 
       <section class="settings-form card">
@@ -73,21 +83,25 @@ async function handleLogout() {
           <div class="field">
             <label>
               Email для експорту CSV
-              <input v-model="form.exportEmail" type="email" placeholder="email@example.com">
+              <input v-model="form.exportEmail" type="email" placeholder="email@example.com" />
             </label>
           </div>
 
           <div class="field">
             <label>
               Gemini API URL (custom)
-              <input v-model="form.geminiUrl" type="url" placeholder="https://...">
+              <input v-model="form.geminiUrl" type="url" placeholder="https://..." />
             </label>
           </div>
 
           <div class="field">
             <label>
               Шаблон Google Sheets для імпорту CSV
-              <input v-model="form.sheetsTemplateUrl" type="url" placeholder="https://docs.google.com/spreadsheets/...">
+              <input
+                v-model="form.sheetsTemplateUrl"
+                type="url"
+                placeholder="https://docs.google.com/spreadsheets/..."
+              />
             </label>
           </div>
 
@@ -180,7 +194,7 @@ async function handleLogout() {
   padding: var(--space-3);
   border-radius: var(--radius-md);
   font-weight: bold;
-  
+
   &.primary {
     background: var(--color-primary);
     color: white;
@@ -190,7 +204,7 @@ async function handleLogout() {
 .btn-link {
   font-size: var(--text-sm);
   font-weight: 500;
-  
+
   &.danger {
     color: var(--color-danger);
   }

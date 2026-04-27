@@ -18,12 +18,18 @@ export function useToast() {
     setTimeout(() => dismiss(id), ttl);
   }
 
-  function success(message: string) { add('success', message); }
-  function error(message: string) { add('error', message); }
-  function info(message: string) { add('info', message); }
+  function success(message: string) {
+    add('success', message);
+  }
+  function error(message: string) {
+    add('error', message);
+  }
+  function info(message: string) {
+    add('info', message);
+  }
 
   function dismiss(id: number) {
-    toasts.value = toasts.value.filter(t => t.id !== id);
+    toasts.value = toasts.value.filter((t) => t.id !== id);
   }
 
   return { toasts, success, error, info, dismiss };
