@@ -48,7 +48,8 @@ self.addEventListener('fetch', event => {
         event.respondWith(
             fetch('/index.html', { cache: 'no-store' })
                 .then(resp => {
-                    caches.open(CACHE).then(c => c.put('/index.html', resp.clone()));
+                    const toCache = resp.clone();
+                    caches.open(CACHE).then(c => c.put('/index.html', toCache));
                     return resp;
                 })
                 .catch(() => caches.match('/index.html'))
@@ -63,7 +64,8 @@ self.addEventListener('fetch', event => {
                 if (cached) return cached;
                 return fetch(event.request).then(resp => {
                     if (resp.ok) {
-                        caches.open(CACHE).then(c => c.put(event.request, resp.clone()));
+                        const toCache = resp.clone();
+                        caches.open(CACHE).then(c => c.put(event.request, toCache));
                     }
                     return resp;
                 });
@@ -77,7 +79,8 @@ self.addEventListener('fetch', event => {
         fetch(event.request, { cache: 'no-store' })
             .then(resp => {
                 if (resp.ok) {
-                    caches.open(CACHE).then(c => c.put(event.request, resp.clone()));
+                    const toCache = resp.clone();
+                    caches.open(CACHE).then(c => c.put(event.request, toCache));
                 }
                 return resp;
             })
