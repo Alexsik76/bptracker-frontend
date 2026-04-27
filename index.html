@@ -7,15 +7,14 @@
     
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#2563eb">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/822/822143.png">
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/822/822143.png">
+    <link rel="apple-touch-icon" href="/icons/icon.svg">
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
 
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Register SW relative to the application base
-                const base = document.querySelector('base')?.href || window.location.pathname.split('/').slice(0, -1).join('/') + '/';
-                navigator.serviceWorker.register('./sw.js');
+                navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                    .catch(function(err) { console.error('[SW] register failed', err); });
             });
         }
     </script>

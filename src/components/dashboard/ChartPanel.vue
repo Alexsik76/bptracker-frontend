@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import PeriodTabs from './PeriodTabs.vue'
-import BpChart from '../BpChart.vue'
-import type { Measurement } from '../../types/api'
+import { ref, computed } from 'vue';
+import PeriodTabs from './PeriodTabs.vue';
+import BpChart from '../BpChart.vue';
+import type { Measurement } from '../../types/api';
 
 interface Props {
-  measurements: Measurement[]
+  measurements: Measurement[];
 }
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
-const period = ref<7 | 30 | 90 | 365>(30)
+const period = ref<7 | 30 | 90 | 365>(30);
 
 const filtered = computed(() => {
-  const cutoff = Date.now() - period.value * 86400000
-  return props.measurements.filter(m => new Date(m.recordedAt).getTime() >= cutoff)
-})
+  const cutoff = Date.now() - period.value * 86400000;
+  return props.measurements.filter((m) => new Date(m.recordedAt).getTime() >= cutoff);
+});
 </script>
 
 <template>
@@ -23,9 +23,7 @@ const filtered = computed(() => {
       <h2>Динаміка</h2>
       <PeriodTabs v-model="period" />
     </div>
-    <div v-if="filtered.length === 0" class="chart-empty">
-      Немає даних за вибраний період
-    </div>
+    <div v-if="filtered.length === 0" class="chart-empty">Немає даних за вибраний період</div>
     <BpChart v-else :data="filtered" />
   </div>
 </template>

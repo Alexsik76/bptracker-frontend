@@ -3,40 +3,45 @@ import { onMounted, reactive, ref } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
 import { useRouter } from 'vue-router';
+import { useToast } from '../composables/useToast';
+import { useConfirm } from '../composables/useConfirm';
 
 const auth = useAuthStore();
 const settingsStore = useSettingsStore();
 const router = useRouter();
+const toast = useToast();
+const { confirm } = useConfirm();
 
 const form = reactive({
   geminiUrl: '',
   exportEmail: '',
+  sheetsTemplateUrl: '',
 });
 
 const loading = ref(false);
-const message = ref('');
 
 onMounted(async () => {
   await settingsStore.fetchSettings();
   form.geminiUrl = settingsStore.settings.geminiUrl || '';
   form.exportEmail = settingsStore.settings.exportEmail || '';
+  form.sheetsTemplateUrl = settingsStore.settings.sheetsTemplateUrl || '';
 });
 
 async function save() {
   loading.value = true;
-  message.value = '';
   try {
     await settingsStore.updateSettings({ ...form });
-    message.value = 'Налаштування збережено!';
-  } catch (err) {
-    alert('Помилка при збереженні');
+    toast.success('Налаштування збережено!');
+  } catch {
+    toast.error('Помилка при збереженні');
   } finally {
     loading.value = false;
   }
 }
 
-function handleLogout() {
-  if (confirm('Вийти з акаунту?')) {
+async function handleLogout() {
+  const ok = await confirm('Вийти з акаунту?', { confirmText: 'Вийти', cancelText: 'Скасувати' });
+  if (ok) {
     auth.logout();
     router.push({ name: 'login' });
   }
@@ -46,8 +51,18 @@ function handleLogout() {
 <template>
   <div class="settings-page">
     <header class="header">
-      <button @click="router.back()" class="back-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button class="back-btn" @click="router.back()">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
@@ -59,23 +74,36 @@ function handleLogout() {
       <section class="user-info card">
         <h2>Акаунт</h2>
         <p class="email">{{ auth.user?.email }}</p>
-        <button @click="handleLogout" class="btn-link danger">Вийти з системи</button>
+        <button class="btn-link danger" @click="handleLogout">Вийти з системи</button>
       </section>
 
       <section class="settings-form card">
         <h2>Параметри</h2>
         <form @submit.prevent="save">
           <div class="field">
-            <label>Email для експорту CSV</label>
-            <input v-model="form.exportEmail" type="email" placeholder="email@example.com">
+            <label>
+              Email для експорту CSV
+              <input v-model="form.exportEmail" type="email" placeholder="email@example.com" />
+            </label>
           </div>
 
           <div class="field">
-            <label>Gemini API URL (custom)</label>
-            <input v-model="form.geminiUrl" type="url" placeholder="https://...">
+            <label>
+              Gemini API URL (custom)
+              <input v-model="form.geminiUrl" type="url" placeholder="https://..." />
+            </label>
           </div>
 
-          <div v-if="message" class="success-msg">{{ message }}</div>
+          <div class="field">
+            <label>
+              Шаблон Google Sheets для імпорту CSV
+              <input
+                v-model="form.sheetsTemplateUrl"
+                type="url"
+                placeholder="https://docs.google.com/spreadsheets/..."
+              />
+            </label>
+          </div>
 
           <button type="submit" class="btn primary" :disabled="loading">
             {{ loading ? 'Збереження...' : 'Зберегти зміни' }}
@@ -166,7 +194,7 @@ function handleLogout() {
   padding: var(--space-3);
   border-radius: var(--radius-md);
   font-weight: bold;
-  
+
   &.primary {
     background: var(--color-primary);
     color: white;
@@ -176,17 +204,10 @@ function handleLogout() {
 .btn-link {
   font-size: var(--text-sm);
   font-weight: 500;
-  
+
   &.danger {
     color: var(--color-danger);
   }
-}
-
-.success-msg {
-  color: var(--color-success);
-  font-size: var(--text-sm);
-  margin-bottom: var(--space-4);
-  text-align: center;
 }
 
 .version {

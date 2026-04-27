@@ -16,13 +16,16 @@ const form = reactive({
   pulse: props.initialData?.pulse ?? 70,
 });
 
-watch(() => props.initialData, (newVal) => {
-  if (newVal) {
-    form.sys = newVal.sys;
-    form.dia = newVal.dia;
-    form.pulse = newVal.pulse;
-  }
-});
+watch(
+  () => props.initialData,
+  (newVal) => {
+    if (newVal) {
+      form.sys = newVal.sys;
+      form.dia = newVal.dia;
+      form.pulse = newVal.pulse;
+    }
+  },
+);
 
 function handleSubmit() {
   if (validate()) {
@@ -39,33 +42,39 @@ function validate() {
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit" class="form">
+  <form class="form" @submit.prevent="handleSubmit">
     <div class="field">
-      <label>Систолічний (верхній)</label>
-      <div class="input-wrapper">
-        <input v-model.number="form.sys" type="number" min="40" max="300" required>
-        <span class="unit">мм рт.ст.</span>
-      </div>
+      <label>
+        Систолічний (верхній)
+        <div class="input-wrapper">
+          <input v-model.number="form.sys" type="number" min="40" max="300" required />
+          <span class="unit">мм рт.ст.</span>
+        </div>
+      </label>
     </div>
 
     <div class="field">
-      <label>Діастолічний (нижній)</label>
-      <div class="input-wrapper">
-        <input v-model.number="form.dia" type="number" min="20" max="200" required>
-        <span class="unit">мм рт.ст.</span>
-      </div>
+      <label>
+        Діастолічний (нижній)
+        <div class="input-wrapper">
+          <input v-model.number="form.dia" type="number" min="20" max="200" required />
+          <span class="unit">мм рт.ст.</span>
+        </div>
+      </label>
     </div>
 
     <div class="field">
-      <label>Пульс</label>
-      <div class="input-wrapper">
-        <input v-model.number="form.pulse" type="number" min="30" max="250" required>
-        <span class="unit">уд/хв</span>
-      </div>
+      <label>
+        Пульс
+        <div class="input-wrapper">
+          <input v-model.number="form.pulse" type="number" min="30" max="250" required />
+          <span class="unit">уд/хв</span>
+        </div>
+      </label>
     </div>
 
     <div class="actions">
-      <button type="button" @click="emit('cancel')" class="btn secondary">Скасувати</button>
+      <button type="button" class="btn secondary" @click="emit('cancel')">Скасувати</button>
       <button type="submit" class="btn primary">Зберегти</button>
     </div>
   </form>

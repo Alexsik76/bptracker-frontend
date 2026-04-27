@@ -19,9 +19,14 @@ export const useSettingsStore = defineStore('settings', () => {
     settings.value = await api.patchSettings(data);
   }
 
+  function reset() {
+    settings.value = {};
+  }
+
   return {
     settings,
     fetchSettings,
     updateSettings,
+    reset,
   };
 });

@@ -1,51 +1,51 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import KpiCard from './KpiCard.vue'
-import { useKpi } from '../../composables/useKpi'
-import { BP_CLASS_COLOR, BP_CLASS_LABEL } from '../../utils/bp'
-import type { Measurement } from '../../types/api'
+import { computed } from 'vue';
+import KpiCard from './KpiCard.vue';
+import { useKpi } from '../../composables/useKpi';
+import { BP_CLASS_COLOR, BP_CLASS_LABEL } from '../../utils/bp';
+import type { Measurement } from '../../types/api';
 
 interface Props {
-  measurements: Measurement[]
+  measurements: Measurement[];
 }
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
-const kpi = useKpi(() => props.measurements)
+const kpi = useKpi(() => props.measurements);
 
 function fmtDelta(n: number | null): string {
-  if (n === null) return '—'
-  return n > 0 ? `+${n}` : `${n}`
+  if (n === null) return '—';
+  return n > 0 ? `+${n}` : `${n}`;
 }
 
 const normalValue = computed(() => {
-  const k = kpi.value
-  if (!k || k.totalLast7 === 0) return '—'
-  return `${k.normalCount}/${k.totalLast7}`
-})
+  const k = kpi.value;
+  if (!k || k.totalLast7 === 0) return '—';
+  return `${k.normalCount}/${k.totalLast7}`;
+});
 
 const normalSub = computed(() => {
-  const k = kpi.value
-  if (!k || k.totalLast7 === 0) return 'немає даних'
-  return `${Math.round((k.normalShare ?? 0) * 100)}% у зеленій зоні`
-})
+  const k = kpi.value;
+  if (!k || k.totalLast7 === 0) return 'немає даних';
+  return `${Math.round((k.normalShare ?? 0) * 100)}% у зеленій зоні`;
+});
 
 const normalAccent = computed(() => {
-  const k = kpi.value
-  if (!k || k.totalLast7 === 0 || (k.normalShare ?? 0) < 0.5) return 'var(--color-warning)'
-  return 'var(--color-success)'
-})
+  const k = kpi.value;
+  if (!k || k.totalLast7 === 0 || (k.normalShare ?? 0) < 0.5) return 'var(--color-warning)';
+  return 'var(--color-success)';
+});
 
 const deltaValue = computed(() => {
-  const k = kpi.value
-  if (!k || k.deltaSys === null) return '—'
-  return `${k.deltaIcon} ${fmtDelta(k.deltaSys)} / ${fmtDelta(k.deltaDia)}`
-})
+  const k = kpi.value;
+  if (!k || k.deltaSys === null) return '—';
+  return `${k.deltaIcon} ${fmtDelta(k.deltaSys)} / ${fmtDelta(k.deltaDia)}`;
+});
 
 const deltaSub = computed(() => {
-  const k = kpi.value
-  if (!k || k.deltaSys === null) return 'замало даних'
-  return 'мм рт.ст. vs попередній тиждень'
-})
+  const k = kpi.value;
+  if (!k || k.deltaSys === null) return 'замало даних';
+  return 'мм рт.ст. vs попередній тиждень';
+});
 </script>
 
 <template>
@@ -54,8 +54,8 @@ const deltaSub = computed(() => {
       label="Останній замір"
       :value="`${kpi.last.sys}/${kpi.last.dia}`"
       :sub="BP_CLASS_LABEL[kpi.lastClass]"
-      :accentColor="BP_CLASS_COLOR[kpi.lastClass]"
-      :valueColor="BP_CLASS_COLOR[kpi.lastClass]"
+      :accent-color="BP_CLASS_COLOR[kpi.lastClass]"
+      :value-color="BP_CLASS_COLOR[kpi.lastClass]"
     >
       {{ kpi.last.sys }}<span class="kpi-sep">/</span>{{ kpi.last.dia }}
     </KpiCard>
@@ -72,14 +72,14 @@ const deltaSub = computed(() => {
       label="У нормі (7 дн)"
       :value="normalValue"
       :sub="normalSub"
-      :accentColor="normalAccent"
+      :accent-color="normalAccent"
     />
 
     <KpiCard
       label="Зміна за тиждень"
       :value="deltaValue"
       :sub="deltaSub"
-      :valueColor="kpi.deltaColor"
+      :value-color="kpi.deltaColor"
     />
   </div>
 </template>

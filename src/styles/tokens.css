@@ -29,7 +29,9 @@
   --radius-xl: 1.25rem;
 
   /* Typography */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
@@ -39,6 +41,17 @@
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  /* Chart */
+  --color-chart-sys: #1d4ed8;
+  --color-chart-dia: #60a5fa;
+  --color-chart-pulse: #10b981;
+  --color-chart-grid: rgba(128, 128, 128, 0.08);
+  --color-chart-ref-danger: rgba(239, 68, 68, 0.4);
+  --color-chart-ref-warning: rgba(245, 158, 11, 0.4);
+
+  /* BP classification */
+  --color-bp-stage1: #f97316;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -49,5 +62,10 @@
     --color-text-muted: #9ca3af;
     --color-border: #374151;
     --color-primary: #3b82f6;
+
+    --color-chart-sys: #60a5fa;
+    --color-chart-dia: #93c5fd;
+    --color-chart-pulse: #34d399;
+    --color-chart-grid: rgba(255, 255, 255, 0.06);
   }
 }

@@ -23,14 +23,22 @@ onUnmounted(() => {
 <template>
   <div class="ai-review">
     <div class="loader-icon">
-      <svg class="animate-spin" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg
+        class="animate-spin"
+        width="48"
+        height="48"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
         <circle cx="12" cy="12" r="10" opacity="0.1"></circle>
         <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
       </svg>
     </div>
-    
+
     <h2>AI розпізнає дані...</h2>
-    
+
     <div class="stats">
       <div class="stat">
         <span class="val">{{ sys }}</span>
@@ -72,8 +80,12 @@ onUnmounted(() => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .stats {
@@ -85,7 +97,7 @@ onUnmounted(() => {
 .stat {
   display: flex;
   flex-direction: column;
-  
+
   & .val {
     font-size: var(--text-xl);
     font-weight: bold;

@@ -2,6 +2,9 @@
 import { computed } from 'vue';
 import type { Measurement } from '../types/api';
 import { classifyBP, BP_CLASS_COLOR } from '../utils/bp';
+import { useConfirm } from '../composables/useConfirm';
+
+const { confirm } = useConfirm();
 
 const props = defineProps<{
   items: Measurement[];
@@ -55,10 +58,12 @@ function bpColor(sys: number, dia: number) {
   return BP_CLASS_COLOR[classifyBP(sys, dia)];
 }
 
-function handleDelete(id: string) {
-  if (confirm('Видалити цей запис?')) {
-    emit('delete', id);
-  }
+async function handleDelete(id: string) {
+  const ok = await confirm('Видалити цей запис?', {
+    confirmText: 'Видалити',
+    cancelText: 'Скасувати',
+  });
+  if (ok) emit('delete', id);
 }
 </script>
 
@@ -78,11 +83,7 @@ function handleDelete(id: string) {
       <template v-for="group in grouped" :key="group.label">
         <div class="day-header">{{ group.label }}</div>
 
-        <div
-          v-for="m in group.items"
-          :key="m.id"
-          class="measurement-row"
-        >
+        <div v-for="m in group.items" :key="m.id" class="measurement-row">
           <div class="bp-dot" :style="{ background: bpColor(m.sys, m.dia) }"></div>
           <div class="col-time">{{ formatTime(m.recordedAt) }}</div>
           <div class="col-pressure" :style="{ color: bpColor(m.sys, m.dia) }">
@@ -91,10 +92,27 @@ function handleDelete(id: string) {
             <span class="val">{{ m.dia }}</span>
           </div>
           <div class="col-pulse">{{ m.pulse }}</div>
-          <button @click="handleDelete(m.id)" class="delete-btn" title="Видалити">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <button
+            class="delete-btn"
+            title="Видалити"
+            aria-label="Видалити вимірювання"
+            @click="handleDelete(m.id)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <path
+                d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+              ></path>
             </svg>
           </button>
         </div>
@@ -243,7 +261,9 @@ function handleDelete(id: string) {
 .delete-btn {
   color: var(--color-text-muted);
   opacity: 0.4;
-  transition: opacity 0.2s, color 0.2s;
+  transition:
+    opacity 0.2s,
+    color 0.2s;
   /* Mobile: row 1, col 4 */
   grid-column: 4;
   grid-row: 1;

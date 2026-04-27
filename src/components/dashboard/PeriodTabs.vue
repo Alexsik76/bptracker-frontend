@@ -1,16 +1,16 @@
 <script setup lang="ts">
 interface Props {
-  modelValue: 7 | 30 | 90 | 365
+  modelValue: 7 | 30 | 90 | 365;
 }
-defineProps<Props>()
-defineEmits<{ 'update:modelValue': [value: 7 | 30 | 90 | 365] }>()
+defineProps<Props>();
+defineEmits<{ 'update:modelValue': [value: 7 | 30 | 90 | 365] }>();
 
 const periods = [
   { label: '7д', value: 7 },
   { label: '30д', value: 30 },
   { label: '3м', value: 90 },
   { label: 'Рік', value: 365 },
-] as const
+] as const;
 </script>
 
 <template>
@@ -20,7 +20,9 @@ const periods = [
       :key="p.value"
       :class="['period-btn', { active: modelValue === p.value }]"
       @click="$emit('update:modelValue', p.value)"
-    >{{ p.label }}</button>
+    >
+      {{ p.label }}
+    </button>
   </div>
 </template>
 
@@ -47,6 +49,8 @@ const periods = [
     box-shadow: var(--shadow-sm);
   }
 
-  &:hover:not(.active) { color: var(--color-text); }
+  &:hover:not(.active) {
+    color: var(--color-text);
+  }
 }
 </style>

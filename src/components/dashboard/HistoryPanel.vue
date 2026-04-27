@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import MeasurementList from '../MeasurementList.vue'
-import { useExport } from '../../composables/useExport'
-import type { Measurement } from '../../types/api'
+import { useRouter } from 'vue-router';
+import MeasurementList from '../MeasurementList.vue';
+import { useExport } from '../../composables/useExport';
+import type { Measurement } from '../../types/api';
 
 interface Props {
-  measurements: Measurement[]
-  loading: boolean
+  measurements: Measurement[];
+  loading: boolean;
+  error?: string | null;
 }
-defineProps<Props>()
-defineEmits<{ delete: [id: string] }>()
+defineProps<Props>();
+defineEmits<{ delete: [id: string] }>();
 
-const router = useRouter()
-const { isExporting, handleExport } = useExport()
+const router = useRouter();
+const { isExporting, handleExport } = useExport();
 </script>
 
 <template>
@@ -21,12 +22,39 @@ const { isExporting, handleExport } = useExport()
       <h2>Історія</h2>
     </div>
 
-    <div v-if="!loading && measurements.length === 0" class="empty-state">
-      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+    <div v-if="error" class="error-banner" role="alert">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      Не вдалося завантажити виміри
+    </div>
+
+    <div v-else-if="!loading && measurements.length === 0" class="empty-state">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="48"
+        height="48"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+      >
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
       </svg>
       <p>Ще немає жодного вимірювання</p>
-      <button @click="router.push({ name: 'measurement-new' })" class="btn-primary-sm">
+      <button class="btn-primary-sm" @click="router.push({ name: 'measurement-new' })">
         Додати перший замір
       </button>
     </div>
@@ -39,9 +67,20 @@ const { isExporting, handleExport } = useExport()
     />
 
     <div class="export-row">
-      <button @click="handleExport" :disabled="isExporting" class="btn-outline">
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+      <button :disabled="isExporting" class="btn-outline" @click="handleExport">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="icon"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+          />
         </svg>
         {{ isExporting ? 'Надсилання...' : 'Отримати CSV на email' }}
       </button>
@@ -72,6 +111,18 @@ const { isExporting, handleExport } = useExport()
   }
 }
 
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  background-color: color-mix(in srgb, var(--color-danger), transparent 90%);
+  color: var(--color-danger);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
 .empty-state {
   padding: var(--space-8) var(--space-4);
   text-align: center;
@@ -81,8 +132,12 @@ const { isExporting, handleExport } = useExport()
   align-items: center;
   gap: var(--space-3);
 
-  & svg { opacity: 0.3; }
-  & p { font-size: var(--text-sm); }
+  & svg {
+    opacity: 0.3;
+  }
+  & p {
+    font-size: var(--text-sm);
+  }
 }
 
 .btn-primary-sm {

@@ -1,4 +1,11 @@
-import type { Measurement, CreateMeasurementDto, User, UserSettings, TreatmentSchema } from '../types/api';
+import type {
+  Measurement,
+  CreateMeasurementDto,
+  User,
+  UserSettings,
+  TreatmentSchema,
+} from '../types/api';
+import type { RegistrationResponseJSON, AuthenticationResponseJSON } from '@simplewebauthn/browser';
 
 declare global {
   interface Window {
@@ -9,7 +16,27 @@ declare global {
   }
 }
 
-const API_BASE_URL = window.CONFIG?.API_BASE_URL || 'https://api-bptracker.home.vn.ua/api/v1';
+const FALLBACK_API_URL = 'https://api-bptracker.home.vn.ua/api/v1';
+
+function resolveApiBaseUrl(): string {
+  const raw = window.CONFIG?.API_BASE_URL;
+  if (!raw) return FALLBACK_API_URL;
+  try {
+    const url = new URL(raw);
+    const isSecure = url.protocol === 'https:';
+    const isLocalDev = import.meta.env.DEV && url.hostname === 'localhost';
+    if (!isSecure && !isLocalDev) {
+      console.warn('[API] API_BASE_URL must use https — falling back to default');
+      return FALLBACK_API_URL;
+    }
+    return raw;
+  } catch {
+    console.warn('[API] API_BASE_URL is not a valid URL — falling back to default');
+    return FALLBACK_API_URL;
+  }
+}
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 export function useApi() {
   async function _fetch(url: string, options: RequestInit = {}) {
@@ -72,7 +99,7 @@ export function useApi() {
     return await res.json();
   }
 
-  async function registerPasskeyComplete(data: any) {
+  async function registerPasskeyComplete(data: RegistrationResponseJSON) {
     const res = await _fetch(`${API_BASE_URL}/auth/passkey/register/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -92,7 +119,7 @@ export function useApi() {
     return await res.json();
   }
 
-  async function loginPasskeyComplete(data: any) {
+  async function loginPasskeyComplete(data: AuthenticationResponseJSON) {
     const res = await _fetch(`${API_BASE_URL}/auth/login/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -103,9 +130,9 @@ export function useApi() {
   }
 
   // Measurements
-  async function getMeasurements(): Promise<Measurement[]> {
-    const res = await _fetch(`${API_BASE_URL}/measurements?days=90`);
-    if (!res.ok) return [];
+  async function getMeasurements(signal?: AbortSignal): Promise<Measurement[]> {
+    const res = await _fetch(`${API_BASE_URL}/measurements?days=90`, { signal });
+    if (!res.ok) throw new Error(`Помилка завантаження: ${res.status} ${res.statusText}`);
     return await res.json();
   }
 
@@ -152,9 +179,9 @@ export function useApi() {
     return await res.json();
   }
 
-  async function getActiveSchema(): Promise<TreatmentSchema | null> {
+  async function getActiveSchema(signal?: AbortSignal): Promise<TreatmentSchema | null> {
     try {
-      const res = await _fetch(`${API_BASE_URL}/schemas/active`);
+      const res = await _fetch(`${API_BASE_URL}/schemas/active`, { signal });
       if (!res.ok) return null;
       return await res.json();
     } catch {

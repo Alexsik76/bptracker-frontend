@@ -63,7 +63,7 @@ async function handleMagicLink() {
     error.value = 'Будь ласка, введіть email';
     return;
   }
-  
+
   error.value = '';
   loading.value = true;
   try {
@@ -81,38 +81,48 @@ async function handleMagicLink() {
   <div class="login-container">
     <div class="login-card">
       <div class="icon-header">
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="40"
+          height="40"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
       </div>
-      
+
       <h1>Вітаємо!</h1>
       <p class="subtitle">Увійдіть або зареєструйтесь за допомогою Passkey або email</p>
-      
+
       <div v-if="error" class="alert error">{{ error }}</div>
       <div v-if="message" class="alert success">{{ message }}</div>
-      
-      <form @submit.prevent="handlePasskey" class="auth-form">
-        <input 
-          v-model="email" 
-          type="email" 
-          required 
+
+      <form class="auth-form" @submit.prevent="handlePasskey">
+        <input
+          v-model="email"
+          type="email"
+          required
           placeholder="vash-email@example.com"
           class="email-input"
           :disabled="loading"
-        >
-        
+        />
+
         <button type="submit" class="btn primary" :disabled="loading">
           <span v-if="loading">Зачекайте...</span>
           <span v-else>Увійти через Passkey</span>
         </button>
-        
-        <button type="button" @click="handleMagicLink" class="btn secondary" :disabled="loading">
+
+        <button type="button" class="btn secondary" :disabled="loading" @click="handleMagicLink">
           Надіслати посилання на email
         </button>
       </form>
-      
+
       <p class="footer-text">
         Passkey — це безпечний спосіб входу без пароля за допомогою відбитку пальця або Face ID.
       </p>
