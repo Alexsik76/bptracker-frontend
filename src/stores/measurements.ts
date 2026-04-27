@@ -7,14 +7,20 @@ import { useOfflineQueue } from '../composables/useOfflineQueue';
 export const useMeasurementStore = defineStore('measurements', () => {
   const items = ref<Measurement[]>([]);
   const loading = ref(false);
+  const error = ref<string | null>(null);
   const api = useApi();
   const offline = useOfflineQueue();
 
-  async function fetchMeasurements() {
+  async function fetchMeasurements(signal?: AbortSignal) {
     loading.value = true;
+    error.value = null;
     try {
       await offline.sync(); // Try sync first
-      items.value = await api.getMeasurements();
+      items.value = await api.getMeasurements(signal);
+    } catch (err) {
+      // Do not show error for intentional navigation cancellations
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      error.value = err instanceof Error ? err.message : 'Не вдалося завантажити виміри';
     } finally {
       loading.value = false;
     }
@@ -43,11 +49,13 @@ export const useMeasurementStore = defineStore('measurements', () => {
   function reset() {
     items.value = [];
     loading.value = false;
+    error.value = null;
   }
 
   return {
     items,
     loading,
+    error,
     fetchMeasurements,
     add,
     remove,

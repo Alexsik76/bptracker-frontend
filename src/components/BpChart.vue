@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue';
+import { onMounted, onUnmounted, watch } from 'vue';
 import { ref } from 'vue';
 import Chart from 'chart.js/auto';
 import type { Measurement } from '../types/api';
@@ -132,7 +132,14 @@ onMounted(() => {
   updateChart();
 });
 
-watch(() => props.data, updateChart, { deep: true });
+onUnmounted(() => {
+  chart?.destroy();
+  chart = null;
+});
+
+// No deep: true — measurements arrive as a new array reference from the store,
+// so a shallow watch on the array reference is sufficient.
+watch(() => props.data, updateChart);
 
 function buildLabel(m: Measurement, prev: Measurement | undefined): string | string[] {
   const d = new Date(m.recordedAt);

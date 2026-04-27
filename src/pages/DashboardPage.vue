@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useMeasurementStore } from '../stores/measurements'
 import { useApi } from '../composables/useApi'
 import DashboardHeader from '../components/dashboard/DashboardHeader.vue'
@@ -12,10 +12,15 @@ import type { TreatmentSchema } from '../types/api'
 const measurements = useMeasurementStore()
 const api = useApi()
 const schema = ref<TreatmentSchema | null>(null)
+const controller = new AbortController()
 
 onMounted(() => {
-  measurements.fetchMeasurements()
-  api.getActiveSchema().then(s => { schema.value = s })
+  measurements.fetchMeasurements(controller.signal)
+  api.getActiveSchema(controller.signal).then(s => { schema.value = s })
+})
+
+onUnmounted(() => {
+  controller.abort()
 })
 </script>
 
@@ -29,6 +34,7 @@ onMounted(() => {
         <HistoryPanel
           :measurements="measurements.items"
           :loading="measurements.loading"
+          :error="measurements.error"
           @delete="measurements.remove"
         />
       </div>

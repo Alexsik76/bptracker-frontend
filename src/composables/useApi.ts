@@ -103,9 +103,9 @@ export function useApi() {
   }
 
   // Measurements
-  async function getMeasurements(): Promise<Measurement[]> {
-    const res = await _fetch(`${API_BASE_URL}/measurements?days=90`);
-    if (!res.ok) return [];
+  async function getMeasurements(signal?: AbortSignal): Promise<Measurement[]> {
+    const res = await _fetch(`${API_BASE_URL}/measurements?days=90`, { signal });
+    if (!res.ok) throw new Error(`Помилка завантаження: ${res.status} ${res.statusText}`);
     return await res.json();
   }
 
@@ -152,9 +152,9 @@ export function useApi() {
     return await res.json();
   }
 
-  async function getActiveSchema(): Promise<TreatmentSchema | null> {
+  async function getActiveSchema(signal?: AbortSignal): Promise<TreatmentSchema | null> {
     try {
-      const res = await _fetch(`${API_BASE_URL}/schemas/active`);
+      const res = await _fetch(`${API_BASE_URL}/schemas/active`, { signal });
       if (!res.ok) return null;
       return await res.json();
     } catch {

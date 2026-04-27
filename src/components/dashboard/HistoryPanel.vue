@@ -7,6 +7,7 @@ import type { Measurement } from '../../types/api'
 interface Props {
   measurements: Measurement[]
   loading: boolean
+  error?: string | null
 }
 defineProps<Props>()
 defineEmits<{ delete: [id: string] }>()
@@ -21,7 +22,16 @@ const { isExporting, handleExport } = useExport()
       <h2>Історія</h2>
     </div>
 
-    <div v-if="!loading && measurements.length === 0" class="empty-state">
+    <div v-if="error" class="error-banner" role="alert">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      Не вдалося завантажити виміри
+    </div>
+
+    <div v-else-if="!loading && measurements.length === 0" class="empty-state">
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
       </svg>
@@ -70,6 +80,18 @@ const { isExporting, handleExport } = useExport()
     letter-spacing: 0.07em;
     font-weight: 600;
   }
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  background-color: color-mix(in srgb, var(--color-danger), transparent 90%);
+  color: var(--color-danger);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
 }
 
 .empty-state {
