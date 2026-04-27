@@ -175,7 +175,10 @@ export function useApi() {
       method: 'POST',
       body: formData,
     });
-    if (!res.ok) throw new Error('AI не вдалося розпізнати фото');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'AI не вдалося розпізнати фото');
+    }
     return await res.json();
   }
 

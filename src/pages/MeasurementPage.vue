@@ -24,8 +24,8 @@ async function handleCapture(file: File) {
     const result = await api.analyzeImage(file);
     recognizedData.value = { sys: result.sys, dia: result.dia, pulse: result.pulse };
   } catch (err) {
-    console.error('AI Analysis failed', err);
-    // fallback to manual but stay in review to let user fix
+    toast.error(err instanceof Error ? err.message : 'AI не вдалося розпізнати фото');
+    step.value = 'manual';
   } finally {
     isAnalyzing.value = false;
   }
