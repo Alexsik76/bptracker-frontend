@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import type { Measurement, CreateMeasurementDto } from '../types/api';
 import { useApi } from '../composables/useApi';
 import { useOfflineQueue } from '../composables/useOfflineQueue';
+import { useToast } from '../composables/useToast';
 
 export const useMeasurementStore = defineStore('measurements', () => {
   const items = ref<Measurement[]>([]);
@@ -10,6 +11,7 @@ export const useMeasurementStore = defineStore('measurements', () => {
   const error = ref<string | null>(null);
   const api = useApi();
   const offline = useOfflineQueue();
+  const toast = useToast();
 
   async function fetchMeasurements(signal?: AbortSignal) {
     loading.value = true;
@@ -34,7 +36,7 @@ export const useMeasurementStore = defineStore('measurements', () => {
     } catch (err) {
       if (!navigator.onLine) {
         await offline.enqueue(data);
-        alert('Збережено локально (офлайн). Дані будуть надіслані при появі мережі.');
+        toast.info('Збережено локально — дані буде надіслано при появі мережі.');
         return null;
       }
       throw err;

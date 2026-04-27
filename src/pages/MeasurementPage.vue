@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMeasurementStore } from '../stores/measurements';
 import { useApi } from '../composables/useApi';
+import { useToast } from '../composables/useToast';
 import CameraCapture from '../components/CameraCapture.vue';
 import AiReview from '../components/AiReview.vue';
 import MeasurementForm from '../components/MeasurementForm.vue';
@@ -10,6 +11,7 @@ import MeasurementForm from '../components/MeasurementForm.vue';
 const router = useRouter();
 const measurements = useMeasurementStore();
 const api = useApi();
+const toast = useToast();
 
 const step = ref<'select' | 'camera' | 'review' | 'manual'>('select');
 const recognizedData = ref({ sys: 120, dia: 80, pulse: 70 });
@@ -34,7 +36,7 @@ async function handleSave(data: { sys: number; dia: number; pulse: number }) {
     await measurements.add(data);
     router.push({ name: 'dashboard' });
   } catch (err) {
-    alert('Помилка при збереженні');
+    toast.error('Помилка при збереженні');
   }
 }
 </script>

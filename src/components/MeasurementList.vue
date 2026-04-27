@@ -2,6 +2,9 @@
 import { computed } from 'vue';
 import type { Measurement } from '../types/api';
 import { classifyBP, BP_CLASS_COLOR } from '../utils/bp';
+import { useConfirm } from '../composables/useConfirm';
+
+const { confirm } = useConfirm();
 
 const props = defineProps<{
   items: Measurement[];
@@ -55,10 +58,9 @@ function bpColor(sys: number, dia: number) {
   return BP_CLASS_COLOR[classifyBP(sys, dia)];
 }
 
-function handleDelete(id: string) {
-  if (confirm('Видалити цей запис?')) {
-    emit('delete', id);
-  }
+async function handleDelete(id: string) {
+  const ok = await confirm('Видалити цей запис?', { confirmText: 'Видалити', cancelText: 'Скасувати' });
+  if (ok) emit('delete', id);
 }
 </script>
 

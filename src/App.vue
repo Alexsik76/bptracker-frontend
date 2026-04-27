@@ -2,6 +2,8 @@
 import { onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from './stores/auth';
 import { useRouter } from 'vue-router';
+import ToastContainer from './components/ToastContainer.vue';
+import ConfirmDialog from './components/ConfirmDialog.vue';
 
 const auth = useAuthStore();
 const router = useRouter();
@@ -27,6 +29,8 @@ onUnmounted(() => {
     <div class="spinner"></div>
   </div>
   <router-view v-else></router-view>
+  <ToastContainer />
+  <ConfirmDialog />
 </template>
 
 <style>

@@ -3,10 +3,14 @@ import { onMounted, reactive, ref } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
 import { useRouter } from 'vue-router';
+import { useToast } from '../composables/useToast';
+import { useConfirm } from '../composables/useConfirm';
 
 const auth = useAuthStore();
 const settingsStore = useSettingsStore();
 const router = useRouter();
+const toast = useToast();
+const { confirm } = useConfirm();
 
 const form = reactive({
   geminiUrl: '',
@@ -14,7 +18,6 @@ const form = reactive({
 });
 
 const loading = ref(false);
-const message = ref('');
 
 onMounted(async () => {
   await settingsStore.fetchSettings();
@@ -24,19 +27,19 @@ onMounted(async () => {
 
 async function save() {
   loading.value = true;
-  message.value = '';
   try {
     await settingsStore.updateSettings({ ...form });
-    message.value = 'Налаштування збережено!';
+    toast.success('Налаштування збережено!');
   } catch (err) {
-    alert('Помилка при збереженні');
+    toast.error('Помилка при збереженні');
   } finally {
     loading.value = false;
   }
 }
 
-function handleLogout() {
-  if (confirm('Вийти з акаунту?')) {
+async function handleLogout() {
+  const ok = await confirm('Вийти з акаунту?', { confirmText: 'Вийти', cancelText: 'Скасувати' });
+  if (ok) {
     auth.logout();
     router.push({ name: 'login' });
   }
@@ -74,8 +77,6 @@ function handleLogout() {
             <label>Gemini API URL (custom)</label>
             <input v-model="form.geminiUrl" type="url" placeholder="https://...">
           </div>
-
-          <div v-if="message" class="success-msg">{{ message }}</div>
 
           <button type="submit" class="btn primary" :disabled="loading">
             {{ loading ? 'Збереження...' : 'Зберегти зміни' }}
@@ -180,13 +181,6 @@ function handleLogout() {
   &.danger {
     color: var(--color-danger);
   }
-}
-
-.success-msg {
-  color: var(--color-success);
-  font-size: var(--text-sm);
-  margin-bottom: var(--space-4);
-  text-align: center;
 }
 
 .version {
