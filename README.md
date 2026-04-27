@@ -25,6 +25,13 @@ bptracker-frontend/
 │   └── CNAME               # GitHub Pages custom domain
 ├── src/
 │   ├── components/
+│   │   ├── dashboard/
+│   │   │   ├── DashboardHeader.vue # Хедер: логотип, кнопки settings/profile, user-chip, "Додати"
+│   │   │   ├── KpiCard.vue         # Одна KPI-картка (label, value, sub, accentColor, valueColor, slot)
+│   │   │   ├── KpiGrid.vue         # Сітка з 4 карток; використовує useKpi
+│   │   │   ├── PeriodTabs.vue      # Перемикач періоду (7/30/90/365 днів), v-model
+│   │   │   ├── ChartPanel.vue      # Панель графіка з локальним period, empty state
+│   │   │   └── HistoryPanel.vue    # Панель історії + кнопка CSV-експорту (useExport)
 │   │   ├── AiReview.vue        # Анімація під час розпізнавання AI
 │   │   ├── BpChart.vue         # Графік Chart.js з лініями норм (120/140 мм рт.ст.)
 │   │   ├── CameraCapture.vue   # Сканування фото (getUserMedia)
@@ -33,9 +40,11 @@ bptracker-frontend/
 │   │   └── SchemaCard.vue      # Відображення схеми лікування (розклад прийому ліків)
 │   ├── composables/
 │   │   ├── useApi.ts           # Типізований HTTP-клієнт (credentials: include)
+│   │   ├── useExport.ts        # CSV-експорт: confirm → запит → alert
+│   │   ├── useKpi.ts           # KPI з вимірювань: останній замір, середні, норма, дельта
 │   │   └── useOfflineQueue.ts  # Офлайн-черга в IndexedDB
 │   ├── pages/
-│   │   ├── DashboardPage.vue   # Головний екран (KPI-картки, графік, історія, схема)
+│   │   ├── DashboardPage.vue   # Головний екран — тонкий оркестратор dashboard/-компонентів
 │   │   ├── LoginPage.vue       # Вхід (Passkey + Magic Link, обробка ?token=)
 │   │   ├── MeasurementPage.vue # Додавання заміру (камера / вручну)
 │   │   └── SettingsPage.vue    # Налаштування (export email, gemini URL, logout)
