@@ -3,6 +3,8 @@ import { ref } from 'vue';
 import type { User } from '../types/api';
 import { useApi } from '../composables/useApi';
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
+import { useMeasurementStore } from './measurements';
+import { useSettingsStore } from './settings';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
@@ -55,10 +57,18 @@ export const useAuthStore = defineStore('auth', () => {
     return await checkSession();
   }
 
-  async function logout() {
-    await api.logout();
+  // Clears all user state without making an API call.
+  // Used both by logout() and by the api:unauthorized handler (expired session).
+  function clearSession() {
+    useMeasurementStore().reset();
+    useSettingsStore().reset();
     user.value = null;
     status.value = 'anonymous';
+  }
+
+  async function logout() {
+    await api.logout();
+    clearSession();
   }
 
   return {
@@ -70,5 +80,6 @@ export const useAuthStore = defineStore('auth', () => {
     requestMagicLink,
     consumeMagicLink,
     logout,
+    clearSession,
   };
 });

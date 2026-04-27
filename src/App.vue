@@ -1,7 +1,25 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from './stores/auth';
+import { useRouter } from 'vue-router';
 
 const auth = useAuthStore();
+const router = useRouter();
+
+function handleUnauthorized() {
+  // Skip if already on login page to avoid redirect loops
+  if (router.currentRoute.value.name === 'login') return;
+  auth.clearSession();
+  router.push({ name: 'login' });
+}
+
+onMounted(() => {
+  window.addEventListener('api:unauthorized', handleUnauthorized);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('api:unauthorized', handleUnauthorized);
+});
 </script>
 
 <template>

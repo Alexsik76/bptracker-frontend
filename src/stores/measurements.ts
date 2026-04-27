@@ -40,11 +40,17 @@ export const useMeasurementStore = defineStore('measurements', () => {
     items.value = items.value.filter(m => m.id !== id);
   }
 
+  function reset() {
+    items.value = [];
+    loading.value = false;
+  }
+
   return {
     items,
     loading,
     fetchMeasurements,
     add,
     remove,
+    reset,
   };
 });
