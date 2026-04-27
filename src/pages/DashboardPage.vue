@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useMeasurementStore } from '../stores/measurements'
 import { useApi } from '../composables/useApi'
 import DashboardHeader from '../components/dashboard/DashboardHeader.vue'
@@ -13,6 +13,7 @@ const measurements = useMeasurementStore()
 const api = useApi()
 const schema = ref<TreatmentSchema | null>(null)
 const controller = new AbortController()
+const recentMeasurements = computed(() => measurements.items.slice(0, 7))
 
 onMounted(() => {
   measurements.fetchMeasurements(controller.signal)
@@ -32,7 +33,7 @@ onUnmounted(() => {
       <div class="content-grid">
         <ChartPanel :measurements="measurements.items" />
         <HistoryPanel
-          :measurements="measurements.items"
+          :measurements="recentMeasurements"
           :loading="measurements.loading"
           :error="measurements.error"
           @delete="measurements.remove"

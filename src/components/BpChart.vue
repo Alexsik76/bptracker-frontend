@@ -1,7 +1,18 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch } from 'vue';
 import { ref } from 'vue';
-import Chart from 'chart.js/auto';
+import {
+  Chart,
+  LineController,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Legend,
+  Tooltip,
+} from 'chart.js';
+
+Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Legend, Tooltip);
 import type { Measurement } from '../types/api';
 
 const props = defineProps<{
