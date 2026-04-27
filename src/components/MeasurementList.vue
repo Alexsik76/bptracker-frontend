@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Measurement } from '../types/api';
-import { classifyBP, BP_CLASS_COLOR } from '../utils/bp';
+import { getZone } from '../composables/useZone';
 import { useConfirm } from '../composables/useConfirm';
 
 const { confirm } = useConfirm();
@@ -9,6 +9,7 @@ const { confirm } = useConfirm();
 const props = defineProps<{
   items: Measurement[];
   loading: boolean;
+  showDelete?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -40,7 +41,8 @@ const grouped = computed((): Group[] => {
       let label: string;
       if (dt === todayMs) label = 'Сьогодні';
       else if (dt === yesterdayMs) label = 'Вчора';
-      else label = d.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
+      else
+        label = d.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
 
       map.set(key, { label, items: [] });
     }
@@ -51,11 +53,10 @@ const grouped = computed((): Group[] => {
 });
 
 function formatTime(dateStr: string) {
-  return new Date(dateStr).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-}
-
-function bpColor(sys: number, dia: number) {
-  return BP_CLASS_COLOR[classifyBP(sys, dia)];
+  return new Date(dateStr).toLocaleTimeString('uk-UA', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 async function handleDelete(id: string) {
@@ -72,27 +73,39 @@ async function handleDelete(id: string) {
     <div v-if="loading && items.length === 0" class="state-msg">Завантаження...</div>
 
     <template v-else>
-      <!-- Column headers (desktop only) -->
-      <div class="col-headers">
-        <span>Час</span>
-        <span>Тиск, мм рт.ст.</span>
-        <span>Пульс, уд/хв</span>
-        <span></span>
-      </div>
-
       <template v-for="group in grouped" :key="group.label">
         <div class="day-header">{{ group.label }}</div>
 
-        <div v-for="m in group.items" :key="m.id" class="measurement-row">
-          <div class="bp-dot" :style="{ background: bpColor(m.sys, m.dia) }"></div>
-          <div class="col-time">{{ formatTime(m.recordedAt) }}</div>
-          <div class="col-pressure" :style="{ color: bpColor(m.sys, m.dia) }">
-            <span class="val">{{ m.sys }}</span>
-            <span class="sep">/</span>
-            <span class="val">{{ m.dia }}</span>
+        <div
+          v-for="m in group.items"
+          :key="m.id"
+          class="measurement-row"
+        >
+          <div
+            class="zone-bar"
+            :style="{ background: getZone(m.sys, m.dia).color }"
+          />
+          <div class="row-main">
+            <div class="row-time">{{ formatTime(m.recordedAt) }}</div>
+            <div class="row-bp">
+              <span class="bp-val">{{ m.sys }}/{{ m.dia }}</span>
+              <span class="bp-unit">мм рт.ст.</span>
+            </div>
           </div>
-          <div class="col-pulse">{{ m.pulse }}</div>
+          <div class="row-right">
+            <div
+              class="zone-badge"
+              :style="{
+                color: getZone(m.sys, m.dia).color,
+                background: getZone(m.sys, m.dia).bg,
+              }"
+            >
+              {{ getZone(m.sys, m.dia).label }}
+            </div>
+            <div class="row-pulse">♡ {{ m.pulse }} уд/хв</div>
+          </div>
           <button
+            v-if="showDelete"
             class="delete-btn"
             title="Видалити"
             aria-label="Видалити вимірювання"
@@ -100,8 +113,8 @@ async function handleDelete(id: string) {
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -109,10 +122,10 @@ async function handleDelete(id: string) {
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <polyline points="3 6 5 6 21 6"></polyline>
+              <polyline points="3 6 5 6 21 6" />
               <path
                 d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-              ></path>
+              />
             </svg>
           </button>
         </div>
@@ -128,153 +141,106 @@ async function handleDelete(id: string) {
 
 .state-msg {
   text-align: center;
-  padding: var(--space-8);
+  padding: 18px;
   color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  font-size: 13px;
 }
 
-/* ── Column headers (desktop) ── */
-.col-headers {
-  display: none;
-
-  @media (min-width: 480px) {
-    display: grid;
-    grid-template-columns: 52px 1fr 80px 32px;
-    gap: var(--space-3);
-    padding: 0 var(--space-3) var(--space-2);
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 600;
-  }
-}
-
-/* ── Day header ── */
 .day-header {
-  font-size: var(--text-xs);
+  font-size: 10px;
   font-weight: 600;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: var(--space-3) 0 var(--space-2);
-  margin-top: var(--space-2);
+  padding: 10px 0 2px;
+  margin-top: 4px;
 
   &:first-of-type {
     margin-top: 0;
+    padding-top: 0;
   }
 }
 
-/* ── Measurement row ── */
 .measurement-row {
-  display: grid;
+  display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  transition: background 0.15s;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
 
-  /* Mobile: card-style 2×2 grid */
-  grid-template-columns: 4px 1fr auto 32px;
-  grid-template-rows: auto auto;
-
-  &:hover {
-    background: var(--color-bg);
-  }
-
-  /* Desktop: single row */
-  @media (min-width: 480px) {
-    grid-template-columns: 4px 52px 1fr 80px 32px;
-    grid-template-rows: auto;
+  &:last-of-type {
+    border-bottom: none;
   }
 }
 
-.bp-dot {
-  width: 4px;
+.zone-bar {
+  width: 3px;
+  height: 36px;
   border-radius: 2px;
-  /* Mobile: span both rows */
-  grid-row: 1 / 3;
-  align-self: stretch;
-  min-height: 36px;
-
-  @media (min-width: 480px) {
-    grid-row: auto;
-    min-height: 20px;
-  }
+  flex-shrink: 0;
 }
 
-/* Time */
-.col-time {
-  font-size: var(--text-sm);
+.row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-time {
+  font-size: 11px;
   color: var(--color-text-muted);
-  /* Mobile: row 1, col 2 */
-  grid-column: 2;
-  grid-row: 1;
-
-  @media (min-width: 480px) {
-    grid-column: auto;
-    grid-row: auto;
-  }
+  margin-bottom: 2px;
 }
 
-/* Pressure */
-.col-pressure {
-  font-weight: 700;
-  font-size: var(--text-lg);
-  /* Mobile: row 2, col 2 */
-  grid-column: 2;
-  grid-row: 2;
-
-  @media (min-width: 480px) {
-    grid-column: auto;
-    grid-row: auto;
-  }
-
-  & .val {
-    font-variant-numeric: tabular-nums;
-  }
-
-  & .sep {
-    margin: 0 1px;
-    opacity: 0.5;
-    font-weight: 400;
-  }
+.row-bp {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 }
 
-/* Pulse */
-.col-pulse {
-  font-size: var(--text-base);
-  font-weight: 500;
+.bp-val {
+  font-size: 20px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--color-text);
+}
+
+.bp-unit {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.row-right {
   text-align: right;
-  /* Mobile: rows 1-2, col 3 */
-  grid-column: 3;
-  grid-row: 1 / 3;
-  align-self: center;
-
-  @media (min-width: 480px) {
-    grid-column: auto;
-    grid-row: auto;
-  }
+  flex-shrink: 0;
 }
 
-/* Delete button */
+.zone-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+
+.row-pulse {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
 .delete-btn {
   color: var(--color-text-muted);
-  opacity: 0.4;
+  opacity: 0.35;
+  flex-shrink: 0;
+  min-width: 32px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition:
-    opacity 0.2s,
-    color 0.2s;
-  /* Mobile: row 1, col 4 */
-  grid-column: 4;
-  grid-row: 1;
-  justify-self: end;
-  align-self: start;
-
-  @media (min-width: 480px) {
-    grid-column: auto;
-    grid-row: auto;
-    align-self: center;
-  }
+    opacity 0.15s,
+    color 0.15s;
 
   &:hover {
     color: var(--color-danger);

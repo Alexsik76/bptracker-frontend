@@ -1,172 +1,116 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useAuthStore } from '../../stores/auth';
-import { useRouter } from 'vue-router';
+defineProps<{
+  zoneColor: string;
+}>();
 
-const auth = useAuthStore();
-const router = useRouter();
-
-const userInitials = computed(() => (auth.user?.email ?? '?').charAt(0).toUpperCase());
+defineEmits<{
+  add: [];
+  settings: [];
+}>();
 </script>
 
 <template>
   <header class="header">
-    <div class="header-content">
-      <div class="logo">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
+    <div class="logo">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+        <path
+          d="M2 10 Q5 4 10 10 Q15 16 18 10"
+          :stroke="zoneColor"
           stroke-width="2.5"
           stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          fill="none"
+        />
+      </svg>
+      <span class="logo-text">BP Tracker</span>
+    </div>
+
+    <div class="actions">
+      <button class="icon-btn" aria-label="Налаштування" @click="$emit('settings')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
         </svg>
-        <h1>BP Tracker</h1>
-      </div>
-      <div class="header-actions">
-        <button
-          class="settings-btn"
-          title="Налаштування"
-          aria-label="Налаштування"
-          @click="router.push({ name: 'settings' })"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="3"></circle>
-            <path
-              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
-            ></path>
-          </svg>
-        </button>
-        <RouterLink
-          :to="{ name: 'settings' }"
-          class="user-chip"
-          title="Профіль"
-          :aria-label="`Профіль: ${auth.user?.email}`"
-        >
-          <span class="avatar" aria-hidden="true">{{ userInitials }}</span>
-          <span class="user-email">{{ auth.user?.email }}</span>
-        </RouterLink>
-        <button class="add-btn" @click="router.push({ name: 'measurement-new' })">+ Додати</button>
-      </div>
+      </button>
+      <button
+        class="add-btn"
+        :style="{ background: zoneColor }"
+        @click="$emit('add')"
+      >
+        + Додати
+      </button>
     </div>
   </header>
 </template>
 
 <style scoped>
 .header {
-  background-color: var(--color-primary);
-  color: white;
-  padding: var(--space-3) var(--space-4);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  box-shadow: var(--shadow-md);
-}
-
-.header-content {
-  max-width: 1200px;
-  margin: 0 auto;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px 8px;
+  flex-shrink: 0;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  color: white;
-
-  & h1 {
-    font-size: var(--text-lg);
-    font-weight: 700;
-  }
+  gap: 8px;
 }
 
-.header-actions {
+.logo-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.actions {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 10px;
 }
 
-.settings-btn {
-  color: rgba(255, 255, 255, 0.8);
-  transition: color 0.2s;
-
-  &:hover {
-    color: white;
-  }
-}
-
-.user-chip {
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.9);
-  text-decoration: none;
-  transition: color 0.2s;
+  justify-content: center;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: background 0.15s;
 
   &:hover {
-    color: white;
+    background: rgba(255, 255, 255, 0.13);
   }
+}
 
-  & .avatar {
-    width: 28px;
-    height: 28px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: var(--text-xs);
-    flex-shrink: 0;
-  }
+@media (prefers-color-scheme: light) {
+  .icon-btn {
+    background: rgba(0, 0, 0, 0.07);
 
-  & .user-email {
-    font-size: var(--text-sm);
-    display: none;
-    @media (min-width: 640px) {
-      display: inline;
+    &:hover {
+      background: rgba(0, 0, 0, 0.12);
     }
   }
 }
 
 .add-btn {
-  background: white;
-  color: var(--color-primary);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
-  font-weight: 700;
-  font-size: var(--text-sm);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transition:
-    box-shadow 0.15s,
-    transform 0.1s;
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
 
   &:hover {
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
-    transform: translateY(-1px);
+    opacity: 0.85;
   }
-
   &:active {
-    transform: scale(0.97);
+    opacity: 0.7;
   }
 }
 </style>

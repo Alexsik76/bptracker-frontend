@@ -30,27 +30,32 @@ const periods = [
 .period-tabs {
   display: flex;
   gap: 2px;
-  background: var(--color-bg);
-  padding: 3px;
-  border-radius: var(--radius-md);
 }
 
 .period-btn {
-  padding: var(--space-1) var(--space-3);
-  border-radius: calc(var(--radius-md) - 2px);
-  font-size: var(--text-xs);
+  padding: 4px 9px;
+  border-radius: 10px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
   transition: all 0.15s;
 
   &.active {
-    background: var(--color-surface);
+    background: rgba(255, 255, 255, 0.15);
     color: var(--color-text);
-    box-shadow: var(--shadow-sm);
   }
 
   &:hover:not(.active) {
     color: var(--color-text);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .period-btn.active {
+    background: rgba(0, 0, 0, 0.12);
   }
 }
 </style>

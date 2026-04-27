@@ -4,10 +4,9 @@ import PeriodTabs from './PeriodTabs.vue';
 import BpChart from '../BpChart.vue';
 import type { Measurement } from '../../types/api';
 
-interface Props {
+const props = defineProps<{
   measurements: Measurement[];
-}
-const props = defineProps<Props>();
+}>();
 
 const period = ref<7 | 30 | 90 | 365>(30);
 
@@ -20,8 +19,22 @@ const filtered = computed(() => {
 <template>
   <div class="panel">
     <div class="panel-head">
-      <h2>Динаміка</h2>
+      <span class="panel-title">Динаміка</span>
       <PeriodTabs v-model="period" />
+    </div>
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-line" style="background: #818cf8" />
+        <span>СИС</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-line" style="background: #60a5fa" />
+        <span>ДІА</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-line dashed" style="background: #34d399" />
+        <span>Пульс</span>
+      </div>
     </div>
     <div v-if="filtered.length === 0" class="chart-empty">Немає даних за вибраний період</div>
     <BpChart v-else :data="filtered" />
@@ -31,32 +44,63 @@ const filtered = computed(() => {
 <style scoped>
 .panel {
   background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow-card);
 }
 
 .panel-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-4);
+  margin-bottom: 12px;
+}
 
-  & h2 {
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    font-weight: 600;
-  }
+.panel-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.legend {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.legend-line {
+  width: 18px;
+  height: 2.5px;
+  border-radius: 2px;
+}
+
+.legend-line.dashed {
+  background: repeating-linear-gradient(
+    90deg,
+    #34d399 0px,
+    #34d399 4px,
+    transparent 4px,
+    transparent 7px
+  ) !important;
 }
 
 .chart-empty {
-  height: 200px;
+  height: 130px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  font-size: 13px;
 }
 </style>

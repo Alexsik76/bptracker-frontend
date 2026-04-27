@@ -1,71 +1,91 @@
 :root {
-  /* Colors */
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-bg: #f3f4f6;
-  --color-surface: #ffffff;
-  --color-text: #111827;
-  --color-text-muted: #6b7280;
-  --color-border: #e5e7eb;
+  /* Fonts */
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, monospace;
+
+  /* Background (dark-first) */
+  --color-bg: #0d1117;
+  --color-surface: rgba(255, 255, 255, 0.05);
+  --color-surface-solid: #141920;
+
+  /* Text */
+  --color-text: #ffffff;
+  --color-text-muted: rgba(255, 255, 255, 0.45);
+  --color-text-dim: rgba(255, 255, 255, 0.25);
+
+  /* Borders */
+  --color-border: rgba(255, 255, 255, 0.08);
+
+  /* Primary accent (overridden per zone in Dashboard) */
+  --color-primary: #818cf8;
+  --color-primary-hover: #6d78e8;
+
+  /* Status */
   --color-danger: #ef4444;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --text-2xl: 1.5rem;
+  --color-success: #22c55e;
+  --color-warning: #f97316;
+
+  /* BP classification compat */
+  --color-bp-stage1: #f97316;
+
+  /* Zone palette */
+  --zone-optimal: #22c55e;
+  --zone-normal: #84cc16;
+  --zone-stage1: #f97316;
+  --zone-stage2: #ef4444;
+
+  /* Chart */
+  --color-chart-sys: #818cf8;
+  --color-chart-dia: #60a5fa;
+  --color-chart-pulse: #34d399;
+  --color-chart-grid: rgba(255, 255, 255, 0.06);
+  --color-chart-ref-danger: rgba(239, 68, 68, 0.4);
+  --color-chart-ref-warning: rgba(245, 158, 11, 0.4);
 
   /* Spacing */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-16: 4rem;
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 8px;
+  --space-4: 10px;
+  --space-5: 12px;
+  --space-6: 14px;
+  --space-7: 16px;
+  --space-8: 18px;
+  --space-9: 20px;
+  --space-10: 28px;
 
-  /* Radius */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
-
-  /* Typography */
-  --font-sans:
-    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, sans-serif;
+  /* Typography (keep usable for all pages) */
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
   --text-lg: 1.125rem;
   --text-xl: 1.25rem;
+  --text-2xl: 1.375rem;
+
+  /* Border-radius */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-
-  /* Chart */
-  --color-chart-sys: #1d4ed8;
-  --color-chart-dia: #60a5fa;
-  --color-chart-pulse: #10b981;
-  --color-chart-grid: rgba(128, 128, 128, 0.08);
-  --color-chart-ref-danger: rgba(239, 68, 68, 0.4);
-  --color-chart-ref-warning: rgba(245, 158, 11, 0.4);
-
-  /* BP classification */
-  --color-bp-stage1: #f97316;
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.07);
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --color-bg: #111827;
-    --color-surface: #1f2937;
-    --color-text: #f9fafb;
-    --color-text-muted: #9ca3af;
-    --color-border: #374151;
-    --color-primary: #3b82f6;
-
-    --color-chart-sys: #60a5fa;
-    --color-chart-dia: #93c5fd;
-    --color-chart-pulse: #34d399;
-    --color-chart-grid: rgba(255, 255, 255, 0.06);
+    --color-bg: #f2f3f5;
+    --color-surface: #ffffff;
+    --color-surface-solid: #ffffff;
+    --color-text: #0f0f12;
+    --color-text-muted: rgba(0, 0, 0, 0.45);
+    --color-text-dim: rgba(0, 0, 0, 0.25);
+    --color-border: rgba(0, 0, 0, 0.07);
+    --color-chart-grid: rgba(0, 0, 0, 0.07);
+    --color-primary: #6d78e8;
+    --color-primary-hover: #5b66d6;
   }
 }

@@ -1,53 +1,53 @@
 <script setup lang="ts">
-interface Props {
-  label: string;
-  value: string;
-  sub?: string;
-  accentColor?: string;
-  valueColor?: string;
-}
-withDefaults(defineProps<Props>(), {
-  accentColor: 'var(--color-border)',
-  valueColor: 'var(--color-text)',
-});
+withDefaults(
+  defineProps<{
+    label: string;
+    value: string;
+    sub?: string;
+    accent?: string;
+  }>(),
+  { accent: undefined },
+);
 </script>
 
 <template>
-  <div class="kpi-card" :style="{ borderTopColor: accentColor }">
-    <div class="kpi-label">{{ label }}</div>
-    <div class="kpi-value" :style="{ color: valueColor }">
-      <slot>{{ value }}</slot>
-    </div>
-    <div v-if="sub" class="kpi-sub">{{ sub }}</div>
+  <div class="stat-card">
+    <div class="stat-label">{{ label }}</div>
+    <div class="stat-value" :style="accent ? { color: accent } : {}">{{ value }}</div>
+    <div v-if="sub" class="stat-sub">{{ sub }}</div>
   </div>
 </template>
 
 <style scoped>
-.kpi-card {
+.stat-card {
   background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   box-shadow: var(--shadow-sm);
-  border-top: 3px solid var(--color-border);
 }
 
-.kpi-label {
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
+.stat-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
 }
 
-.kpi-value {
-  font-size: var(--text-2xl);
+.stat-value {
+  font-size: 22px;
   font-weight: 700;
-  margin-bottom: var(--space-1);
+  font-family: var(--font-mono);
   line-height: 1.1;
+  color: var(--color-text);
 }
 
-.kpi-sub {
-  font-size: var(--text-xs);
+.stat-sub {
+  font-size: 11px;
   color: var(--color-text-muted);
 }
 </style>

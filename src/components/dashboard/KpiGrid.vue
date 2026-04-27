@@ -2,20 +2,43 @@
 import { computed } from 'vue';
 import KpiCard from './KpiCard.vue';
 import { useKpi } from '../../composables/useKpi';
-import { BP_CLASS_COLOR, BP_CLASS_LABEL } from '../../utils/bp';
+import { getZone } from '../../composables/useZone';
 import type { Measurement } from '../../types/api';
 
-interface Props {
-  measurements: Measurement[];
-}
-const props = defineProps<Props>();
+const props = defineProps<{ measurements: Measurement[] }>();
 
 const kpi = useKpi(() => props.measurements);
 
-function fmtDelta(n: number | null): string {
-  if (n === null) return '—';
-  return n > 0 ? `+${n}` : `${n}`;
-}
+const avgZoneColor = computed(() => {
+  const k = kpi.value;
+  if (!k || k.avgSys === null || k.avgDia === null) return undefined;
+  return getZone(k.avgSys, k.avgDia).color;
+});
+
+const avgValue = computed(() => {
+  const k = kpi.value;
+  if (!k || k.avgSys === null) return '—';
+  return `${k.avgSys}/${k.avgDia ?? '—'}`;
+});
+
+const avgSub = computed(() => {
+  const k = kpi.value;
+  if (!k || k.avgSys === null) return 'немає даних';
+  return getZone(k.avgSys!, k.avgDia!).label;
+});
+
+const deltaValue = computed(() => {
+  const k = kpi.value;
+  if (!k || k.deltaSys === null) return '—';
+  const fmt = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+  return `${fmt(k.deltaSys)}/${k.deltaDia !== null ? fmt(k.deltaDia) : '—'}`;
+});
+
+const deltaAccent = computed(() => {
+  const k = kpi.value;
+  if (!k || k.deltaSys === null || k.deltaSys === 0) return undefined;
+  return k.deltaSys > 0 ? '#ef4444' : '#22c55e';
+});
 
 const normalValue = computed(() => {
   const k = kpi.value;
@@ -26,78 +49,42 @@ const normalValue = computed(() => {
 const normalSub = computed(() => {
   const k = kpi.value;
   if (!k || k.totalLast7 === 0) return 'немає даних';
-  return `${Math.round((k.normalShare ?? 0) * 100)}% у зеленій зоні`;
-});
-
-const normalAccent = computed(() => {
-  const k = kpi.value;
-  if (!k || k.totalLast7 === 0 || (k.normalShare ?? 0) < 0.5) return 'var(--color-warning)';
-  return 'var(--color-success)';
-});
-
-const deltaValue = computed(() => {
-  const k = kpi.value;
-  if (!k || k.deltaSys === null) return '—';
-  return `${k.deltaIcon} ${fmtDelta(k.deltaSys)} / ${fmtDelta(k.deltaDia)}`;
-});
-
-const deltaSub = computed(() => {
-  const k = kpi.value;
-  if (!k || k.deltaSys === null) return 'замало даних';
-  return 'мм рт.ст. vs попередній тиждень';
+  return `${Math.round((k.normalShare ?? 0) * 100)}% у нормі`;
 });
 </script>
 
 <template>
-  <div v-if="kpi" class="kpi-grid">
+  <div v-if="kpi" class="stat-grid">
     <KpiCard
-      label="Останній замір"
-      :value="`${kpi.last.sys}/${kpi.last.dia}`"
-      :sub="BP_CLASS_LABEL[kpi.lastClass]"
-      :accent-color="BP_CLASS_COLOR[kpi.lastClass]"
-      :value-color="BP_CLASS_COLOR[kpi.lastClass]"
-    >
-      {{ kpi.last.sys }}<span class="kpi-sep">/</span>{{ kpi.last.dia }}
-    </KpiCard>
-
-    <KpiCard
-      label="Середній тиск (7 дн)"
-      :value="`${kpi.avgSys ?? '—'}/${kpi.avgDia ?? '—'}`"
-      sub="мм рт.ст."
-    >
-      {{ kpi.avgSys ?? '—' }}<span class="kpi-sep">/</span>{{ kpi.avgDia ?? '—' }}
-    </KpiCard>
-
-    <KpiCard
-      label="У нормі (7 дн)"
-      :value="normalValue"
-      :sub="normalSub"
-      :accent-color="normalAccent"
+      label="Серед. за 7 днів"
+      :value="avgValue"
+      :sub="avgSub"
+      :accent="avgZoneColor"
     />
-
     <KpiCard
       label="Зміна за тиждень"
       :value="deltaValue"
-      :sub="deltaSub"
-      :value-color="kpi.deltaColor"
+      sub="↑↓ vs минулий тиждень"
+      :accent="deltaAccent"
+    />
+    <KpiCard
+      label="У нормі (7д)"
+      :value="normalValue"
+      :sub="normalSub"
+    />
+    <KpiCard
+      label="Пульс сер."
+      :value="kpi.avgPulse !== null ? String(kpi.avgPulse) : '—'"
+      sub="уд/хв · 7 днів"
+      accent="#34d399"
     />
   </div>
 </template>
 
 <style scoped>
-.kpi-grid {
+.stat-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-3);
-
-  @media (min-width: 640px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.kpi-sep {
-  font-weight: 400;
-  opacity: 0.6;
-  margin: 0 1px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 </style>
