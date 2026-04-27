@@ -14,6 +14,7 @@ import {
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Legend, Tooltip);
 import type { Measurement } from '../types/api';
+import { cssVar } from '../utils/theme';
 
 const props = defineProps<{
   data: Measurement[];
@@ -21,6 +22,25 @@ const props = defineProps<{
 
 const chartRef = ref<HTMLCanvasElement | null>(null);
 let chart: Chart | null = null;
+let mq: MediaQueryList | null = null;
+
+function updateTheme() {
+  if (!chart) return;
+  const sys = cssVar('--color-chart-sys');
+  const dia = cssVar('--color-chart-dia');
+  const pulse = cssVar('--color-chart-pulse');
+  const grid = cssVar('--color-chart-grid');
+  chart.data.datasets[0]!.borderColor = sys;
+  chart.data.datasets[0]!.backgroundColor = sys;
+  chart.data.datasets[1]!.borderColor = dia;
+  chart.data.datasets[1]!.backgroundColor = dia;
+  chart.data.datasets[2]!.borderColor = pulse;
+  chart.data.datasets[2]!.backgroundColor = pulse;
+  if (chart.options.scales?.['y']?.grid) {
+    (chart.options.scales['y'].grid as Record<string, unknown>).color = grid;
+  }
+  chart.update();
+}
 
 // Custom plugin: draws horizontal reference lines for BP thresholds
 const refLinesPlugin = {
@@ -45,8 +65,8 @@ const refLinesPlugin = {
       ctx.restore();
     };
 
-    drawLine(140, 'rgba(239,68,68,0.4)');   // hypertension II threshold
-    drawLine(120, 'rgba(245,158,11,0.4)');   // elevated threshold
+    drawLine(140, cssVar('--color-chart-ref-danger'));
+    drawLine(120, cssVar('--color-chart-ref-warning'));
   },
 };
 
@@ -61,8 +81,8 @@ onMounted(() => {
         {
           label: 'СИС',
           data: [],
-          borderColor: '#1d4ed8',
-          backgroundColor: '#1d4ed8',
+          borderColor: '',
+          backgroundColor: '',
           tension: 0.3,
           yAxisID: 'y',
           pointRadius: 3,
@@ -71,8 +91,8 @@ onMounted(() => {
         {
           label: 'ДІА',
           data: [],
-          borderColor: '#60a5fa',
-          backgroundColor: '#60a5fa',
+          borderColor: '',
+          backgroundColor: '',
           tension: 0.3,
           yAxisID: 'y',
           pointRadius: 3,
@@ -81,8 +101,8 @@ onMounted(() => {
         {
           label: 'Пульс',
           data: [],
-          borderColor: '#10b981',
-          backgroundColor: '#10b981',
+          borderColor: '',
+          backgroundColor: '',
           tension: 0.3,
           yAxisID: 'y1',
           borderDash: [5, 5],
@@ -124,7 +144,7 @@ onMounted(() => {
           max: 200,
           ticks: { font: { size: 10 } },
           grid: {
-            color: 'rgba(128,128,128,0.08)',
+            color: '',
           },
         },
         y1: {
@@ -140,12 +160,18 @@ onMounted(() => {
     },
   });
 
+  updateTheme();
   updateChart();
+
+  mq = window.matchMedia('(prefers-color-scheme: dark)');
+  mq.addEventListener('change', updateTheme);
 });
 
 onUnmounted(() => {
   chart?.destroy();
   chart = null;
+  mq?.removeEventListener('change', updateTheme);
+  mq = null;
 });
 
 // No deep: true — measurements arrive as a new array reference from the store,

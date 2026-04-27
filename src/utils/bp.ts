@@ -10,7 +10,7 @@ export function classifyBP(sys: number, dia: number): BpClass {
 export const BP_CLASS_COLOR: Record<BpClass, string> = {
   normal: 'var(--color-success)',
   elevated: 'var(--color-warning)',
-  stage1: '#f97316',
+  stage1: 'var(--color-bp-stage1)',
   stage2: 'var(--color-danger)',
 };
 
