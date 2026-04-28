@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
 import MeasurementList from '../MeasurementList.vue';
 import type { Measurement } from '../../types/api';
 
@@ -10,14 +9,14 @@ interface Props {
 }
 defineProps<Props>();
 
-const router = useRouter();
+const emit = defineEmits<{ 'show-all': [] }>();
 </script>
 
 <template>
   <div class="panel">
     <div class="panel-head">
       <span class="panel-title">Історія</span>
-      <button class="show-all-btn" @click="router.push({ name: 'history' })">Всі →</button>
+      <button class="show-all-btn" @click="emit('show-all')">Всі →</button>
     </div>
 
     <div v-if="error" class="error-banner" role="alert">
@@ -47,7 +46,7 @@ const router = useRouter();
       :show-delete="false"
     />
 
-    <button class="see-all-row" @click="router.push({ name: 'history' })">
+    <button class="see-all-row" @click="emit('show-all')">
       Переглянути всю історію →
     </button>
   </div>

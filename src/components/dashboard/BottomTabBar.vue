@@ -6,7 +6,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: number];
-  history: [];
   profile: [];
 }>();
 
@@ -18,9 +17,7 @@ const tabs = [
 ];
 
 function select(index: number) {
-  if (index === 1) {
-    emit('history');
-  } else if (index === 3) {
+  if (index === 3) {
     emit('profile');
   } else {
     emit('update:modelValue', index);

@@ -26,11 +26,12 @@ bptracker-frontend/
 ├── src/
 │   ├── components/
 │   │   ├── dashboard/
-│   │   │   ├── BottomTabBar.vue    # Нижня навігація: 4 таби (Дашборд/Історія/Ліки/Профіль), v-model; таби Історія та Профіль навігують на окремі сторінки
+│   │   │   ├── BottomTabBar.vue    # Нижня навігація: 4 таби (Дашборд/Історія/Ліки/Профіль), v-model; таб Профіль навігує на Settings, решта — внутрішні таби дашборду
 │   │   │   ├── ChartPanel.vue      # Панель Chart.js з перемикачем periodу та легендою ліній
 │   │   │   ├── DashboardHeader.vue # Хедер: heartbeat-логотип у кольорі зони, кнопка налаштувань, "+ Додати"
 │   │   │   ├── HeroCard.vue        # Великий блок з останнім виміром, sparkline, badge зони та прогрес-бар
-│   │   │   ├── HistoryPanel.vue    # Прев'ю 10 останніх вимірювань без delete/export; кнопки переходу на HistoryPage
+│   │   │   ├── HistoryPanel.vue    # Прев'ю вимірювань за сьогодні та вчора без delete/export; emit show-all → переключає дашборд на таб Історія
+│   │   │   ├── HistoryTab.vue      # Таб повної історії: фільтр тиждень/місяць/весь час, прокрутний список з видаленням, кнопка CSV-експорту
 │   │   │   ├── KpiCard.vue         # Одна KPI-картка (label, value, sub, accent)
 │   │   │   ├── KpiGrid.vue         # Сітка з 4 карток: середнє, зміна, % у нормі, пульс; колір через useZone
 │   │   │   └── PeriodTabs.vue      # Перемикач періоду (7/30/90/365 днів), v-model
@@ -51,13 +52,12 @@ bptracker-frontend/
 │   │   ├── useToast.ts         # Toast-сповіщення (success/error/info, auto-dismiss через TTL)
 │   │   └── useZone.ts          # Класифікація зони тиску: getZone(sys, dia) → {key, label, color, bg}; zoneProgressPct()
 │   ├── pages/
-│   │   ├── DashboardPage.vue   # Головний екран: вкладки Дашборд/Ліки; HeroCard, KpiGrid, ChartPanel, HistoryPanel
-│   │   ├── HistoryPage.vue     # Повна сторінка історії: фільтр тиждень/місяць/весь час, прокрутний список, видалення, CSV-експорт
+│   │   ├── DashboardPage.vue   # Головний екран: 3 внутрішніх таби (Дашборд/Історія/Ліки); BottomTabBar завжди видний
 │   │   ├── LoginPage.vue       # Вхід (Passkey + Magic Link, обробка ?token=)
 │   │   ├── MeasurementPage.vue # Додавання заміру (камера / вручну)
 │   │   └── SettingsPage.vue    # Налаштування (export email, gemini URL, logout)
 │   ├── router/
-│   │   └── index.ts            # Маршрути (/  /measurement/new  /history  /settings  /login) та Navigation Guard (checkSession перед першим переходом)
+│   │   └── index.ts            # Маршрути (/  /measurement/new  /settings  /login) та Navigation Guard (checkSession перед першим переходом)
 │   ├── stores/
 │   │   ├── auth.ts             # Стан користувача, Passkey/magic link логіка
 │   │   ├── measurements.ts     # CRUD вимірювань + офлайн sync

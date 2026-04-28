@@ -10,6 +10,7 @@ import HeroCard from '../components/dashboard/HeroCard.vue';
 import KpiGrid from '../components/dashboard/KpiGrid.vue';
 import ChartPanel from '../components/dashboard/ChartPanel.vue';
 import HistoryPanel from '../components/dashboard/HistoryPanel.vue';
+import HistoryTab from '../components/dashboard/HistoryTab.vue';
 import BottomTabBar from '../components/dashboard/BottomTabBar.vue';
 import SchemaCard from '../components/SchemaCard.vue';
 import type { TreatmentSchema } from '../types/api';
@@ -35,7 +36,14 @@ const sparkData = computed(() => {
   return sorted.map((m) => m.sys);
 });
 
-const recentMeasurements = computed(() => measurements.items.slice(0, 10));
+const recentMeasurements = computed(() => {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const cutoff = now.getTime() - 86400000;
+  return measurements.items.filter(
+    (m) => new Date(m.recordedAt).getTime() >= cutoff,
+  );
+});
 
 onMounted(() => {
   measurements.fetchMeasurements(controller.signal);
@@ -57,7 +65,7 @@ onUnmounted(() => {
       @settings="router.push({ name: 'settings' })"
     />
 
-    <main class="scroll-content">
+    <main class="scroll-content" :class="{ 'tab-history': currentTab === 1 }">
       <!-- Tab: Дашборд -->
       <template v-if="currentTab === 0">
         <div class="content-pad">
@@ -72,9 +80,15 @@ onUnmounted(() => {
             :measurements="recentMeasurements"
             :loading="measurements.loading"
             :error="measurements.error"
+            @show-all="currentTab = 1"
           />
           <SchemaCard v-if="schema" :schema="schema" />
         </div>
+      </template>
+
+      <!-- Tab: Історія -->
+      <template v-else-if="currentTab === 1">
+        <HistoryTab />
       </template>
 
       <!-- Tab: Ліки -->
@@ -96,7 +110,6 @@ onUnmounted(() => {
     <BottomTabBar
       v-model="currentTab"
       :zone-color="currentZone.color"
-      @history="router.push({ name: 'history' })"
       @profile="router.push({ name: 'settings' })"
     />
   </div>
@@ -116,6 +129,10 @@ onUnmounted(() => {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+
+  &.tab-history {
+    overflow: hidden;
+  }
 }
 
 .content-pad {
