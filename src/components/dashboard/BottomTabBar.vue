@@ -6,18 +6,21 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: number];
+  history: [];
   profile: [];
 }>();
 
 const tabs = [
   { label: 'Дашборд', index: 0 },
-  { label: 'Динаміка', index: 1 },
+  { label: 'Історія', index: 1 },
   { label: 'Ліки', index: 2 },
   { label: 'Профіль', index: 3 },
 ];
 
 function select(index: number) {
-  if (index === 3) {
+  if (index === 1) {
+    emit('history');
+  } else if (index === 3) {
     emit('profile');
   } else {
     emit('update:modelValue', index);
@@ -41,9 +44,10 @@ function select(index: number) {
         <rect x="3" y="14" width="7" height="7" rx="1" />
         <rect x="14" y="14" width="7" height="7" rx="1" />
       </svg>
-      <!-- Динаміка -->
+      <!-- Історія -->
       <svg v-else-if="tab.index === 1" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
       </svg>
       <!-- Ліки -->
       <svg v-else-if="tab.index === 2" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

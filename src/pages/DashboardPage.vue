@@ -77,18 +77,6 @@ onUnmounted(() => {
         </div>
       </template>
 
-      <!-- Tab: Динаміка -->
-      <template v-else-if="currentTab === 1">
-        <div class="content-pad">
-          <ChartPanel :measurements="measurements.items" />
-          <HistoryPanel
-            :measurements="measurements.items"
-            :loading="measurements.loading"
-            :error="measurements.error"
-          />
-        </div>
-      </template>
-
       <!-- Tab: Ліки -->
       <template v-else-if="currentTab === 2">
         <div class="content-pad">
@@ -108,6 +96,7 @@ onUnmounted(() => {
     <BottomTabBar
       v-model="currentTab"
       :zone-color="currentZone.color"
+      @history="router.push({ name: 'history' })"
       @profile="router.push({ name: 'settings' })"
     />
   </div>

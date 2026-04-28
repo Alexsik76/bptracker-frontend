@@ -26,41 +26,50 @@ bptracker-frontend/
 ├── src/
 │   ├── components/
 │   │   ├── dashboard/
-│   │   │   ├── DashboardHeader.vue # Хедер: логотип, кнопки settings/profile, user-chip, "Додати"
-│   │   │   ├── KpiCard.vue         # Одна KPI-картка (label, value, sub, accentColor, valueColor, slot)
-│   │   │   ├── KpiGrid.vue         # Сітка з 4 карток; використовує useKpi
-│   │   │   ├── PeriodTabs.vue      # Перемикач періоду (7/30/90/365 днів), v-model
-│   │   │   ├── ChartPanel.vue      # Панель графіка з локальним period, empty state
-│   │   │   └── HistoryPanel.vue    # Панель історії + кнопка CSV-експорту (useExport)
+│   │   │   ├── BottomTabBar.vue    # Нижня навігація: 4 таби (Дашборд/Історія/Ліки/Профіль), v-model; таби Історія та Профіль навігують на окремі сторінки
+│   │   │   ├── ChartPanel.vue      # Панель Chart.js з перемикачем periodу та легендою ліній
+│   │   │   ├── DashboardHeader.vue # Хедер: heartbeat-логотип у кольорі зони, кнопка налаштувань, "+ Додати"
+│   │   │   ├── HeroCard.vue        # Великий блок з останнім виміром, sparkline, badge зони та прогрес-бар
+│   │   │   ├── HistoryPanel.vue    # Прев'ю 10 останніх вимірювань без delete/export; кнопки переходу на HistoryPage
+│   │   │   ├── KpiCard.vue         # Одна KPI-картка (label, value, sub, accent)
+│   │   │   ├── KpiGrid.vue         # Сітка з 4 карток: середнє, зміна, % у нормі, пульс; колір через useZone
+│   │   │   └── PeriodTabs.vue      # Перемикач періоду (7/30/90/365 днів), v-model
 │   │   ├── AiReview.vue        # Анімація під час розпізнавання AI
 │   │   ├── BpChart.vue         # Графік Chart.js з лініями норм (120/140 мм рт.ст.)
 │   │   ├── CameraCapture.vue   # Сканування фото (getUserMedia)
+│   │   ├── ConfirmDialog.vue   # Глобальний модальний діалог підтвердження; пов'язаний з useConfirm
 │   │   ├── MeasurementForm.vue # Форма ручного введення з валідацією
-│   │   ├── MeasurementList.vue # Історія з групуванням по днях та кольоровим кодуванням
-│   │   └── SchemaCard.vue      # Відображення схеми лікування (розклад прийому ліків)
+│   │   ├── MeasurementList.vue # Список вимірювань з групуванням по днях, зоновою кольоровою смугою та badge; showDelete prop контролює видимість кнопок видалення
+│   │   ├── SchemaCard.vue      # Відображення схеми лікування (розклад прийому ліків)
+│   │   └── ToastContainer.vue  # Контейнер toast-сповіщень; пов'язаний з useToast
 │   ├── composables/
 │   │   ├── useApi.ts           # Типізований HTTP-клієнт (credentials: include)
+│   │   ├── useConfirm.ts       # Promise-based діалог підтвердження через глобальний ref
 │   │   ├── useExport.ts        # CSV-експорт: confirm → запит → alert
 │   │   ├── useKpi.ts           # KPI з вимірювань: останній замір, середні, норма, дельта
-│   │   └── useOfflineQueue.ts  # Офлайн-черга в IndexedDB
+│   │   ├── useOfflineQueue.ts  # Офлайн-черга в IndexedDB
+│   │   ├── useToast.ts         # Toast-сповіщення (success/error/info, auto-dismiss через TTL)
+│   │   └── useZone.ts          # Класифікація зони тиску: getZone(sys, dia) → {key, label, color, bg}; zoneProgressPct()
 │   ├── pages/
-│   │   ├── DashboardPage.vue   # Головний екран — тонкий оркестратор dashboard/-компонентів
+│   │   ├── DashboardPage.vue   # Головний екран: вкладки Дашборд/Ліки; HeroCard, KpiGrid, ChartPanel, HistoryPanel
+│   │   ├── HistoryPage.vue     # Повна сторінка історії: фільтр тиждень/місяць/весь час, прокрутний список, видалення, CSV-експорт
 │   │   ├── LoginPage.vue       # Вхід (Passkey + Magic Link, обробка ?token=)
 │   │   ├── MeasurementPage.vue # Додавання заміру (камера / вручну)
 │   │   └── SettingsPage.vue    # Налаштування (export email, gemini URL, logout)
 │   ├── router/
-│   │   └── index.ts            # Маршрути та Navigation Guard (checkSession перед першим переходом)
+│   │   └── index.ts            # Маршрути (/  /measurement/new  /history  /settings  /login) та Navigation Guard (checkSession перед першим переходом)
 │   ├── stores/
 │   │   ├── auth.ts             # Стан користувача, Passkey/magic link логіка
 │   │   ├── measurements.ts     # CRUD вимірювань + офлайн sync
 │   │   └── settings.ts         # Користувацькі налаштування
 │   ├── styles/
 │   │   ├── global.css          # Reset, base rules
-│   │   └── tokens.css          # CSS-змінні: кольори, відступи, dark mode
+│   │   └── tokens.css          # CSS-змінні: темна тема за замовчуванням, зонові кольори (optimal/normal/stage1/stage2), DM Sans + DM Mono, відступи, тіні; light-mode overrides через media query
 │   ├── types/
 │   │   └── api.ts              # DTO-типи: User, Measurement, UserSettings, TreatmentSchema
 │   ├── utils/
-│   │   └── bp.ts               # classifyBP(), BP_CLASS_COLOR, BP_CLASS_LABEL (класифікація ВОЗ)
+│   │   ├── bp.ts               # classifyBP(), BP_CLASS_COLOR, BP_CLASS_LABEL (класифікація ВОЗ)
+│   │   └── theme.ts            # cssVar(name) — читання CSS Custom Properties через getComputedStyle
 │   ├── App.vue                 # Кореневий компонент (spinner під час auth check)
 │   └── main.ts                 # Точка входу
 ├── index.html
