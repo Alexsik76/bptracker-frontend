@@ -151,6 +151,18 @@ export function useApi() {
     if (!res.ok) throw new Error('Помилка видалення');
   }
 
+  async function addMeasurementWithPhoto(formData: FormData): Promise<Measurement> {
+    const res = await _fetch(`${API_BASE_URL}/measurements/with-photo`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Помилка збереження з фото');
+    }
+    return await res.json();
+  }
+
   // Settings
   async function getSettings(): Promise<UserSettings> {
     const res = await _fetch(`${API_BASE_URL}/settings`);
@@ -212,6 +224,7 @@ export function useApi() {
     loginPasskeyComplete,
     getMeasurements,
     addMeasurement,
+    addMeasurementWithPhoto,
     deleteMeasurement,
     getSettings,
     patchSettings,

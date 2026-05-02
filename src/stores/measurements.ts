@@ -43,6 +43,25 @@ export const useMeasurementStore = defineStore('measurements', () => {
     }
   }
 
+  async function addWithPhoto(
+    data: { sys: number; dia: number; pulse: number },
+    photoBlob: Blob,
+    geminiSuggestion: { sys: number; dia: number; pulse: number }
+  ) {
+    const formData = new FormData();
+    formData.append('image', photoBlob, 'photo.jpg');
+    formData.append('sys', data.sys.toString());
+    formData.append('dia', data.dia.toString());
+    formData.append('pulse', data.pulse.toString());
+    formData.append('geminiSys', geminiSuggestion.sys.toString());
+    formData.append('geminiDia', geminiSuggestion.dia.toString());
+    formData.append('geminiPulse', geminiSuggestion.pulse.toString());
+
+    const newItem = await api.addMeasurementWithPhoto(formData);
+    items.value = [newItem, ...items.value];
+    return newItem;
+  }
+
   async function remove(id: string) {
     await api.deleteMeasurement(id);
     items.value = items.value.filter((m) => m.id !== id);
@@ -60,6 +79,7 @@ export const useMeasurementStore = defineStore('measurements', () => {
     error,
     fetchMeasurements,
     add,
+    addWithPhoto,
     remove,
     reset,
   };

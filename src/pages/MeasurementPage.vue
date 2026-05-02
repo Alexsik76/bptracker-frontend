@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useMeasurementStore } from '../stores/measurements';
 import { useApi } from '../composables/useApi';
 import { useToast } from '../composables/useToast';
+import { preprocessImage } from '../utils/image';
 import CameraCapture from '../components/CameraCapture.vue';
 import AiReview from '../components/AiReview.vue';
 import MeasurementForm from '../components/MeasurementForm.vue';
 
 const router = useRouter();
+const route = useRoute();
 const measurements = useMeasurementStore();
 const api = useApi();
 const toast = useToast();
@@ -17,13 +19,29 @@ const step = ref<'select' | 'camera' | 'review' | 'manual'>('select');
 const recognizedData = ref({ sys: 120, dia: 80, pulse: 70 });
 const isAnalyzing = ref(false);
 
+const lastAnalysis = ref<{
+  photoBlob: Blob;
+  geminiSys: number;
+  geminiDia: number;
+  geminiPulse: number;
+} | null>(null);
+
 async function handleCapture(file: File) {
   isAnalyzing.value = true;
   step.value = 'review';
   try {
-    const result = await api.analyzeImage(file);
+    const processedBlob = await preprocessImage(file);
+    const result = await api.analyzeImage(processedBlob as File); // cast to File for API method signature compatibility
+    
     recognizedData.value = { sys: result.sys, dia: result.dia, pulse: result.pulse };
+    lastAnalysis.value = {
+      photoBlob: processedBlob,
+      geminiSys: result.sys,
+      geminiDia: result.dia,
+      geminiPulse: result.pulse
+    };
   } catch (err) {
+    console.error('[MeasurementPage] Analysis failed:', err);
     toast.error(err instanceof Error ? err.message : 'AI не вдалося розпізнати фото');
     step.value = 'manual';
   } finally {
@@ -33,12 +51,50 @@ async function handleCapture(file: File) {
 
 async function handleSave(data: { sys: number; dia: number; pulse: number }) {
   try {
-    await measurements.add(data);
+    if (lastAnalysis.value) {
+      await measurements.addWithPhoto(
+        data,
+        lastAnalysis.value.photoBlob,
+        {
+          sys: lastAnalysis.value.geminiSys,
+          dia: lastAnalysis.value.geminiDia,
+          pulse: lastAnalysis.value.geminiPulse
+        }
+      );
+    } else {
+      await measurements.add(data);
+    }
+    
+    toast.success('Замір успішно збережено!');
     router.push({ name: 'dashboard' });
-  } catch {
+  } catch (err) {
+    console.error('[MeasurementPage] Save failed:', err);
     toast.error('Помилка при збереженні');
   }
 }
+
+function handleCancel() {
+  step.value = 'select';
+  lastAnalysis.value = null;
+}
+
+onMounted(async () => {
+  if (route.query.shared === '1') {
+    try {
+      const cache = await caches.open('share-target-v1');
+      const response = await cache.match('shared-image');
+      if (response) {
+        const blob = await response.blob();
+        const file = new File([blob], 'shared.jpg', { type: blob.type || 'image/jpeg' });
+        await handleCapture(file);
+        // Clean up cache
+        await cache.delete('shared-image');
+      }
+    } catch (err) {
+      console.error('[MeasurementPage] Failed to handle shared image:', err);
+    }
+  }
+});
 </script>
 
 <template>
@@ -105,7 +161,7 @@ async function handleSave(data: { sys: number; dia: number; pulse: number }) {
         </button>
       </div>
 
-      <CameraCapture v-if="step === 'camera'" @capture="handleCapture" @cancel="step = 'select'" />
+      <CameraCapture v-if="step === 'camera'" @capture="handleCapture" @cancel="handleCancel" />
 
       <div v-if="step === 'review' || step === 'manual'" class="form-container">
         <AiReview v-if="isAnalyzing" />
@@ -113,7 +169,7 @@ async function handleSave(data: { sys: number; dia: number; pulse: number }) {
           v-else
           :initial-data="step === 'review' ? recognizedData : undefined"
           @submit="handleSave"
-          @cancel="step = 'select'"
+          @cancel="handleCancel"
         />
       </div>
     </main>
