@@ -100,6 +100,23 @@ export class ApiClient {
         }
     }
 
+    async addMeasurementWithPhoto(formData) {
+        try {
+            const response = await this._fetch(`${CONFIG.API_BASE_URL}/measurements/with-photo`, {
+                method: 'POST',
+                body: formData
+            });
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error || 'Помилка при збереженні з фото');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error adding measurement with photo:', error);
+            throw error;
+        }
+    }
+
     async deleteMeasurement(id) {
         try {
             const response = await this._fetch(`${CONFIG.API_BASE_URL}/measurements/${id}`, {

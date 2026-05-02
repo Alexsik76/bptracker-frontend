@@ -11,6 +11,7 @@ class App {
             this.chart = new ChartManager('bp-chart');
             this.auth = new AuthManager(this.api);
             this._settings = null;
+            this._lastAnalysis = null;
 
             this.ui.onDelete = async (id) => {
                 if (confirm('Ви впевнені, що хочете видалити цей замір?')) {
@@ -189,19 +190,32 @@ class App {
         };
 
         try {
-            console.log('Sending data to API:', data);
-            await this.api.addMeasurement(data);
+            if (this._lastAnalysis) {
+                const fd = new FormData();
+                fd.append('sys', data.sys);
+                fd.append('dia', data.dia);
+                fd.append('pulse', data.pulse);
+                fd.append('geminiSys', this._lastAnalysis.result.sys);
+                fd.append('geminiDia', this._lastAnalysis.result.dia);
+                fd.append('geminiPulse', this._lastAnalysis.result.pulse);
+                fd.append('image', this._lastAnalysis.file);
+
+                console.log('Sending data to API with photo');
+                await this.api.addMeasurementWithPhoto(fd);
+            } else {
+                console.log('Sending data to API:', data);
+                await this.api.addMeasurement(data);
+            }
+            
             console.log('Data saved');
             this.ui.hideModal();
             e.target.reset();
+            this._lastAnalysis = null;
             this.ui.showStatus('Замір успішно збережено!');
             await this.refresh();
         } catch (error) {
             console.error('Save failed:', error);
-            this.ui.showStatus('Помилка при збереженні', true);
-            // Навіть при помилці краще закрити вікно, якщо користувач ввів дані, 
-            // але ми вже показали статус помилки. 
-            // Або залишити - залежить від юзеркейсу. Залишимо відкритим для виправлення.
+            this.ui.showStatus(error.message || 'Помилка при збереженні', true);
         }
     }
 
@@ -264,15 +278,50 @@ class App {
         }, 'image/jpeg', 0.9);
     }
 
+    async _preprocessImage(file) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                const maxDim = 1024;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height *= maxDim / width;
+                        width = maxDim;
+                    } else {
+                        width *= maxDim / height;
+                        height = maxDim;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                canvas.toBlob((blob) => {
+                    resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+                }, 'image/jpeg', 0.85);
+            };
+            img.onerror = reject;
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
     async _analyzeAndFill(file) {
         this.ui.showScanOverlay();
         try {
-            const result = await this.api.analyzeImage(file);
+            const processedFile = await this._preprocessImage(file);
+            const result = await this.api.analyzeImage(processedFile);
+            this._lastAnalysis = { file: processedFile, result };
             document.querySelector('[name="sys"]').value = result.sys;
             document.querySelector('[name="dia"]').value = result.dia;
             document.querySelector('[name="pulse"]').value = result.pulse;
             this.ui.showStatus('Дані розпізнано! Перевірте і збережіть.');
         } catch (err) {
+            console.error('Preprocessing/Analysis error:', err);
             this.ui.showStatus(err.message || 'Помилка розпізнавання', true);
         } finally {
             this.ui.hideScanOverlay();
@@ -314,6 +363,7 @@ class App {
                 console.log('Cancel button clicked');
                 this.ui.hideModal();
                 if (form) form.reset();
+                this._lastAnalysis = null;
             });
         }
 
@@ -326,6 +376,7 @@ class App {
                 console.log('Backdrop clicked');
                 this.ui.hideModal();
                 if (form) form.reset();
+                this._lastAnalysis = null;
             }
         });
 
@@ -334,6 +385,7 @@ class App {
                 console.log('Escape pressed');
                 this.ui.hideModal();
                 if (form) form.reset();
+                this._lastAnalysis = null;
             }
         });
     }
