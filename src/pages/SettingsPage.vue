@@ -12,6 +12,9 @@ const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 
+const commit = __APP_COMMIT__
+const buildDate = __APP_BUILD_DATE__
+
 const form = reactive({
   geminiUrl: '',
   exportEmail: '',
@@ -111,7 +114,7 @@ async function handleLogout() {
         </form>
       </section>
 
-      <p class="version">BP Tracker v2.0.0 (Vue SPA)</p>
+      <p class="version">BP Tracker · build {{ commit }} · {{ buildDate }}</p>
     </main>
   </div>
 </template>
