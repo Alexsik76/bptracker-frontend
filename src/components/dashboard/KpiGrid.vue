@@ -37,7 +37,7 @@ const deltaValue = computed(() => {
 const deltaAccent = computed(() => {
   const k = kpi.value;
   if (!k || k.deltaSys === null || k.deltaSys === 0) return undefined;
-  return k.deltaSys > 0 ? '#ef4444' : '#22c55e';
+  return k.deltaSys > 0 ? 'var(--color-danger)' : 'var(--color-success)';
 });
 
 const normalValue = computed(() => {

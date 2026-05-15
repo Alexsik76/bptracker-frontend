@@ -96,11 +96,11 @@ describe('standard dataset — 5 measurements, all in last 7 days', () => {
     expect(useKpi(items).value!.last.sys).toBe(130);
   });
 
-  it('normalShare counts only "normal" BP measurements', () => {
+  it('normalShare counts optimal+normal as in-range, stage1/stage2 as out', () => {
     const items = [
-      m(115, 75, 70, 1 * DAY), // normal  (sys<120, dia<80)
-      m(125, 78, 72, 2 * DAY), // elevated (sys>=120)
-      m(135, 88, 75, 3 * DAY), // stage1  (sys>=130)
+      m(115, 75, 70, 1 * DAY), // optimal (sys<120, dia<80) — in NORMAL_CLASSES
+      m(145, 92, 72, 2 * DAY), // stage1  (sys>=140)        — not in NORMAL_CLASSES
+      m(165, 102, 75, 3 * DAY), // stage2 (sys>=160)        — not in NORMAL_CLASSES
     ];
     const v = useKpi(items).value!;
     expect(v.normalCount).toBe(1);
@@ -108,8 +108,8 @@ describe('standard dataset — 5 measurements, all in last 7 days', () => {
   });
 
   it('classifies last measurement correctly', () => {
-    expect(useKpi([m(145, 95, 80, DAY)]).value!.lastClass).toBe('stage2');
-    expect(useKpi([m(115, 75, 70, DAY)]).value!.lastClass).toBe('normal');
+    expect(useKpi([m(165, 102, 80, DAY)]).value!.lastClass).toBe('stage2');
+    expect(useKpi([m(125, 82, 70, DAY)]).value!.lastClass).toBe('normal');
   });
 });
 

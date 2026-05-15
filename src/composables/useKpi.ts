@@ -1,6 +1,6 @@
 import { computed, toValue } from 'vue';
 import type { MaybeRefOrGetter } from 'vue';
-import { classifyBP } from '../utils/bp';
+import { classifyBP, NORMAL_CLASSES } from '../utils/bp';
 import type { BpClass } from '../utils/bp';
 import type { Measurement } from '../types/api';
 
@@ -43,7 +43,9 @@ export function useKpi(source: MaybeRefOrGetter<Measurement[]>) {
     const avgDia = avgNum(last7.map((m) => m.dia));
     const avgPulse = avgNum(last7.map((m) => m.pulse));
 
-    const normalCount = last7.filter((m) => classifyBP(m.sys, m.dia) === 'normal').length;
+    const normalCount = last7.filter(
+      (m) => NORMAL_CLASSES.has(classifyBP(m.sys, m.dia)),
+    ).length;
     const totalLast7 = last7.length;
     const normalShare = totalLast7 > 0 ? normalCount / totalLast7 : null;
 

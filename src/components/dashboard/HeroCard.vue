@@ -71,7 +71,7 @@ const sparkPoints = computed(() => {
         class="zone-bar-fill"
         :style="{
           width: progressPct + '%',
-          background: `linear-gradient(90deg, #22c55e, ${zone.color})`,
+          background: `linear-gradient(90deg, var(--zone-optimal), ${zone.color})`,
         }"
       />
     </div>
