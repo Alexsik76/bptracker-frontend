@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const emit = defineEmits<{
   (e: 'capture', file: File): void;
   (e: 'cancel'): void;
 }>();
 
+const { t } = useI18n();
 const videoRef = ref<HTMLVideoElement | null>(null);
 const stream = ref<MediaStream | null>(null);
 const error = ref('');
@@ -23,7 +25,7 @@ onMounted(async () => {
       videoRef.value.srcObject = stream.value;
     }
   } catch {
-    error.value = 'Не вдалося отримати доступ до камери. Перевірте дозволи.';
+    error.value = t('camera.accessError');
   }
 });
 
@@ -63,18 +65,18 @@ function capture() {
   <div class="camera-container">
     <div v-if="error" class="error-state">
       <p>{{ error }}</p>
-      <button class="btn secondary" @click="emit('cancel')">Назад</button>
+      <button class="btn secondary" @click="emit('cancel')">{{ $t('common.back') }}</button>
     </div>
 
     <div v-else class="video-wrapper">
       <video ref="videoRef" autoplay playsinline muted class="camera-video"></video>
       <div class="overlay">
         <div class="focus-box"></div>
-        <p class="hint">Наведіть на екран тонометра</p>
+        <p class="hint">{{ $t('camera.hint') }}</p>
       </div>
 
       <div class="controls">
-        <button class="control-btn cancel" @click="emit('cancel')">Скасувати</button>
+        <button class="control-btn cancel" @click="emit('cancel')">{{ $t('common.cancel') }}</button>
         <button class="capture-btn" @click="capture">
           <div class="inner-circle"></div>
         </button>

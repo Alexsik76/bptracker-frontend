@@ -15,12 +15,12 @@ const emit = defineEmits<{ 'show-all': [] }>();
 <template>
   <div class="panel">
     <div class="panel-head">
-      <span class="panel-title">Історія</span>
-      <button class="show-all-btn" @click="emit('show-all')">Всі →</button>
+      <span class="panel-title">{{ $t('dashboard.tabs.history') }}</span>
+      <button class="show-all-btn" @click="emit('show-all')">{{ $t('dashboard.showAll') }}</button>
     </div>
 
     <div v-if="error" class="error-banner" role="alert">
-      Не вдалося завантажити виміри
+      {{ $t('errors.loadMeasurements') }}
     </div>
 
     <div v-else-if="!loading && measurements.length === 0" class="empty-state">
@@ -36,7 +36,7 @@ const emit = defineEmits<{ 'show-all': [] }>();
       >
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
       </svg>
-      <p>Ще немає жодного вимірювання</p>
+      <p>{{ $t('dashboard.noMeasurements') }}</p>
     </div>
 
     <MeasurementList
@@ -47,7 +47,7 @@ const emit = defineEmits<{ 'show-all': [] }>();
     />
 
     <button class="see-all-row" @click="emit('show-all')">
-      Переглянути всю історію →
+      {{ $t('dashboard.viewAll') }}
     </button>
   </div>
 </template>

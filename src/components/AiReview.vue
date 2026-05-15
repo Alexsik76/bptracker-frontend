@@ -37,20 +37,20 @@ onUnmounted(() => {
       </svg>
     </div>
 
-    <h2>AI розпізнає дані...</h2>
+    <h2>{{ $t('measurement.aiAnalyzing') }}</h2>
 
     <div class="stats">
       <div class="stat">
         <span class="val">{{ sys }}</span>
-        <span class="label">СИС</span>
+        <span class="label">{{ $t('measurement.sys') }}</span>
       </div>
       <div class="stat">
         <span class="val">{{ dia }}</span>
-        <span class="label">ДІА</span>
+        <span class="label">{{ $t('measurement.dia') }}</span>
       </div>
       <div class="stat">
         <span class="val">{{ pulse }}</span>
-        <span class="label">Пульс</span>
+        <span class="label">{{ $t('measurement.pulse') }}</span>
       </div>
     </div>
   </div>

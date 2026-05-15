@@ -7,13 +7,6 @@ export function classifyBP(sys: number, dia: number): BpClass {
   return 'optimal';
 }
 
-export const BP_CLASS_LABEL: Record<BpClass, string> = {
-  optimal: 'Оптимальний',
-  normal:  'Норма',
-  stage1:  'Ступінь I',
-  stage2:  'Ступінь II',
-};
-
 export const BP_CLASS_COLOR: Record<BpClass, string> = {
   optimal: 'var(--zone-optimal)',
   normal:  'var(--zone-normal)',

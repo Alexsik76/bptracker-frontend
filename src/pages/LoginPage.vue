@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import { useRouter, useRoute } from 'vue-router';
+import { useApiErrorMessage } from '../composables/useApiErrorMessage';
 
 const auth = useAuthStore();
 const router = useRouter();
 const route = useRoute();
+const { t } = useI18n();
+const { toMessage } = useApiErrorMessage();
 
 const email = ref('');
 const error = ref('');
@@ -16,13 +20,13 @@ onMounted(async () => {
   const token = route.query.token as string;
   if (token) {
     loading.value = true;
-    message.value = 'Перевірка посилання...';
+    message.value = t('auth.checkingLink');
     try {
       await auth.consumeMagicLink(token);
       window.history.replaceState({}, '', '/login');
       router.push({ name: 'dashboard' });
     } catch (err: any) {
-      error.value = err.message || 'Посилання недійсне';
+      error.value = toMessage(err, 'errors.loginFailed');
     } finally {
       loading.value = false;
     }
@@ -31,7 +35,7 @@ onMounted(async () => {
 
 async function handlePasskey() {
   if (!email.value) {
-    error.value = 'Будь ласка, введіть email';
+    error.value = t('auth.enterEmail');
     return;
   }
 
@@ -41,17 +45,15 @@ async function handlePasskey() {
     try {
       await auth.loginPasskey();
     } catch (err: any) {
-      // User cancelled — do not fall through to registration
       if (err?.name === 'NotAllowedError') throw err;
-      // No passkeys found — try registration
       await auth.registerPasskey(email.value);
     }
     router.push({ name: 'dashboard' });
   } catch (err: any) {
     if (err?.name === 'NotAllowedError') {
-      error.value = 'Вхід скасовано.';
+      error.value = t('auth.loginCancelled');
     } else {
-      error.value = 'Помилка автентифікації. Перевірте email або спробуйте інший спосіб.';
+      error.value = t('auth.authError');
     }
   } finally {
     loading.value = false;
@@ -60,7 +62,7 @@ async function handlePasskey() {
 
 async function handleMagicLink() {
   if (!email.value) {
-    error.value = 'Будь ласка, введіть email';
+    error.value = t('auth.enterEmail');
     return;
   }
 
@@ -68,9 +70,9 @@ async function handleMagicLink() {
   loading.value = true;
   try {
     await auth.requestMagicLink(email.value);
-    message.value = 'Посилання для входу надіслано на вашу пошту!';
+    message.value = t('auth.linkSent');
   } catch (err: any) {
-    error.value = err.message || 'Не вдалося надіслати посилання';
+    error.value = toMessage(err, 'errors.loginFailed');
   } finally {
     loading.value = false;
   }
@@ -97,8 +99,8 @@ async function handleMagicLink() {
         </svg>
       </div>
 
-      <h1>Вітаємо!</h1>
-      <p class="subtitle">Увійдіть або зареєструйтесь за допомогою Passkey або email</p>
+      <h1>{{ $t('auth.welcome') }}</h1>
+      <p class="subtitle">{{ $t('auth.subtitle') }}</p>
 
       <div v-if="error" class="alert error">{{ error }}</div>
       <div v-if="message" class="alert success">{{ message }}</div>
@@ -114,18 +116,16 @@ async function handleMagicLink() {
         />
 
         <button type="submit" class="btn primary" :disabled="loading">
-          <span v-if="loading">Зачекайте...</span>
-          <span v-else>Увійти через Passkey</span>
+          <span v-if="loading">{{ $t('common.wait') }}</span>
+          <span v-else>{{ $t('auth.loginPasskey') }}</span>
         </button>
 
         <button type="button" class="btn secondary" :disabled="loading" @click="handleMagicLink">
-          Надіслати посилання на email
+          {{ $t('auth.sendMagicLink') }}
         </button>
       </form>
 
-      <p class="footer-text">
-        Passkey — це безпечний спосіб входу без пароля за допомогою відбитку пальця або Face ID.
-      </p>
+      <p class="footer-text">{{ $t('auth.passkeyHint') }}</p>
     </div>
   </div>
 </template>

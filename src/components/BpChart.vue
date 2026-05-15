@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch } from 'vue';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import {
   Chart,
   LineController,
@@ -29,6 +30,7 @@ const props = defineProps<{
   data: Measurement[];
 }>();
 
+const { t, locale } = useI18n();
 const chartRef = ref<HTMLCanvasElement | null>(null);
 let chart: Chart | null = null;
 let mq: MediaQueryList | null = null;
@@ -89,7 +91,7 @@ onMounted(() => {
     data: {
       datasets: [
         {
-          label: 'СИС',
+          label: t('measurement.sys'),
           data: [],
           borderColor: '',
           backgroundColor: '',
@@ -99,7 +101,7 @@ onMounted(() => {
           pointHoverRadius: 5,
         },
         {
-          label: 'ДІА',
+          label: t('measurement.dia'),
           data: [],
           borderColor: '',
           backgroundColor: '',
@@ -109,7 +111,7 @@ onMounted(() => {
           pointHoverRadius: 5,
         },
         {
-          label: 'Пульс',
+          label: t('measurement.pulse'),
           data: [],
           borderColor: '',
           backgroundColor: '',
@@ -180,6 +182,14 @@ onMounted(() => {
   stopThemeWatch = watch(theme, () => {
     updateTheme();
   });
+
+  watch(locale, () => {
+    if (!chart) return;
+    chart.data.datasets[0]!.label = t('measurement.sys');
+    chart.data.datasets[1]!.label = t('measurement.dia');
+    chart.data.datasets[2]!.label = t('measurement.pulse');
+    chart.update();
+  });
 });
 
 onUnmounted(() => {
@@ -197,12 +207,13 @@ watch(() => props.data, updateChart);
 
 function buildLabel(m: Measurement, prev: Measurement | undefined): string | string[] {
   const d = new Date(m.recordedAt);
-  const dayStr = d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
-  const timeStr = d.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+  const localeStr = locale.value;
+  const dayStr = d.toLocaleDateString(localeStr, { day: '2-digit', month: '2-digit' });
+  const timeStr = d.toLocaleTimeString(localeStr, { hour: '2-digit', minute: '2-digit' });
 
   if (!prev) return [dayStr, timeStr];
 
-  const prevDay = new Date(prev.recordedAt).toLocaleDateString('uk-UA', {
+  const prevDay = new Date(prev.recordedAt).toLocaleDateString(localeStr, {
     day: '2-digit',
     month: '2-digit',
   });

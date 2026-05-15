@@ -1,18 +1,23 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { Measurement } from '../../types/api';
 import { getZone, zoneProgressPct } from '../../composables/useZone';
+import { useBpLabels } from '../../composables/useBpLabels';
 
 const props = defineProps<{
   last: Measurement;
   sparkData: number[];
 }>();
 
+const { locale } = useI18n();
+const bpLabels = useBpLabels();
+
 const zone = computed(() => getZone(props.last.sys, props.last.dia));
 const progressPct = computed(() => zoneProgressPct(props.last.sys));
 
 const time = computed(() =>
-  new Date(props.last.recordedAt).toLocaleTimeString('uk-UA', {
+  new Date(props.last.recordedAt).toLocaleTimeString(locale.value, {
     hour: '2-digit',
     minute: '2-digit',
   }),
@@ -40,17 +45,17 @@ const sparkPoints = computed(() => {
   <div class="hero-card">
     <div class="hero-top">
       <div class="hero-left">
-        <div class="hero-time">Останній вимір · {{ time }}</div>
+        <div class="hero-time">{{ $t('dashboard.lastReading', { time }) }}</div>
         <div class="hero-bp">
           <span class="hero-val" :style="{ color: zone.color }">{{ last.sys }}</span>
           <span class="hero-sep">/</span>
           <span class="hero-val" :style="{ color: zone.color }">{{ last.dia }}</span>
         </div>
-        <div class="hero-sub">мм рт.ст. · ♡ {{ last.pulse }} уд/хв</div>
+        <div class="hero-sub">{{ $t('bp.units.mmHg') }} · ♡ {{ last.pulse }} {{ $t('bp.units.bpm') }}</div>
       </div>
       <div class="hero-right">
         <div class="zone-badge" :style="{ color: zone.color, background: zone.bg }">
-          {{ zone.label }}
+          {{ bpLabels[zone.key] }}
         </div>
         <svg v-if="sparkPoints" width="72" height="28" style="display: block">
           <polyline
@@ -76,9 +81,9 @@ const sparkPoints = computed(() => {
       />
     </div>
     <div class="zone-bar-labels">
-      <span>Норма</span>
+      <span>{{ $t('bp.classes.normal') }}</span>
       <span :style="{ color: zone.color }">●</span>
-      <span>Небезпека</span>
+      <span>{{ $t('dashboard.danger') }}</span>
     </div>
   </div>
 </template>

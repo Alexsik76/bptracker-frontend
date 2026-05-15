@@ -1,20 +1,22 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useMeasurementStore } from '../../stores/measurements';
 import { useExport } from '../../composables/useExport';
 import MeasurementList from '../MeasurementList.vue';
 
 const measurements = useMeasurementStore();
 const { isExporting, handleExport } = useExport();
+const { t } = useI18n();
 
 type Period = 'week' | 'month' | 'all';
 const period = ref<Period>('all');
 
-const periods: { label: string; value: Period }[] = [
-  { label: 'Тиждень', value: 'week' },
-  { label: 'Місяць', value: 'month' },
-  { label: 'Весь час', value: 'all' },
-];
+const periods = computed(() => [
+  { label: t('dashboard.filterWeek'), value: 'week' as Period },
+  { label: t('dashboard.filterMonth'), value: 'month' as Period },
+  { label: t('dashboard.filterAll'), value: 'all' as Period },
+]);
 
 const filtered = computed(() => {
   if (period.value === 'all') return measurements.items;
@@ -43,7 +45,7 @@ const filtered = computed(() => {
     <!-- Count -->
     <div class="count-row">
       <span class="count-text">
-        {{ filtered.length }} {{ filtered.length === 1 ? 'запис' : filtered.length < 5 ? 'записи' : 'записів' }}
+        {{ $t('dashboard.records', { n: filtered.length }, filtered.length) }}
       </span>
     </div>
 
@@ -51,7 +53,7 @@ const filtered = computed(() => {
     <div class="list-scroll">
       <div class="list-pad">
         <div v-if="measurements.loading && filtered.length === 0" class="state-center">
-          <span class="state-text">Завантаження...</span>
+          <span class="state-text">{{ $t('common.loading') }}</span>
         </div>
         <div v-else-if="filtered.length === 0" class="state-center">
           <svg
@@ -65,7 +67,7 @@ const filtered = computed(() => {
           >
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
           </svg>
-          <span class="state-text">Немає записів за цей період</span>
+          <span class="state-text">{{ $t('dashboard.noRecords') }}</span>
         </div>
         <MeasurementList
           v-else
@@ -96,7 +98,7 @@ const filtered = computed(() => {
         >
           <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
-        {{ isExporting ? 'Надсилання...' : 'Отримати CSV на email' }}
+        {{ isExporting ? $t('dashboard.exporting') : $t('dashboard.exportCsv') }}
       </button>
     </div>
   </div>

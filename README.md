@@ -51,15 +51,19 @@ bptracker-frontend/
 │   │   ├── useApi.ts           # HTTP-клієнт
 │   │   ├── useConfirm.ts       # Діалог підтвердження
 │   │   ├── useExport.ts        # CSV-експорт
-│   │   ├── useKpi.ts           # KPI з вимірювань
+│   │   ├── useKpi.ts           # KPI з вимірювань (normalCount через NORMAL_CLASSES)
 │   │   ├── useOfflineQueue.ts  # Офлайн-черга (IndexedDB)
+│   │   ├── useTheme.ts         # Управління темою (auto/light/dark, localStorage)
 │   │   ├── useToast.ts         # Toast-сповіщення
-│   │   └── useZone.ts          # Класифікація зони тиску
+│   │   ├── useZone.ts          # Тонка обгортка над bp.ts: getZone → Zone
+│   │   └── __tests__/
+│   │       ├── useKpi.test.ts  # Тести KPI-агрегатів
+│   │       └── useTheme.test.ts # Тести переключення теми
 │   ├── pages/
 │   │   ├── DashboardPage.vue   # Головний екран (3 таби)
 │   │   ├── LoginPage.vue       # Вхід (Passkey + Magic Link)
 │   │   ├── MeasurementPage.vue # Додавання заміру (камера / вручну)
-│   │   └── SettingsPage.vue    # Налаштування
+│   │   └── SettingsPage.vue    # Налаштування (включно з перемикачем теми)
 │   ├── router/
 │   │   └── index.ts            # Маршрути та Navigation Guard
 │   ├── stores/
@@ -68,14 +72,15 @@ bptracker-frontend/
 │   │   └── settings.ts         # Користувацькі налаштування
 │   ├── styles/
 │   │   ├── global.css          # Базові стилі
-│   │   └── tokens.css          # CSS-змінні та теми
+│   │   └── tokens.css          # CSS-змінні: темна (default) + повна світла палітра
 │   ├── types/
 │   │   └── api.ts              # DTO-типи
 │   ├── utils/
-│   │   ├── bp.ts               # Класифікація ВООЗ
+│   │   ├── bp.ts               # Класифікація ESC (4 рівні): optimal/normal/stage1/stage2
 │   │   ├── image.ts            # Клієнтська передобробка фото (масштабування, стиснення)
 │   │   ├── theme.ts            # Робота з CSS-змінними
 │   │   └── __tests__/
+│   │       ├── bp.test.ts      # Тести класифікації та NORMAL_CLASSES
 │   │       └── image.test.ts   # Тести обробки зображень
 │   ├── App.vue                 # Кореневий компонент
 │   └── main.ts                 # Точка входу
@@ -125,9 +130,51 @@ npm run test:run   # одноразовий запуск (CI)
 npm run test       # watch-режим (розробка)
 ```
 
-Покриті юніт-тестами: `useKpi` (медичні агрегати) та `preprocessImage` (обробка фото). CI (GitHub Actions) запускає тести перед кожним білдом.
+Покриті юніт-тестами: `classifyBP` / `NORMAL_CLASSES` (ESC-класифікація), `useKpi` (медичні агрегати), `useTheme` (переключення теми) та `preprocessImage` (обробка фото). CI (GitHub Actions) запускає тести перед кожним білдом.
 
 Скрипт `build` автоматично копіює `dist/index.html` у `dist/404.html` для коректної роботи SPA-роутингу на GitHub Pages.
+
+## Класифікація артеріального тиску
+
+Єдине джерело правди — `src/utils/bp.ts`. Шкала ESC (4 рівні, tie-break = вищий рівень):
+
+| Клас | Систолічний | Діастолічний |
+|------|-------------|--------------|
+| `optimal` | < 120 | І < 80 |
+| `normal`  | 120–139 | АБО 80–89 |
+| `stage1`  | 140–159 | АБО 90–99 |
+| `stage2`  | ≥ 160   | АБО ≥ 100 |
+
+`NORMAL_CLASSES = Set(['optimal', 'normal'])` — використовується в `useKpi` для підрахунку частки «в нормі».
+
+`useZone.ts` — тонка обгортка: перетворює результат `classifyBP()` у об'єкт `Zone` з полями `key`, `label`, `color`, `bg`, читаючи значення з мап `BP_CLASS_*` у `bp.ts`. Хардкоджені кольори відсутні — всі значення є CSS-токенами (`var(--zone-*)`).
+
+## Система тем
+
+Підтримуються три режими: **Авто** (слідує ОС), **Світла**, **Темна**.
+
+| Аспект | Деталь |
+|--------|--------|
+| Зберігання | `localStorage('bptracker:theme')` |
+| Застосування | атрибут `data-theme` на `<html>` |
+| Composable | `src/composables/useTheme.ts` — singleton ref + `setTheme()` + `initTheme()` |
+| UI | Segmented control «Тема» у `SettingsPage.vue` |
+| FOUC | Інлайн-скрипт у `index.html` встановлює `data-theme` до завантаження CSS |
+| Ініціалізація | `initTheme()` викликається у `main.ts` перед `app.mount()` |
+
+**CSS-патерн** у `tokens.css`:
+
+```css
+:root { /* темна палітра (default) */ }
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { /* світла — для auto + OS=light */ }
+}
+
+:root[data-theme="light"] { /* світла — при ручному виборі */ }
+```
+
+Обидва light-блоки синхронізовані (`SYNC`-коментарі). `BpChart.vue` слухає зміни теми через `watch(theme, updateTheme)` на додаток до `matchMedia`-listener (для auto-режиму при зміні ОС-теми).
 
 ## Деплой (GitHub Pages)
 

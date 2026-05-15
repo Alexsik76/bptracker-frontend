@@ -101,7 +101,7 @@ onUnmounted(() => {
               <circle cx="18" cy="18" r="4" />
               <path d="M15.5 18H21" />
             </svg>
-            <p>Схема лікування не знайдена</p>
+            <p>{{ $t('schema.notFound') }}</p>
           </div>
         </div>
       </template>

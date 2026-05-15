@@ -1,18 +1,31 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
 import { useRouter } from 'vue-router';
 import { useToast } from '../composables/useToast';
 import { useConfirm } from '../composables/useConfirm';
 import { useTheme, setTheme } from '../composables/useTheme';
+import { useLocale } from '../composables/useLocale';
+import { useApiErrorMessage } from '../composables/useApiErrorMessage';
 import type { Theme } from '../composables/useTheme';
+import type { AppLocale } from '../i18n';
 
+const { t } = useI18n();
 const { theme } = useTheme();
+const { locale, setLocale } = useLocale();
+const { toMessage } = useApiErrorMessage();
+
 const themeOptions: Array<{ value: Theme; label: string }> = [
-  { value: 'auto',  label: 'Авто' },
-  { value: 'light', label: 'Світла' },
-  { value: 'dark',  label: 'Темна' },
+  { value: 'auto',  label: 'Auto / Авто' },
+  { value: 'light', label: 'Light / Світла' },
+  { value: 'dark',  label: 'Dark / Темна' },
+];
+
+const localeOptions: Array<{ value: AppLocale; label: string }> = [
+  { value: 'uk', label: 'Українська' },
+  { value: 'en', label: 'English' },
 ];
 
 const auth = useAuthStore();
@@ -43,16 +56,19 @@ async function save() {
   loading.value = true;
   try {
     await settingsStore.updateSettings({ ...form });
-    toast.success('Налаштування збережено!');
-  } catch {
-    toast.error('Помилка при збереженні');
+    toast.success(t('settings.saved'));
+  } catch (err) {
+    toast.error(toMessage(err, 'errors.saveFailed'));
   } finally {
     loading.value = false;
   }
 }
 
 async function handleLogout() {
-  const ok = await confirm('Вийти з акаунту?', { confirmText: 'Вийти', cancelText: 'Скасувати' });
+  const ok = await confirm(t('settings.logoutConfirm'), {
+    confirmText: t('settings.logoutBtn'),
+    cancelText: t('common.cancel'),
+  });
   if (ok) {
     auth.logout();
     router.push({ name: 'login' });
@@ -79,19 +95,19 @@ async function handleLogout() {
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
       </button>
-      <h1>Налаштування</h1>
+      <h1>{{ $t('settings.title') }}</h1>
     </header>
 
     <main class="content">
       <section class="user-info card">
-        <h2>Акаунт</h2>
+        <h2>{{ $t('settings.account.title') }}</h2>
         <p class="email">{{ auth.user?.email }}</p>
-        <button class="btn-link danger" @click="handleLogout">Вийти з системи</button>
+        <button class="btn-link danger" @click="handleLogout">{{ $t('settings.account.logout') }}</button>
       </section>
 
       <section class="card">
-        <h2>Тема</h2>
-        <div class="theme-segmented" role="group" aria-label="Вибір теми">
+        <h2>{{ $t('settings.theme.label') }}</h2>
+        <div class="theme-segmented" role="group" :aria-label="$t('settings.theme.label')">
           <button
             v-for="opt in themeOptions"
             :key="opt.value"
@@ -105,26 +121,42 @@ async function handleLogout() {
         </div>
       </section>
 
+      <section class="card">
+        <h2>{{ $t('settings.locale.label') }}</h2>
+        <div class="locale-segmented" role="group" :aria-label="$t('settings.locale.label')">
+          <button
+            v-for="opt in localeOptions"
+            :key="opt.value"
+            type="button"
+            :class="['seg-btn', { active: locale === opt.value }]"
+            :aria-pressed="locale === opt.value"
+            @click="setLocale(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+      </section>
+
       <section class="settings-form card">
-        <h2>Параметри</h2>
+        <h2>{{ $t('settings.params.title') }}</h2>
         <form @submit.prevent="save">
           <div class="field">
             <label>
-              Email для експорту CSV
+              {{ $t('settings.params.exportEmail') }}
               <input v-model="form.exportEmail" type="email" placeholder="email@example.com" />
             </label>
           </div>
 
           <div class="field">
             <label>
-              Gemini API URL (custom)
+              {{ $t('settings.params.geminiUrl') }}
               <input v-model="form.geminiUrl" type="url" placeholder="https://..." />
             </label>
           </div>
 
           <div class="field">
             <label>
-              Шаблон Google Sheets для імпорту CSV
+              {{ $t('settings.params.sheetsTemplate') }}
               <input
                 v-model="form.sheetsTemplateUrl"
                 type="url"
@@ -134,7 +166,7 @@ async function handleLogout() {
           </div>
 
           <button type="submit" class="btn primary" :disabled="loading">
-            {{ loading ? 'Збереження...' : 'Зберегти зміни' }}
+            {{ loading ? $t('settings.saving') : $t('settings.saveChanges') }}
           </button>
         </form>
       </section>
@@ -245,7 +277,8 @@ async function handleLogout() {
   margin-top: var(--space-4);
 }
 
-.theme-segmented {
+.theme-segmented,
+.locale-segmented {
   display: inline-flex;
   background: var(--color-bg);
   border: 1px solid var(--color-border);

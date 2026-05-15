@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { Measurement, CreateMeasurementDto } from '../types/api';
 import { useApi } from '../composables/useApi';
 import { useOfflineQueue } from '../composables/useOfflineQueue';
 import { useToast } from '../composables/useToast';
+import { useApiErrorMessage } from '../composables/useApiErrorMessage';
 
 export const useMeasurementStore = defineStore('measurements', () => {
   const items = ref<Measurement[]>([]);
@@ -12,6 +14,8 @@ export const useMeasurementStore = defineStore('measurements', () => {
   const api = useApi();
   const offline = useOfflineQueue();
   const toast = useToast();
+  const { t } = useI18n();
+  const { toMessage } = useApiErrorMessage();
 
   async function fetchMeasurements(signal?: AbortSignal) {
     loading.value = true;
@@ -22,7 +26,7 @@ export const useMeasurementStore = defineStore('measurements', () => {
     } catch (err) {
       // Do not show error for intentional navigation cancellations
       if (err instanceof DOMException && err.name === 'AbortError') return;
-      error.value = err instanceof Error ? err.message : 'Не вдалося завантажити виміри';
+      error.value = toMessage(err, 'errors.loadFailed');
     } finally {
       loading.value = false;
     }
@@ -36,7 +40,7 @@ export const useMeasurementStore = defineStore('measurements', () => {
     } catch (err) {
       if (!navigator.onLine) {
         await offline.enqueue(data);
-        toast.info('Збережено локально — дані буде надіслано при появі мережі.');
+        toast.info(t('measurement.savedOffline'));
         return null;
       }
       throw err;

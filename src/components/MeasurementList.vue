@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { Measurement } from '../types/api';
 import { getZone } from '../composables/useZone';
+import { useBpLabels } from '../composables/useBpLabels';
 import { useConfirm } from '../composables/useConfirm';
 
+const { t, locale } = useI18n();
 const { confirm } = useConfirm();
+const bpLabels = useBpLabels();
 
 const props = defineProps<{
   items: Measurement[];
@@ -26,6 +30,7 @@ const grouped = computed((): Group[] => {
   now.setHours(0, 0, 0, 0);
   const todayMs = now.getTime();
   const yesterdayMs = todayMs - 86400000;
+  const localeStr = locale.value;
 
   const map = new Map<string, Group>();
 
@@ -39,10 +44,9 @@ const grouped = computed((): Group[] => {
       const dt = dayStart.getTime();
 
       let label: string;
-      if (dt === todayMs) label = 'Сьогодні';
-      else if (dt === yesterdayMs) label = 'Вчора';
-      else
-        label = d.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
+      if (dt === todayMs) label = t('common.today');
+      else if (dt === yesterdayMs) label = t('common.yesterday');
+      else label = d.toLocaleDateString(localeStr, { day: 'numeric', month: 'long' });
 
       map.set(key, { label, items: [] });
     }
@@ -53,16 +57,17 @@ const grouped = computed((): Group[] => {
 });
 
 function formatTime(dateStr: string) {
-  return new Date(dateStr).toLocaleTimeString('uk-UA', {
+  const localeStr = locale.value;
+  return new Date(dateStr).toLocaleTimeString(localeStr, {
     hour: '2-digit',
     minute: '2-digit',
   });
 }
 
 async function handleDelete(id: string) {
-  const ok = await confirm('Видалити цей запис?', {
-    confirmText: 'Видалити',
-    cancelText: 'Скасувати',
+  const ok = await confirm(t('measurement.deleteConfirm'), {
+    confirmText: t('common.delete'),
+    cancelText: t('common.cancel'),
   });
   if (ok) emit('delete', id);
 }
@@ -70,7 +75,7 @@ async function handleDelete(id: string) {
 
 <template>
   <div class="list-wrap">
-    <div v-if="loading && items.length === 0" class="state-msg">Завантаження...</div>
+    <div v-if="loading && items.length === 0" class="state-msg">{{ $t('common.loading') }}</div>
 
     <template v-else>
       <template v-for="group in grouped" :key="group.label">
@@ -89,7 +94,7 @@ async function handleDelete(id: string) {
             <div class="row-time">{{ formatTime(m.recordedAt) }}</div>
             <div class="row-bp">
               <span class="bp-val">{{ m.sys }}/{{ m.dia }}</span>
-              <span class="bp-unit">мм рт.ст.</span>
+              <span class="bp-unit">{{ $t('bp.units.mmHg') }}</span>
             </div>
           </div>
           <div class="row-right">
@@ -100,15 +105,15 @@ async function handleDelete(id: string) {
                 background: getZone(m.sys, m.dia).bg,
               }"
             >
-              {{ getZone(m.sys, m.dia).label }}
+              {{ bpLabels[getZone(m.sys, m.dia).key] }}
             </div>
-            <div class="row-pulse">♡ {{ m.pulse }} уд/хв</div>
+            <div class="row-pulse">♡ {{ m.pulse }} {{ $t('bp.units.bpm') }}</div>
           </div>
           <button
             v-if="showDelete"
             class="delete-btn"
-            title="Видалити"
-            aria-label="Видалити вимірювання"
+            :title="$t('common.delete')"
+            :aria-label="$t('common.delete')"
             @click="handleDelete(m.id)"
           >
             <svg

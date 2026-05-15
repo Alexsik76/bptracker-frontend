@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 const props = defineProps<{
   modelValue: number;
   zoneColor: string;
@@ -9,12 +12,14 @@ const emit = defineEmits<{
   profile: [];
 }>();
 
-const tabs = [
-  { label: 'Дашборд', index: 0 },
-  { label: 'Історія', index: 1 },
-  { label: 'Ліки', index: 2 },
-  { label: 'Профіль', index: 3 },
-];
+const { t } = useI18n();
+
+const tabs = computed(() => [
+  { label: t('dashboard.tabs.dashboard'), index: 0 },
+  { label: t('dashboard.tabs.history'), index: 1 },
+  { label: t('dashboard.tabs.medications'), index: 2 },
+  { label: t('dashboard.tabs.profile'), index: 3 },
+]);
 
 function select(index: number) {
   if (index === 3) {
@@ -34,25 +39,25 @@ function select(index: number) {
       :style="{ color: modelValue === tab.index ? props.zoneColor : undefined }"
       @click="select(tab.index)"
     >
-      <!-- Дашборд -->
+      <!-- Dashboard -->
       <svg v-if="tab.index === 0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1" />
         <rect x="14" y="3" width="7" height="7" rx="1" />
         <rect x="3" y="14" width="7" height="7" rx="1" />
         <rect x="14" y="14" width="7" height="7" rx="1" />
       </svg>
-      <!-- Історія -->
+      <!-- History -->
       <svg v-else-if="tab.index === 1" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 20h9" />
         <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
       </svg>
-      <!-- Ліки -->
+      <!-- Medications -->
       <svg v-else-if="tab.index === 2" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M10.5 20H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H20a2 2 0 0 1 2 2v3" />
         <circle cx="18" cy="18" r="4" />
         <path d="M15.5 18H21" />
       </svg>
-      <!-- Профіль -->
+      <!-- Profile -->
       <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="8" r="4" />
         <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />

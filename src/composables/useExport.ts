@@ -1,26 +1,30 @@
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useApi } from './useApi';
 import { useToast } from './useToast';
 import { useConfirm } from './useConfirm';
+import { useApiErrorMessage } from './useApiErrorMessage';
 
 export function useExport() {
   const api = useApi();
   const toast = useToast();
   const { confirm } = useConfirm();
+  const { t } = useI18n();
+  const { toMessage } = useApiErrorMessage();
   const isExporting = ref(false);
 
   async function handleExport() {
-    const ok = await confirm('Надіслати CSV з усіма вимірюваннями на ваш email?', {
-      confirmText: 'Надіслати',
-      cancelText: 'Скасувати',
+    const ok = await confirm(t('export.confirmMsg'), {
+      confirmText: t('export.send'),
+      cancelText: t('common.cancel'),
     });
     if (!ok) return;
     isExporting.value = true;
     try {
       await api.exportCsv();
-      toast.success('Готово — CSV надіслано на ваш email!');
+      toast.success(t('export.success'));
     } catch (err: any) {
-      toast.error(err.message || 'Помилка при експорті. Перевірте налаштування email.');
+      toast.error(toMessage(err, 'errors.exportFailed'));
     } finally {
       isExporting.value = false;
     }

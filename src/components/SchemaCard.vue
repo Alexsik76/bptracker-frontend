@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { TreatmentSchema, MedicationEntry } from '../types/api';
 
 const props = defineProps<{
   schema: TreatmentSchema;
 }>();
 
-const TIME_LABELS: Record<string, string> = {
-  Morning: 'Ранок',
-  Afternoon: 'День',
-  Evening: 'Вечір',
-  Night: 'Ніч',
+const { t } = useI18n();
+
+const TIME_KEYS: Record<string, string> = {
+  Morning: 'schema.morning',
+  Afternoon: 'schema.afternoon',
+  Evening: 'schema.evening',
+  Night: 'schema.night',
 };
 
 interface TimeBlock {
@@ -43,7 +46,7 @@ const blocks = computed((): TimeBlock[] => {
       });
 
     return {
-      label: TIME_LABELS[key] ?? key,
+      label: TIME_KEYS[key] ? t(TIME_KEYS[key]) : key,
       unconditional,
       conditional: Array.from(condMap.entries()).map(([condition, meds]) => ({ condition, meds })),
     };
@@ -68,11 +71,11 @@ const blocks = computed((): TimeBlock[] => {
         <path d="M9 11l3 3L22 4"></path>
         <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
       </svg>
-      <h2>Схема лікування</h2>
+      <h2>{{ $t('schema.title') }}</h2>
       <span class="schema-id">{{ schema.id }}</span>
     </div>
 
-    <div v-if="!blocks.length" class="empty">Розклад не заповнено</div>
+    <div v-if="!blocks.length" class="empty">{{ $t('schema.empty') }}</div>
 
     <div class="blocks">
       <div v-for="block in blocks" :key="block.label" class="time-block">
@@ -91,7 +94,7 @@ const blocks = computed((): TimeBlock[] => {
 
           <!-- Conditional groups -->
           <div v-for="group in block.conditional" :key="group.condition" class="cond-group">
-            <div class="cond-label">При {{ group.condition }}:</div>
+            <div class="cond-label">{{ $t('schema.conditionPrefix', { condition: group.condition }) }}</div>
             <div v-for="med in group.meds" :key="med.Medicine" class="med-row cond-med">
               <span class="med-name">{{ med.Medicine }}</span>
               <span class="arrow">→</span>

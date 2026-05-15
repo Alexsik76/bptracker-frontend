@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { watch, useTemplateRef } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useConfirm } from '../composables/useConfirm';
 
 const { state, respond } = useConfirm();
+const { t } = useI18n();
 const dialogRef = useTemplateRef<HTMLDialogElement>('dialog');
 
 watch(state, (val) => {
@@ -24,10 +26,10 @@ watch(state, (val) => {
     <p id="confirm-msg" class="confirm-msg">{{ state?.message }}</p>
     <div class="confirm-actions">
       <button class="btn-cancel" autofocus @click="respond(false)">
-        {{ state?.options.cancelText ?? 'Скасувати' }}
+        {{ state?.options.cancelText ?? t('common.cancel') }}
       </button>
       <button class="btn-confirm" @click="respond(true)">
-        {{ state?.options.confirmText ?? 'Підтвердити' }}
+        {{ state?.options.confirmText ?? t('common.confirm') }}
       </button>
     </div>
   </dialog>

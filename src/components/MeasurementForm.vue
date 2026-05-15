@@ -45,37 +45,37 @@ function validate() {
   <form class="form" @submit.prevent="handleSubmit">
     <div class="field">
       <label>
-        Систолічний (верхній)
+        {{ $t('measurement.systolic') }}
         <div class="input-wrapper">
           <input v-model.number="form.sys" type="number" min="40" max="300" required />
-          <span class="unit">мм рт.ст.</span>
+          <span class="unit">{{ $t('bp.units.mmHg') }}</span>
         </div>
       </label>
     </div>
 
     <div class="field">
       <label>
-        Діастолічний (нижній)
+        {{ $t('measurement.diastolic') }}
         <div class="input-wrapper">
           <input v-model.number="form.dia" type="number" min="20" max="200" required />
-          <span class="unit">мм рт.ст.</span>
+          <span class="unit">{{ $t('bp.units.mmHg') }}</span>
         </div>
       </label>
     </div>
 
     <div class="field">
       <label>
-        Пульс
+        {{ $t('measurement.pulse') }}
         <div class="input-wrapper">
           <input v-model.number="form.pulse" type="number" min="30" max="250" required />
-          <span class="unit">уд/хв</span>
+          <span class="unit">{{ $t('bp.units.bpm') }}</span>
         </div>
       </label>
     </div>
 
     <div class="actions">
-      <button type="button" class="btn secondary" @click="emit('cancel')">Скасувати</button>
-      <button type="submit" class="btn primary">Зберегти</button>
+      <button type="button" class="btn secondary" @click="emit('cancel')">{{ $t('common.cancel') }}</button>
+      <button type="submit" class="btn primary">{{ $t('common.save') }}</button>
     </div>
   </form>
 </template>

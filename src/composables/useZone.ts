@@ -1,9 +1,8 @@
-import { classifyBP, BP_CLASS_LABEL, BP_CLASS_COLOR, BP_CLASS_BG } from '../utils/bp';
+import { classifyBP, BP_CLASS_COLOR, BP_CLASS_BG } from '../utils/bp';
 import type { BpClass } from '../utils/bp';
 
 export type Zone = {
   key: BpClass;
-  label: string;
   color: string;
   bg: string;
 };
@@ -11,7 +10,6 @@ export type Zone = {
 function makeZone(key: BpClass): Zone {
   return {
     key,
-    label: BP_CLASS_LABEL[key],
     color: BP_CLASS_COLOR[key],
     bg:    BP_CLASS_BG[key],
   };

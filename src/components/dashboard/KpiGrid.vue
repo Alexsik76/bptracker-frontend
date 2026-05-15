@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import KpiCard from './KpiCard.vue';
 import { useKpi } from '../../composables/useKpi';
+import { useBpLabels } from '../../composables/useBpLabels';
 import { getZone } from '../../composables/useZone';
 import type { Measurement } from '../../types/api';
 
 const props = defineProps<{ measurements: Measurement[] }>();
+const { t } = useI18n();
 
 const kpi = useKpi(() => props.measurements);
+const bpLabels = useBpLabels();
 
 const avgZoneColor = computed(() => {
   const k = kpi.value;
@@ -23,8 +27,8 @@ const avgValue = computed(() => {
 
 const avgSub = computed(() => {
   const k = kpi.value;
-  if (!k || k.avgSys === null) return 'немає даних';
-  return getZone(k.avgSys!, k.avgDia!).label;
+  if (!k || k.avgSys === null) return t('dashboard.kpi.noData');
+  return bpLabels.value[getZone(k.avgSys!, k.avgDia!).key];
 });
 
 const deltaValue = computed(() => {
@@ -48,34 +52,34 @@ const normalValue = computed(() => {
 
 const normalSub = computed(() => {
   const k = kpi.value;
-  if (!k || k.totalLast7 === 0) return 'немає даних';
-  return `${Math.round((k.normalShare ?? 0) * 100)}% у нормі`;
+  if (!k || k.totalLast7 === 0) return t('dashboard.kpi.noData');
+  return t('dashboard.kpi.inRangePercent', { n: Math.round((k.normalShare ?? 0) * 100) });
 });
 </script>
 
 <template>
   <div v-if="kpi" class="stat-grid">
     <KpiCard
-      label="Серед. за 7 днів"
+      :label="$t('dashboard.kpi.avgWeek')"
       :value="avgValue"
       :sub="avgSub"
       :accent="avgZoneColor"
     />
     <KpiCard
-      label="Зміна за тиждень"
+      :label="$t('dashboard.kpi.weekChange')"
       :value="deltaValue"
-      sub="↑↓ vs минулий тиждень"
+      :sub="$t('dashboard.kpi.vsLastWeek')"
       :accent="deltaAccent"
     />
     <KpiCard
-      label="У нормі (7д)"
+      :label="$t('dashboard.kpi.inRange')"
       :value="normalValue"
       :sub="normalSub"
     />
     <KpiCard
-      label="Пульс сер."
+      :label="$t('dashboard.kpi.avgPulse')"
       :value="kpi.avgPulse !== null ? String(kpi.avgPulse) : '—'"
-      sub="уд/хв · 7 днів"
+      :sub="$t('dashboard.kpi.bpmWeek')"
       accent="#34d399"
     />
   </div>

@@ -6,6 +6,7 @@ import type {
   TreatmentSchema,
 } from '../types/api';
 import type { RegistrationResponseJSON, AuthenticationResponseJSON } from '@simplewebauthn/browser';
+import { ApiError, httpStatusToCode } from '../utils/apiError';
 
 declare global {
   interface Window {
@@ -74,7 +75,7 @@ export function useApi() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
-    if (!res.ok) throw new Error('Не вдалося надіслати посилання');
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
     return true;
   }
 
@@ -84,7 +85,7 @@ export function useApi() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token }),
     });
-    if (!res.ok) throw new Error('Посилання недійсне');
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
     return true;
   }
 
@@ -95,7 +96,7 @@ export function useApi() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
-    if (!res.ok) throw new Error('Помилка реєстрації');
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
     return await res.json();
   }
 
@@ -105,7 +106,7 @@ export function useApi() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Помилка завершення реєстрації');
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
     return await res.json();
   }
 
@@ -115,7 +116,7 @@ export function useApi() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     });
-    if (!res.ok) throw new Error('Помилка входу');
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
     return await res.json();
   }
 
@@ -125,14 +126,14 @@ export function useApi() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Помилка входу');
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
     return await res.json();
   }
 
   // Measurements
   async function getMeasurements(signal?: AbortSignal): Promise<Measurement[]> {
     const res = await _fetch(`${API_BASE_URL}/measurements?days=90`, { signal });
-    if (!res.ok) throw new Error(`Помилка завантаження: ${res.status} ${res.statusText}`);
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
     return await res.json();
   }
 
@@ -142,13 +143,13 @@ export function useApi() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Помилка збереження');
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
     return await res.json();
   }
 
   async function deleteMeasurement(id: string) {
     const res = await _fetch(`${API_BASE_URL}/measurements/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Помилка видалення');
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
   }
 
   async function addMeasurementWithPhoto(formData: FormData): Promise<Measurement> {
@@ -157,8 +158,8 @@ export function useApi() {
       body: formData,
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || 'Помилка збереження з фото');
+      const body = await res.json().catch(() => ({}));
+      throw new ApiError(httpStatusToCode(res.status), body.error ?? `HTTP ${res.status}`);
     }
     return await res.json();
   }
@@ -166,7 +167,7 @@ export function useApi() {
   // Settings
   async function getSettings(): Promise<UserSettings> {
     const res = await _fetch(`${API_BASE_URL}/settings`);
-    if (!res.ok) throw new Error('Помилка завантаження налаштувань');
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
     return await res.json();
   }
 
@@ -176,7 +177,7 @@ export function useApi() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Помилка збереження налаштувань');
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
     return await res.json();
   }
 
@@ -188,8 +189,8 @@ export function useApi() {
       body: formData,
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || 'AI не вдалося розпізнати фото');
+      const body = await res.json().catch(() => ({}));
+      throw new ApiError(httpStatusToCode(res.status), body.error ?? `HTTP ${res.status}`);
     }
     return await res.json();
   }
@@ -207,8 +208,8 @@ export function useApi() {
   async function exportCsv() {
     const res = await _fetch(`${API_BASE_URL}/export/csv`, { method: 'POST' });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || 'Помилка експорту');
+      const body = await res.json().catch(() => ({}));
+      throw new ApiError(httpStatusToCode(res.status), body.error ?? `HTTP ${res.status}`);
     }
     return await res.json();
   }

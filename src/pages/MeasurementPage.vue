@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useMeasurementStore } from '../stores/measurements';
 import { useApi } from '../composables/useApi';
 import { useToast } from '../composables/useToast';
+import { useApiErrorMessage } from '../composables/useApiErrorMessage';
 import { preprocessImage } from '../utils/image';
 import CameraCapture from '../components/CameraCapture.vue';
 import AiReview from '../components/AiReview.vue';
@@ -11,9 +13,11 @@ import MeasurementForm from '../components/MeasurementForm.vue';
 
 const router = useRouter();
 const route = useRoute();
+const { t } = useI18n();
 const measurements = useMeasurementStore();
 const api = useApi();
 const toast = useToast();
+const { toMessage } = useApiErrorMessage();
 
 const step = ref<'select' | 'camera' | 'review' | 'manual'>('select');
 const recognizedData = ref({ sys: 120, dia: 80, pulse: 70 });
@@ -31,8 +35,8 @@ async function handleCapture(file: File) {
   step.value = 'review';
   try {
     const processedBlob = await preprocessImage(file);
-    const result = await api.analyzeImage(processedBlob as File); // cast to File for API method signature compatibility
-    
+    const result = await api.analyzeImage(processedBlob as File);
+
     recognizedData.value = { sys: result.sys, dia: result.dia, pulse: result.pulse };
     lastAnalysis.value = {
       photoBlob: processedBlob,
@@ -42,7 +46,7 @@ async function handleCapture(file: File) {
     };
   } catch (err) {
     console.error('[MeasurementPage] Analysis failed:', err);
-    toast.error(err instanceof Error ? err.message : 'AI не вдалося розпізнати фото');
+    toast.error(toMessage(err, 'errors.analyzeFailed'));
     step.value = 'manual';
   } finally {
     isAnalyzing.value = false;
@@ -64,12 +68,12 @@ async function handleSave(data: { sys: number; dia: number; pulse: number }) {
     } else {
       await measurements.add(data);
     }
-    
-    toast.success('Замір успішно збережено!');
+
+    toast.success(t('measurement.saveSuccess'));
     router.push({ name: 'dashboard' });
   } catch (err) {
     console.error('[MeasurementPage] Save failed:', err);
-    toast.error('Помилка при збереженні');
+    toast.error(t('measurement.saveError'));
   }
 }
 
@@ -87,7 +91,6 @@ onMounted(async () => {
         const blob = await response.blob();
         const file = new File([blob], 'shared.jpg', { type: blob.type || 'image/jpeg' });
         await handleCapture(file);
-        // Clean up cache
         await cache.delete('shared-image');
       }
     } catch (err) {
@@ -116,7 +119,7 @@ onMounted(async () => {
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
       </button>
-      <h1>Новий замір</h1>
+      <h1>{{ $t('measurement.newTitle') }}</h1>
     </header>
 
     <main class="content">
@@ -138,8 +141,8 @@ onMounted(async () => {
             ></path>
             <circle cx="12" cy="13" r="4"></circle>
           </svg>
-          <span>Сканувати тонометр</span>
-          <small>AI розпізнавання</small>
+          <span>{{ $t('measurement.scanDevice') }}</span>
+          <small>{{ $t('measurement.aiRecognition') }}</small>
         </button>
 
         <button class="choice-btn secondary" @click="step = 'manual'">
@@ -157,7 +160,7 @@ onMounted(async () => {
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
           </svg>
-          <span>Ввести вручну</span>
+          <span>{{ $t('measurement.enterManually') }}</span>
         </button>
       </div>
 
