@@ -23,6 +23,7 @@ Chart.register(
 );
 import type { Measurement } from '../types/api';
 import { cssVar } from '../utils/theme';
+import { useTheme } from '../composables/useTheme';
 
 const props = defineProps<{
   data: Measurement[];
@@ -31,6 +32,7 @@ const props = defineProps<{
 const chartRef = ref<HTMLCanvasElement | null>(null);
 let chart: Chart | null = null;
 let mq: MediaQueryList | null = null;
+let stopThemeWatch: (() => void) | null = null;
 
 function updateTheme() {
   if (!chart) return;
@@ -173,6 +175,11 @@ onMounted(() => {
 
   mq = window.matchMedia('(prefers-color-scheme: dark)');
   mq.addEventListener('change', updateTheme);
+
+  const { theme } = useTheme();
+  stopThemeWatch = watch(theme, () => {
+    updateTheme();
+  });
 });
 
 onUnmounted(() => {
@@ -180,6 +187,8 @@ onUnmounted(() => {
   chart = null;
   mq?.removeEventListener('change', updateTheme);
   mq = null;
+  stopThemeWatch?.();
+  stopThemeWatch = null;
 });
 
 // No deep: true — measurements arrive as a new array reference from the store,

@@ -5,6 +5,15 @@ import { useSettingsStore } from '../stores/settings';
 import { useRouter } from 'vue-router';
 import { useToast } from '../composables/useToast';
 import { useConfirm } from '../composables/useConfirm';
+import { useTheme, setTheme } from '../composables/useTheme';
+import type { Theme } from '../composables/useTheme';
+
+const { theme } = useTheme();
+const themeOptions: Array<{ value: Theme; label: string }> = [
+  { value: 'auto',  label: 'Авто' },
+  { value: 'light', label: 'Світла' },
+  { value: 'dark',  label: 'Темна' },
+];
 
 const auth = useAuthStore();
 const settingsStore = useSettingsStore();
@@ -78,6 +87,22 @@ async function handleLogout() {
         <h2>Акаунт</h2>
         <p class="email">{{ auth.user?.email }}</p>
         <button class="btn-link danger" @click="handleLogout">Вийти з системи</button>
+      </section>
+
+      <section class="card">
+        <h2>Тема</h2>
+        <div class="theme-segmented" role="group" aria-label="Вибір теми">
+          <button
+            v-for="opt in themeOptions"
+            :key="opt.value"
+            type="button"
+            :class="['seg-btn', { active: theme === opt.value }]"
+            :aria-pressed="theme === opt.value"
+            @click="setTheme(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
       </section>
 
       <section class="settings-form card">
@@ -218,5 +243,30 @@ async function handleLogout() {
   color: var(--color-text-muted);
   font-size: var(--text-xs);
   margin-top: var(--space-4);
+}
+
+.theme-segmented {
+  display: inline-flex;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 2px;
+}
+
+.seg-btn {
+  padding: var(--space-3) var(--space-7);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  cursor: pointer;
+  border-radius: calc(var(--radius-md) - 2px);
+  transition: background 0.15s, color 0.15s;
+}
+
+.seg-btn.active {
+  background: var(--color-primary);
+  color: #fff;
 }
 </style>
