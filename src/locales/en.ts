@@ -129,6 +129,21 @@ const en: MessageSchema = {
       bpm: 'bpm',
     },
   },
+  bpScale: {
+    title: 'Blood Pressure Scale',
+    intro: 'Classification follows a simplified ESC (European Society of Cardiology) scale. Each measurement’s color corresponds to one of four levels.',
+    columns: {
+      level: 'Level',
+      sys: 'SYS, mmHg',
+      dia: 'DIA, mmHg',
+    },
+    tieBreakTitle: 'When values fall in different levels',
+    tieBreak: 'If systolic and diastolic pressure fall into different levels — the app picks the higher one. For example, {example}: systolic is Grade I, diastolic is Normal; together it’s classified as {result}.',
+    tieBreakExample: '145/85',
+    tieBreakResult: 'Grade I',
+    disclaimer: 'This scale is approximate, for self-monitoring. It does not replace a doctor’s consultation — especially with persistently high readings.',
+    infoButtonLabel: 'About the blood pressure scale',
+  },
   schema: {
     title: 'Treatment schedule',
     empty: 'Schedule not filled in',

@@ -24,3 +24,13 @@ export const BP_CLASS_BG: Record<BpClass, string> = {
 /** Категорії, що вважаються «у межах норми» для KPI. */
 export const NORMAL_CLASSES: ReadonlySet<BpClass> =
   new Set(['optimal', 'normal']);
+
+export type BpRange = { sys: string; dia: string };
+
+/** Текстові діапазони для UI. Мають збігатися з порогами у classifyBP. */
+export const BP_CLASS_RANGE: Record<BpClass, BpRange> = {
+  optimal: { sys: '< 120',   dia: '< 80'  },
+  normal:  { sys: '120–139', dia: '80–89' },
+  stage1:  { sys: '140–159', dia: '90–99' },
+  stage2:  { sys: '≥ 160',   dia: '≥ 100' },
+};

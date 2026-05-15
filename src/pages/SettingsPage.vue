@@ -9,6 +9,7 @@ import { useConfirm } from '../composables/useConfirm';
 import { useTheme, setTheme } from '../composables/useTheme';
 import { useLocale } from '../composables/useLocale';
 import { useApiErrorMessage } from '../composables/useApiErrorMessage';
+import BpScaleInfo from '../components/settings/BpScaleInfo.vue';
 import type { Theme } from '../composables/useTheme';
 import type { AppLocale } from '../i18n';
 
@@ -17,10 +18,10 @@ const { theme } = useTheme();
 const { locale, setLocale } = useLocale();
 const { toMessage } = useApiErrorMessage();
 
-const themeOptions: Array<{ value: Theme; label: string }> = [
-  { value: 'auto',  label: 'Auto / Авто' },
-  { value: 'light', label: 'Light / Світла' },
-  { value: 'dark',  label: 'Dark / Темна' },
+const themeOptions: Array<{ value: Theme; labelKey: string }> = [
+  { value: 'auto',  labelKey: 'settings.theme.auto' },
+  { value: 'light', labelKey: 'settings.theme.light' },
+  { value: 'dark',  labelKey: 'settings.theme.dark' },
 ];
 
 const localeOptions: Array<{ value: AppLocale; label: string }> = [
@@ -116,7 +117,7 @@ async function handleLogout() {
             :aria-pressed="theme === opt.value"
             @click="setTheme(opt.value)"
           >
-            {{ opt.label }}
+            {{ $t(opt.labelKey) }}
           </button>
         </div>
       </section>
@@ -169,6 +170,10 @@ async function handleLogout() {
             {{ loading ? $t('settings.saving') : $t('settings.saveChanges') }}
           </button>
         </form>
+      </section>
+
+      <section class="card">
+        <BpScaleInfo />
       </section>
 
       <p class="version">BP Tracker · build {{ commit }} · {{ buildDate }}</p>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { classifyBP, NORMAL_CLASSES } from '../bp';
+import { classifyBP, NORMAL_CLASSES, BP_CLASS_RANGE } from '../bp';
 
 describe('classifyBP — ESC 4-level scale', () => {
   describe('optimal: sys < 120 AND dia < 80', () => {
@@ -66,6 +66,20 @@ describe('NORMAL_CLASSES', () => {
     ] as [number, number][];
     for (const [sys, dia] of outOfRange) {
       expect(NORMAL_CLASSES.has(classifyBP(sys, dia))).toBe(false);
+    }
+  });
+});
+
+describe('BP_CLASS_RANGE', () => {
+  it('contains entries for all BpClass keys', () => {
+    const keys = Object.keys(BP_CLASS_RANGE).sort();
+    expect(keys).toEqual(['normal', 'optimal', 'stage1', 'stage2']);
+  });
+
+  it('every entry has non-empty sys and dia strings', () => {
+    for (const range of Object.values(BP_CLASS_RANGE)) {
+      expect(range.sys.length).toBeGreaterThan(0);
+      expect(range.dia.length).toBeGreaterThan(0);
     }
   });
 });

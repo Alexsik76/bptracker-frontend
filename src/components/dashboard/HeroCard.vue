@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import type { Measurement } from '../../types/api';
 import { getZone, zoneProgressPct } from '../../composables/useZone';
 import { useBpLabels } from '../../composables/useBpLabels';
@@ -10,7 +11,12 @@ const props = defineProps<{
   sparkData: number[];
 }>();
 
-const { locale } = useI18n();
+const { locale, t } = useI18n();
+const router = useRouter();
+
+function openScaleInfo() {
+  router.push({ path: '/settings', hash: '#bp-scale-info' });
+}
 const bpLabels = useBpLabels();
 
 const zone = computed(() => getZone(props.last.sys, props.last.dia));
@@ -54,8 +60,32 @@ const sparkPoints = computed(() => {
         <div class="hero-sub">{{ $t('bp.units.mmHg') }} · ♡ {{ last.pulse }} {{ $t('bp.units.bpm') }}</div>
       </div>
       <div class="hero-right">
-        <div class="zone-badge" :style="{ color: zone.color, background: zone.bg }">
-          {{ bpLabels[zone.key] }}
+        <div class="zone-row">
+          <div class="zone-badge" :style="{ color: zone.color, background: zone.bg }">
+            {{ bpLabels[zone.key] }}
+          </div>
+          <button
+            type="button"
+            class="info-btn"
+            :aria-label="t('bpScale.infoButtonLabel')"
+            @click="openScaleInfo"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+          </button>
         </div>
         <svg v-if="sparkPoints" width="72" height="28" style="display: block">
           <polyline
@@ -152,12 +182,44 @@ const sparkPoints = computed(() => {
   gap: 8px;
 }
 
+.zone-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .zone-badge {
   padding: 4px 10px;
   border-radius: var(--radius-full);
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  transition: color 0.15s, background 0.15s;
+}
+
+.info-btn:hover,
+.info-btn:focus-visible {
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.info-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .zone-bar-track {
