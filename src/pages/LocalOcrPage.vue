@@ -3,18 +3,23 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useMeasurementStore } from '../stores/measurements';
+import { useApi } from '../composables/useApi';
 import { useToast } from '../composables/useToast';
 import { usePendingPhoto } from '../composables/usePendingPhoto';
 import { useLocalOcr } from '../composables/useLocalOcr';
+import { useOfflineQueue } from '../composables/useOfflineQueue';
+import { preprocessImage } from '../utils/image';
 import CameraCapture from '../components/CameraCapture.vue';
 import MeasurementForm from '../components/MeasurementForm.vue';
 
 const router = useRouter();
 const { t } = useI18n();
 const measurements = useMeasurementStore();
+const api = useApi();
 const toast = useToast();
 const pendingPhoto = usePendingPhoto();
 const ocr = useLocalOcr();
+const offline = useOfflineQueue();
 
 type Step = 'camera' | 'processing' | 'review' | 'error';
 const step = ref<Step>('camera');
@@ -41,6 +46,15 @@ const errorLabel = computed(() => {
 
 const bbox = computed(() => ocr.displayBbox.value);
 
+const photoViewBox = computed(() => {
+  if (!bbox.value) return null;
+  const { y1, y2, imageW, imageH } = bbox.value;
+  const padV = Math.round((y2 - y1) * 0.15);
+  const vy = Math.max(0, y1 - padV);
+  const vh = Math.min(imageH, y2 + padV) - vy;
+  return `0 ${vy} ${imageW} ${vh}`;
+});
+
 const formInitial = computed(() =>
   ocr.result.value
     ? { sys: ocr.result.value.sys, dia: ocr.result.value.dia, pulse: ocr.result.value.pul }
@@ -48,10 +62,11 @@ const formInitial = computed(() =>
 );
 
 async function handleCapture(file: File) {
-  capturedBlob.value = file;
+  const processedBlob = await preprocessImage(file);
+  capturedBlob.value = processedBlob;
   step.value = 'processing';
 
-  const result = await ocr.run(file);
+  const result = await ocr.run(processedBlob);
   if (result) {
     step.value = 'review';
   } else {
@@ -60,8 +75,39 @@ async function handleCapture(file: File) {
 }
 
 async function handleConfirm(data: { sys: number; dia: number; pulse: number }) {
+  if (!navigator.onLine && capturedBlob.value && ocr.result.value) {
+    const ocrR = ocr.result.value;
+    const corrected = data.sys !== ocrR.sys || data.dia !== ocrR.dia || data.pulse !== ocrR.pul;
+    await offline.enqueuePhoto({
+      sys: data.sys,
+      dia: data.dia,
+      pulse: data.pulse,
+      photoBlob: capturedBlob.value,
+      aiSys: ocrR.sys,
+      aiDia: ocrR.dia,
+      aiPul: ocrR.pul,
+      corrected,
+    });
+    toast.info(t('measurement.savedOffline'));
+    router.push({ name: 'dashboard' });
+    return;
+  }
+
   try {
-    await measurements.add(data);
+    const saved = await measurements.add(data);
+
+    if (saved && capturedBlob.value && ocr.result.value) {
+      const ocrR = ocr.result.value;
+      const corrected = data.sys !== ocrR.sys || data.dia !== ocrR.dia || data.pulse !== ocrR.pul;
+      api.uploadMeasurementPhoto(
+        saved.id,
+        capturedBlob.value,
+        { sys: data.sys, dia: data.dia, pul: data.pulse, recordedAt: saved.recordedAt },
+        { sys: ocrR.sys, dia: ocrR.dia, pul: ocrR.pul },
+        corrected ? 'user_confirmed' : 'local_ocr',
+      ).catch(() => {});
+    }
+
     toast.success(t('measurement.saveSuccess'));
     router.push({ name: 'dashboard' });
   } catch {
@@ -115,8 +161,8 @@ function retryCamera() {
       </header>
       <div class="content">
         <svg
-          v-if="ocr.originalImageUrl.value && bbox"
-          :viewBox="`0 0 ${bbox.imageW} ${bbox.imageH}`"
+          v-if="ocr.originalImageUrl.value && bbox && photoViewBox"
+          :viewBox="photoViewBox"
           class="photo-svg"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -245,6 +291,7 @@ function retryCamera() {
 .photo-svg {
   display: block;
   width: 100%;
+  max-height: 45vh;
   border-radius: var(--radius-lg);
   background: #000;
 }

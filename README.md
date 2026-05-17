@@ -143,12 +143,14 @@ src/composables/useApiErrorMessage.ts
 Основний шлях додавання заміру через фото виконується повністю на клієнті — без звернення до бекенду:
 
 1. `DashboardPage` → `LocalOcrPage` (маршрут `/measurement/local`)
-2. **Камера** (`CameraCapture.vue`) → `useLocalOcr.run(blob)`
+2. **Камера** (`CameraCapture.vue`) → `preprocessImage` (1024px, JPEG 0.85) → `useLocalOcr.run(blob)`
 3. **ONNX inference** (`onnxruntime-web` 1.14.0, non-threaded WASM):
    - `display_detector_int8.onnx` — знаходить дисплей тонометра, обрізає
    - `digit_detector_int8.onnx` — знаходить цифри на обрізку
    - NMS → K-means (k=3) → збирає три числа (SYS/DIA/PUL)
-4. Користувач підтверджує → `POST /measurements` (ідентично ручному введенню, офлайн-черга працює)
+4. Користувач підтверджує:
+   - **Онлайн:** `POST /measurements` → fire-and-forget `POST /measurements/{id}/photo` для поповнення датасету (Bearer token тільки на сервері). Поле `source`: `"local_ocr"` або `"user_confirmed"`.
+   - **Офлайн:** замір + Blob зберігаються в IndexedDB (`photos-queue`, ліміт 10, TTL 24 год.). При наступному синку — спочатку створюється замір з клієнтським timestamp, потім fire-and-forget upload фото.
 5. **Fallback:** якщо OCR не впорався — кнопка передає Blob у `MeasurementPage` через `usePendingPhoto` і запускає старий Gemini-шлях.
 
 Моделі та WASM-файли лежать у `public/` і отримуються без додаткових CORS-заголовків (сумісно з GitHub Pages).
@@ -273,5 +275,5 @@ CI (GitHub Actions) запускає тести перед кожним білд
 - **Встановлення** на головний екран (Android/iOS).
 - **SPA-навігація через SW:** Service Worker перехоплює всі navigation requests (`mode === 'navigate'`) і повертає свіжий `index.html`, завдяки чому прямі переходи на `/settings`, `/measurement/new` тощо коректно обслуговуються Vue Router навіть без серверного SPA-fallback.
 - **Кешування:** hashed assets (`/assets/*`) — cache-first (immutable); `index.html` та інші — network-first з cache-fallback для офлайну.
-- **Офлайн-додавання вимірювань:** замір зберігається в IndexedDB і синхронізується при наступному завантаженні (тільки для ручного введення).
+- **Офлайн-додавання вимірювань:** замір (з або без фото) зберігається в IndexedDB і синхронізується при наступному завантаженні. Ручні вимірювання — `measurements-queue`; з фото (LocalOCR) — `photos-queue` (ліміт 10, TTL 24 год., клієнтський timestamp зберігається).
 - **Web Share Target:** фотографію можна "поділитися" з галереї телефону в додаток для AI-розпізнавання.

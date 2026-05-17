@@ -15,6 +15,7 @@ export interface CreateMeasurementDto {
   sys: number;
   dia: number;
   pulse: number;
+  recordedAt?: string;
 }
 
 export interface UserSettings {

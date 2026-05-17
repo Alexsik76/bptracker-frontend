@@ -205,6 +205,31 @@ export function useApi() {
     }
   }
 
+  async function uploadMeasurementPhoto(
+    id: string,
+    blob: Blob,
+    measurement: { sys: number; dia: number; pul: number; recordedAt: string },
+    aiResult: { sys: number; dia: number; pul: number } | null,
+    source: 'local_ocr' | 'user_confirmed',
+  ): Promise<void> {
+    const formData = new FormData();
+    formData.append('image', blob, 'photo.jpg');
+    formData.append('sys', measurement.sys.toString());
+    formData.append('dia', measurement.dia.toString());
+    formData.append('pul', measurement.pul.toString());
+    formData.append('recordedAt', measurement.recordedAt);
+    formData.append('source', source);
+    if (aiResult) {
+      formData.append('aiSys', aiResult.sys.toString());
+      formData.append('aiDia', aiResult.dia.toString());
+      formData.append('aiPul', aiResult.pul.toString());
+    }
+    await _fetch(`${API_BASE_URL}/measurements/${id}/photo`, {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
   async function exportCsv() {
     const res = await _fetch(`${API_BASE_URL}/export/csv`, { method: 'POST' });
     if (!res.ok) {
@@ -230,6 +255,7 @@ export function useApi() {
     getSettings,
     patchSettings,
     analyzeImage,
+    uploadMeasurementPhoto,
     exportCsv,
     getActiveSchema,
   };
