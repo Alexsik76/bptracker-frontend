@@ -44,7 +44,7 @@ async function handleCapture(file: File) {
       geminiSys: result.sys,
       geminiDia: result.dia,
       geminiPulse: result.pulse,
-      source: result.source || 'gemini'
+      source: result.source || 'gemini_auto'
     };
   } catch (err) {
     console.error('[MeasurementPage] Analysis failed:', err);
