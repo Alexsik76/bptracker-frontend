@@ -7,6 +7,7 @@ import { useApi } from '../composables/useApi';
 import { useToast } from '../composables/useToast';
 import { useApiErrorMessage } from '../composables/useApiErrorMessage';
 import { preprocessImage } from '../utils/image';
+import { usePendingPhoto } from '../composables/usePendingPhoto';
 import CameraCapture from '../components/CameraCapture.vue';
 import AiReview from '../components/AiReview.vue';
 import MeasurementForm from '../components/MeasurementForm.vue';
@@ -18,6 +19,7 @@ const measurements = useMeasurementStore();
 const api = useApi();
 const toast = useToast();
 const { toMessage } = useApiErrorMessage();
+const pendingPhoto = usePendingPhoto();
 
 const step = ref<'select' | 'camera' | 'review' | 'manual'>('select');
 const recognizedData = ref({ sys: 120, dia: 80, pulse: 70 });
@@ -86,6 +88,13 @@ function handleCancel() {
 }
 
 onMounted(async () => {
+  const blob = pendingPhoto.take();
+  if (blob) {
+    const file = new File([blob], 'photo.jpg', { type: blob.type || 'image/jpeg' });
+    await handleCapture(file);
+    return;
+  }
+
   if (route.query.shared === '1') {
     try {
       const cache = await caches.open('share-target-v1');

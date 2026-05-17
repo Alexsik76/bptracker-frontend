@@ -12,6 +12,9 @@ function getGitCommit(): string {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue()],
+  optimizeDeps: {
+    exclude: ['onnxruntime-web'],
+  },
   define: {
     __APP_COMMIT__: JSON.stringify(getGitCommit()),
     __APP_BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)),

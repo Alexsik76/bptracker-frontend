@@ -61,7 +61,7 @@ onUnmounted(() => {
   <div class="dashboard-layout">
     <DashboardHeader
       :zone-color="currentZone.color"
-      @add="router.push({ name: 'measurement-new' })"
+      @add="router.push({ name: 'measurement-local' })"
       @settings="router.push({ name: 'settings' })"
     />
 

@@ -22,6 +22,12 @@ const router = createRouter({
       meta: { auth: true },
     },
     {
+      path: '/measurement/local',
+      name: 'measurement-local',
+      component: () => import('../pages/LocalOcrPage.vue'),
+      meta: { auth: true },
+    },
+    {
       path: '/measurement/new',
       name: 'measurement-new',
       component: () => import('../pages/MeasurementPage.vue'),
