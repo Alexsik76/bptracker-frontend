@@ -28,6 +28,7 @@ const lastAnalysis = ref<{
   geminiSys: number;
   geminiDia: number;
   geminiPulse: number;
+  source: string;
 } | null>(null);
 
 async function handleCapture(file: File) {
@@ -42,7 +43,8 @@ async function handleCapture(file: File) {
       photoBlob: processedBlob,
       geminiSys: result.sys,
       geminiDia: result.dia,
-      geminiPulse: result.pulse
+      geminiPulse: result.pulse,
+      source: result.source || 'gemini'
     };
   } catch (err) {
     console.error('[MeasurementPage] Analysis failed:', err);
@@ -63,7 +65,8 @@ async function handleSave(data: { sys: number; dia: number; pulse: number }) {
           sys: lastAnalysis.value.geminiSys,
           dia: lastAnalysis.value.geminiDia,
           pulse: lastAnalysis.value.geminiPulse
-        }
+        },
+        lastAnalysis.value.source
       );
     } else {
       await measurements.add(data);

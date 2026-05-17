@@ -50,16 +50,18 @@ export const useMeasurementStore = defineStore('measurements', () => {
   async function addWithPhoto(
     data: { sys: number; dia: number; pulse: number },
     photoBlob: Blob,
-    geminiSuggestion: { sys: number; dia: number; pulse: number }
+    geminiSuggestion: { sys: number; dia: number; pulse: number },
+    sourceEngine: string
   ) {
     const formData = new FormData();
     formData.append('image', photoBlob, 'photo.jpg');
     formData.append('sys', data.sys.toString());
     formData.append('dia', data.dia.toString());
     formData.append('pulse', data.pulse.toString());
-    formData.append('geminiSys', geminiSuggestion.sys.toString());
-    formData.append('geminiDia', geminiSuggestion.dia.toString());
-    formData.append('geminiPulse', geminiSuggestion.pulse.toString());
+    formData.append('aiSys', geminiSuggestion.sys.toString());
+    formData.append('aiDia', geminiSuggestion.dia.toString());
+    formData.append('aiPulse', geminiSuggestion.pulse.toString());
+    formData.append('sourceEngine', sourceEngine);
 
     const newItem = await api.addMeasurementWithPhoto(formData);
     items.value = [newItem, ...items.value];
