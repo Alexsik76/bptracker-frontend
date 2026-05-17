@@ -39,6 +39,8 @@ const errorLabel = computed(() => {
   }
 });
 
+const bbox = computed(() => ocr.displayBbox.value);
+
 const formInitial = computed(() =>
   ocr.result.value
     ? { sys: ocr.result.value.sys, dia: ocr.result.value.dia, pulse: ocr.result.value.pul }
@@ -97,9 +99,6 @@ function retryCamera() {
         <div class="stage-card">
           <div class="spinner"></div>
           <p class="stage-label">{{ stageLabel }}</p>
-          <div v-if="ocr.displayCropUrl.value" class="crop-preview">
-            <img :src="ocr.displayCropUrl.value" alt="display crop" />
-          </div>
         </div>
       </div>
     </template>
@@ -115,9 +114,29 @@ function retryCamera() {
         <h1>{{ $t('localOcr.resultTitle') }}</h1>
       </header>
       <div class="content">
-        <div v-if="ocr.displayCropUrl.value" class="crop-preview">
-          <img :src="ocr.displayCropUrl.value" alt="display crop" />
-        </div>
+        <svg
+          v-if="ocr.originalImageUrl.value && bbox"
+          :viewBox="`0 0 ${bbox.imageW} ${bbox.imageH}`"
+          class="photo-svg"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <image
+            :href="ocr.originalImageUrl.value"
+            x="0" y="0"
+            :width="bbox.imageW"
+            :height="bbox.imageH"
+          />
+          <rect class="dim-rect" x="0" y="0" :width="bbox.imageW" :height="bbox.y1" />
+          <rect class="dim-rect" x="0" :y="bbox.y2" :width="bbox.imageW" :height="bbox.imageH - bbox.y2" />
+          <rect class="dim-rect" x="0" :y="bbox.y1" :width="bbox.x1" :height="bbox.y2 - bbox.y1" />
+          <rect class="dim-rect" :x="bbox.x2" :y="bbox.y1" :width="bbox.imageW - bbox.x2" :height="bbox.y2 - bbox.y1" />
+          <rect
+            class="bbox-rect"
+            :x="bbox.x1" :y="bbox.y1"
+            :width="bbox.x2 - bbox.x1" :height="bbox.y2 - bbox.y1"
+            rx="6"
+          />
+        </svg>
         <div class="form-card">
           <MeasurementForm
             :initial-data="formInitial"
@@ -223,18 +242,22 @@ function retryCamera() {
   color: var(--color-text-muted);
 }
 
-.crop-preview {
+.photo-svg {
+  display: block;
   width: 100%;
   border-radius: var(--radius-lg);
-  overflow: hidden;
   background: #000;
+}
 
-  & img {
-    width: 100%;
-    display: block;
-    object-fit: contain;
-    max-height: 200px;
-  }
+.dim-rect {
+  fill: rgba(0, 0, 0, 0.42);
+}
+
+.bbox-rect {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 2.5;
+  vector-effect: non-scaling-stroke;
 }
 
 .form-card {

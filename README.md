@@ -138,6 +138,28 @@ src/composables/useApiErrorMessage.ts
 
 Контекстні fallback-ключі: `errors.loadFailed`, `errors.saveFailed`, `errors.deleteFailed`, `errors.analyzeFailed`, `errors.exportFailed`, `errors.loginFailed`.
 
+## Локальний OCR (Local OCR Flow)
+
+Основний шлях додавання заміру через фото виконується повністю на клієнті — без звернення до бекенду:
+
+1. `DashboardPage` → `LocalOcrPage` (маршрут `/measurement/local`)
+2. **Камера** (`CameraCapture.vue`) → `useLocalOcr.run(blob)`
+3. **ONNX inference** (`onnxruntime-web` 1.14.0, non-threaded WASM):
+   - `display_detector_int8.onnx` — знаходить дисплей тонометра, обрізає
+   - `digit_detector_int8.onnx` — знаходить цифри на обрізку
+   - NMS → K-means (k=3) → збирає три числа (SYS/DIA/PUL)
+4. Користувач підтверджує → `POST /measurements` (ідентично ручному введенню, офлайн-черга працює)
+5. **Fallback:** якщо OCR не впорався — кнопка передає Blob у `MeasurementPage` через `usePendingPhoto` і запускає старий Gemini-шлях.
+
+Моделі та WASM-файли лежать у `public/` і отримуються без додаткових CORS-заголовків (сумісно з GitHub Pages).
+
+| Файл | Розмір |
+|------|--------|
+| `public/models/display_detector_int8.onnx` | 3.2 MB |
+| `public/models/digit_detector_int8.onnx` | 3.2 MB |
+| `public/ort-wasm/ort-wasm.wasm` | 8.8 MB |
+| `public/ort-wasm/ort-wasm-simd.wasm` | 9.6 MB |
+
 ## Потік обробки фото (Photo Flow)
 
 При додаванні вимірювання через фото відбувається наступний ланцюжок дій:

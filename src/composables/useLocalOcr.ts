@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import * as ort from 'onnxruntime-web';
+import { type Box, classAgnosticNms, kmeansRows, assembleNumber } from '../utils/ocr/postprocess';
 
 ort.env.wasm.wasmPaths = '/ort-wasm/';
 ort.env.wasm.numThreads = 1;
@@ -30,15 +31,13 @@ export interface OcrResult {
   pul: number;
 }
 
-interface Box {
+export interface DisplayBbox {
   x1: number;
   y1: number;
   x2: number;
   y2: number;
-  cls: number;
-  conf: number;
-  cx: number;
-  cy: number;
+  imageW: number;
+  imageH: number;
 }
 
 // Singleton sessions — loaded once, reused across calls
@@ -172,88 +171,21 @@ function decodeOutput(
   return boxes;
 }
 
-function iou(a: Box, b: Box): number {
-  const ix1 = Math.max(a.x1, b.x1);
-  const iy1 = Math.max(a.y1, b.y1);
-  const ix2 = Math.min(a.x2, b.x2);
-  const iy2 = Math.min(a.y2, b.y2);
-  const inter = Math.max(0, ix2 - ix1) * Math.max(0, iy2 - iy1);
-  if (inter === 0) return 0;
-  const areaA = (a.x2 - a.x1) * (a.y2 - a.y1);
-  const areaB = (b.x2 - b.x1) * (b.y2 - b.y1);
-  return inter / (areaA + areaB - inter);
-}
-
-function classAgnosticNms(boxes: Box[]): Box[] {
-  const sorted = [...boxes].sort((a, b) => b.conf - a.conf);
-  const kept: Box[] = [];
-  for (const box of sorted) {
-    if (kept.every((k) => iou(box, k) < NMS_IOU)) kept.push(box);
-  }
-  return kept;
-}
-
-// Lloyd's k-means with k=3 on Y centers, port of Python recognize_digits.py
-function kmeansRows(boxes: Box[]): Box[][] {
-  if (boxes.length === 0) return [];
-  if (boxes.length < 3) return boxes.map((b) => [b]).sort((a, b) => a[0].cy - b[0].cy);
-
-  const ys = boxes.map((b) => b.cy);
-  const yMin = Math.min(...ys);
-  const yMax = Math.max(...ys);
-  if (yMax === yMin) return [boxes.slice().sort((a, b) => a.cx - b.cx)];
-
-  let centers = [
-    yMin + (yMax - yMin) * (1 / 6),
-    yMin + (yMax - yMin) * (3 / 6),
-    yMin + (yMax - yMin) * (5 / 6),
-  ];
-
-  for (let iter = 0; iter < 20; iter++) {
-    const clusters: Box[][] = [[], [], []];
-    for (const box of boxes) {
-      const dists = centers.map((c) => Math.abs(box.cy - c));
-      clusters[dists.indexOf(Math.min(...dists))].push(box);
-    }
-    const next = centers.map((c, i) =>
-      clusters[i].length ? clusters[i].reduce((s, b) => s + b.cy, 0) / clusters[i].length : c,
-    );
-    if (next.every((c, i) => Math.abs(c - centers[i]) < 1e-3)) break;
-    centers = next;
-  }
-
-  // Final assignment
-  const clusters: Box[][] = [[], [], []];
-  for (const box of boxes) {
-    const dists = centers.map((c) => Math.abs(box.cy - c));
-    clusters[dists.indexOf(Math.min(...dists))].push(box);
-  }
-
-  return clusters
-    .map((c, i) => ({ c, cy: centers[i] }))
-    .sort((a, b) => a.cy - b.cy)
-    .map(({ c }) => c.sort((a, b) => a.cx - b.cx))
-    .filter((r) => r.length > 0);
-}
-
-function assembleNumber(row: Box[]): number | null {
-  const s = row.map((b) => b.cls).join('');
-  const n = parseInt(s, 10);
-  return isNaN(n) ? null : n;
-}
-
 export function useLocalOcr() {
   const stage = ref<OcrStage>('idle');
-  const displayCropUrl = ref<string | null>(null);
+  const originalImageUrl = ref<string | null>(null);
+  const displayBbox = ref<DisplayBbox | null>(null);
   const digitBoxes = ref<Box[]>([]);
   const result = ref<OcrResult | null>(null);
   const errorMsg = ref<string | null>(null);
+  let pendingObjectUrl: string | null = null;
 
   async function run(blob: Blob): Promise<OcrResult | null> {
     stage.value = 'idle';
     result.value = null;
     errorMsg.value = null;
-    displayCropUrl.value = null;
+    originalImageUrl.value = null;
+    displayBbox.value = null;
     digitBoxes.value = [];
 
     try {
@@ -261,6 +193,9 @@ export function useLocalOcr() {
       await loadSessions();
 
       const srcCanvas = await blobToCanvas(blob);
+      if (pendingObjectUrl) URL.revokeObjectURL(pendingObjectUrl);
+      pendingObjectUrl = URL.createObjectURL(blob);
+      originalImageUrl.value = pendingObjectUrl;
 
       // ── Stage 1: detect display ──────────────────────────────────────
       stage.value = 'detecting-display';
@@ -280,6 +215,10 @@ export function useLocalOcr() {
       }
 
       const best = displayBoxes.reduce((a, b) => (a.conf > b.conf ? a : b));
+      displayBbox.value = {
+        x1: best.x1, y1: best.y1, x2: best.x2, y2: best.y2,
+        imageW: srcCanvas.width, imageH: srcCanvas.height,
+      };
       const bw = best.x2 - best.x1;
       const bh = best.y2 - best.y1;
       const padPx = 0.03;
@@ -290,7 +229,6 @@ export function useLocalOcr() {
         best.x2 + bw * padPx,
         best.y2 + bh * padPx,
       );
-      displayCropUrl.value = cropCanvas_.toDataURL('image/jpeg', 0.9);
 
       // ── Stage 2: detect digits ───────────────────────────────────────
       stage.value = 'detecting-digits';
@@ -308,7 +246,7 @@ export function useLocalOcr() {
         stage.value = 'error';
         return null;
       }
-      boxes = classAgnosticNms(boxes);
+      boxes = classAgnosticNms(boxes, NMS_IOU);
       digitBoxes.value = boxes;
 
       // ── Stage 3: assemble ────────────────────────────────────────────
@@ -342,9 +280,11 @@ export function useLocalOcr() {
     stage.value = 'idle';
     result.value = null;
     errorMsg.value = null;
-    displayCropUrl.value = null;
+    if (pendingObjectUrl) { URL.revokeObjectURL(pendingObjectUrl); pendingObjectUrl = null; }
+    originalImageUrl.value = null;
+    displayBbox.value = null;
     digitBoxes.value = [];
   }
 
-  return { stage, displayCropUrl, digitBoxes, result, errorMsg, run, reset };
+  return { stage, originalImageUrl, displayBbox, digitBoxes, result, errorMsg, run, reset };
 }
