@@ -13,6 +13,7 @@ import HistoryPanel from '../components/dashboard/HistoryPanel.vue';
 import HistoryTab from '../components/dashboard/HistoryTab.vue';
 import BottomTabBar from '../components/dashboard/BottomTabBar.vue';
 import SchemaCard from '../components/SchemaCard.vue';
+import { preloadOcrModels } from '../composables/useLocalOcr';
 import type { TreatmentSchema } from '../types/api';
 
 const router = useRouter();
@@ -67,6 +68,7 @@ onMounted(() => {
     schema.value = s;
   });
   window.addEventListener('resize', onResize, { passive: true });
+  preloadOcrModels();
 });
 
 onUnmounted(() => {

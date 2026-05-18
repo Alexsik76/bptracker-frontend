@@ -57,6 +57,15 @@ async function loadSessions(): Promise<void> {
   ]);
 }
 
+export function preloadOcrModels(): void {
+  const run = () => loadSessions().catch(() => {});
+  if (typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(run, { timeout: 5000 });
+  } else {
+    setTimeout(run, 1000);
+  }
+}
+
 function blobToCanvas(blob: Blob): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
