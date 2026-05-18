@@ -21,15 +21,15 @@ declare global {
 }
 
 const FALLBACK_API_URL = 'https://api-bptracker.home.vn.ua/api/v1';
+const DEV_PROXY_URL = '/api/v1';
 
 function resolveApiBaseUrl(): string {
+  if (import.meta.env.DEV) return DEV_PROXY_URL;
   const raw = window.CONFIG?.API_BASE_URL;
   if (!raw) return FALLBACK_API_URL;
   try {
     const url = new URL(raw);
-    const isSecure = url.protocol === 'https:';
-    const isLocalDev = import.meta.env.DEV && url.hostname === 'localhost';
-    if (!isSecure && !isLocalDev) {
+    if (url.protocol !== 'https:') {
       console.warn('[API] API_BASE_URL must use https — falling back to default');
       return FALLBACK_API_URL;
     }
@@ -42,6 +42,8 @@ function resolveApiBaseUrl(): string {
 
 const API_BASE_URL = resolveApiBaseUrl();
 
+const DEV_BYPASS = import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_AUTH === 'true';
+
 export function useApi() {
   async function _fetch(url: string, options: RequestInit = {}) {
     const response = await fetch(url, {
@@ -49,8 +51,7 @@ export function useApi() {
       credentials: 'include',
     });
 
-    if (response.status === 401 && !url.includes('/auth/me')) {
-      // Handle session expiration
+    if (response.status === 401 && !url.includes('/auth/me') && !DEV_BYPASS) {
       window.dispatchEvent(new CustomEvent('api:unauthorized'));
     }
 

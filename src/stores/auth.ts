@@ -6,12 +6,20 @@ import { startAuthentication, startRegistration } from '@simplewebauthn/browser'
 import { useMeasurementStore } from './measurements';
 import { useSettingsStore } from './settings';
 
+const DEV_BYPASS = import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_AUTH === 'true';
+const DEV_USER: User = { id: 'dev-bypass', email: 'dev@localhost' };
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
   const status = ref<'idle' | 'loading' | 'authenticated' | 'anonymous'>('idle');
   const api = useApi();
 
   async function checkSession() {
+    if (DEV_BYPASS) {
+      user.value = DEV_USER;
+      status.value = 'authenticated';
+      return user.value;
+    }
     status.value = 'loading';
     const data = await api.checkMe();
     if (data) {
@@ -25,6 +33,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function loginPasskey() {
+    if (DEV_BYPASS) return checkSession();
     try {
       const options = await api.loginPasskeyBegin();
       const assertion = await startAuthentication(options);
@@ -37,6 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function registerPasskey(email: string) {
+    if (DEV_BYPASS) return checkSession();
     try {
       const options = await api.registerPasskeyBegin(email);
       const attestation = await startRegistration(options);
@@ -49,6 +59,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function requestMagicLink(email: string) {
+    if (DEV_BYPASS) return checkSession().then(() => true);
     return await api.requestMagicLink(email);
   }
 

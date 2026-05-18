@@ -9,7 +9,7 @@ function getGitCommit(): string {
     return 'dev'
   }
 }
-// https://vite.dev/config/
+
 export default defineConfig({
   plugins: [vue()],
   optimizeDeps: {
@@ -20,6 +20,16 @@ export default defineConfig({
     __APP_BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)),
   },
   base: '/',
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://api-bptracker.home.vn.ua',
+        changeOrigin: true,
+        secure: true,
+        cookieDomainRewrite: 'localhost',
+      },
+    },
+  },
   test: {
     environment: 'happy-dom',
     globals: true,
