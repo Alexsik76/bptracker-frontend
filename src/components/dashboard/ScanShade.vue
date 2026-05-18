@@ -308,10 +308,14 @@ onBeforeUnmount(() => {
 
 /* ── Body (centered button area) ──────────────────────────────────────────────── */
 .shade-body {
-  flex: 1;
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
+
+  & > * { pointer-events: auto; }
 }
 
 /* ── Giant button wrapper (for pulse positioning) ─────────────────────────────── */
@@ -406,6 +410,8 @@ onBeforeUnmount(() => {
   padding: 0 32px;
   flex-shrink: 0;
   margin-bottom: 6px;
+  max-height: 40px;
+  overflow: hidden;
 }
 
 /* ── Drag handle ──────────────────────────────────────────────────────────────── */
@@ -414,7 +420,7 @@ onBeforeUnmount(() => {
   height: 5px;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.35);
-  margin: 0 auto 14px;
+  margin: 0 auto 10px;
   flex-shrink: 0;
 }
 </style>
