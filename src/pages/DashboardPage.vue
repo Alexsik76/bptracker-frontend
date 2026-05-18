@@ -5,7 +5,7 @@ import { useMeasurementStore } from '../stores/measurements';
 import { useApi } from '../composables/useApi';
 import { useKpi } from '../composables/useKpi';
 import { getZone, DEFAULT_ZONE } from '../composables/useZone';
-import DashboardHeader from '../components/dashboard/DashboardHeader.vue';
+import ScanShade from '../components/dashboard/ScanShade.vue';
 import HeroCard from '../components/dashboard/HeroCard.vue';
 import KpiGrid from '../components/dashboard/KpiGrid.vue';
 import ChartPanel from '../components/dashboard/ChartPanel.vue';
@@ -45,23 +45,45 @@ const recentMeasurements = computed(() => {
   );
 });
 
+// ── Scan shade state ──────────────────────────────────────────────────────────
+
+const COLLAPSED_H = 64;
+const EXPANDED_PCT = 0.70;
+
+const shadeProgress = ref(1);
+const screenH = ref(window.innerHeight);
+const expandedH = computed(() => Math.round(screenH.value * EXPANDED_PCT));
+const shadeH = computed(() =>
+  Math.round(COLLAPSED_H + (expandedH.value - COLLAPSED_H) * shadeProgress.value)
+);
+
+function onResize() {
+  screenH.value = window.innerHeight;
+}
+
 onMounted(() => {
   measurements.fetchMeasurements(controller.signal);
   api.getActiveSchema(controller.signal).then((s) => {
     schema.value = s;
   });
+  window.addEventListener('resize', onResize, { passive: true });
 });
 
 onUnmounted(() => {
   controller.abort();
+  window.removeEventListener('resize', onResize);
 });
 </script>
 
 <template>
   <div class="dashboard-layout">
-    <DashboardHeader
-      :zone-color="currentZone.color"
-      @add="router.push({ name: 'measurement-local' })"
+
+    <!-- Frosted-glass scan shade (fixed overlay) -->
+    <ScanShade
+      v-model="shadeProgress"
+      :expanded-height="expandedH"
+      :shade-height="shadeH"
+      @scan="router.push({ name: 'measurement-local' })"
       @settings="router.push({ name: 'settings' })"
     />
 
@@ -128,7 +150,9 @@ onUnmounted(() => {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  overflow-anchor: none;
   -webkit-overflow-scrolling: touch;
+  padding-top: 64px; /* always reserve space for collapsed shade */
 
   &.tab-history {
     overflow: hidden;

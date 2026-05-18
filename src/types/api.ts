@@ -22,6 +22,7 @@ export interface UserSettings {
   geminiUrl?: string;
   exportEmail?: string;
   sheetsTemplateUrl?: string;
+  sendPhotos?: boolean;
 }
 
 export interface AuthStatus {

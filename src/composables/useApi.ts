@@ -214,6 +214,7 @@ export function useApi() {
     measurement: { sys: number; dia: number; pul: number; recordedAt: string },
     aiResult: { sys: number; dia: number; pul: number } | null,
     source: 'local_ocr' | 'user_confirmed',
+    ocrMeta?: components['schemas']['OcrMeta'] | null,
   ): Promise<void> {
     // Typed against photo-api schema — tsc will error here when photo-api adds required fields
     const body: Omit<PhotoApiUploadBody, 'file' | 'device_model' | 'corrected_by_user'> = {
@@ -227,13 +228,14 @@ export function useApi() {
         ai_suggested_dia: aiResult.dia,
         ai_suggested_pul: aiResult.pul,
       } : undefined),
+      ...(ocrMeta ? { ocr_meta: ocrMeta } : undefined),
     };
 
     const formData = new FormData();
     formData.append('image', blob, 'photo.jpg');
     for (const [key, value] of Object.entries(body)) {
       if (value !== null && value !== undefined) {
-        formData.append(key, String(value));
+        formData.append(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
       }
     }
     await _fetch(`${API_BASE_URL}/measurements/${id}/photo`, {

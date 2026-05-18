@@ -1,6 +1,7 @@
 import { openDB } from 'idb';
 import type { IDBPDatabase } from 'idb';
 import type { CreateMeasurementDto } from '../types/api';
+import type { components } from '../types/photo-api';
 import { useApi } from './useApi';
 
 const DB_NAME = 'bp-tracker-offline';
@@ -26,6 +27,7 @@ interface PhotoQueueEntry {
   aiDia: number;
   aiPul: number;
   corrected: boolean;
+  ocrMeta?: components['schemas']['OcrMeta'];
 }
 
 export function useOfflineQueue() {
@@ -89,6 +91,7 @@ export function useOfflineQueue() {
           { sys: item.sys, dia: item.dia, pul: item.pulse, recordedAt: saved.recordedAt },
           { sys: item.aiSys, dia: item.aiDia, pul: item.aiPul },
           item.corrected ? 'user_confirmed' : 'local_ocr',
+          item.ocrMeta,
         ).catch(() => {});
       } catch (err) {
         console.error('Failed to sync offline photo measurement', item, err);

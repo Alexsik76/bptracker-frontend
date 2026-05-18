@@ -96,6 +96,8 @@ export interface components {
             ai_suggested_pul?: number | null;
             /** Notes */
             notes?: string | null;
+            /** Ocr Meta */
+            ocr_meta?: components["schemas"]["OcrMeta"] | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -141,6 +143,54 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** OcrConfidence */
+        OcrConfidence: {
+            /** Min */
+            min: number;
+            /** Mean */
+            mean: number;
+        };
+        /** OcrInferenceMs */
+        OcrInferenceMs: {
+            /** Display */
+            display: number;
+            /** Digits */
+            digits: number;
+            /** Postprocess */
+            postprocess: number;
+        };
+        /** OcrMeta */
+        OcrMeta: {
+            /**
+             * Engine
+             * @enum {string}
+             */
+            engine: "local" | "gemini" | "manual";
+            /**
+             * Model Version
+             * @default null
+             */
+            model_version: string | null;
+            /** @default null */
+            inference_ms: components["schemas"]["OcrInferenceMs"] | null;
+            /** @default null */
+            confidence: components["schemas"]["OcrConfidence"] | null;
+            /**
+             * Fallback Reason
+             * @default null
+             */
+            fallback_reason: ("low_confidence" | "no_display" | "wrong_row_count" | "user_requested") | null;
+            /**
+             * User Agent
+             * @default null
+             */
+            user_agent: string | null;
+            /**
+             * Hw Concurrency
+             * @default null
+             */
+            hw_concurrency: number | null;
         };
     };
     responses: never;

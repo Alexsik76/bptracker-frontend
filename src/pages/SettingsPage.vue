@@ -42,6 +42,7 @@ const form = reactive({
   geminiUrl: '',
   exportEmail: '',
   sheetsTemplateUrl: '',
+  sendPhotos: true,
 });
 
 const loading = ref(false);
@@ -51,6 +52,7 @@ onMounted(async () => {
   form.geminiUrl = settingsStore.settings.geminiUrl || '';
   form.exportEmail = settingsStore.settings.exportEmail || '';
   form.sheetsTemplateUrl = settingsStore.settings.sheetsTemplateUrl || '';
+  form.sendPhotos = settingsStore.settings.sendPhotos !== false;
 });
 
 async function save() {
@@ -166,6 +168,16 @@ async function handleLogout() {
             </label>
           </div>
 
+          <div class="field field-toggle">
+            <label class="toggle-label">
+              <span class="toggle-text">
+                <span class="toggle-title">{{ $t('settings.params.sendPhotos') }}</span>
+                <span class="toggle-hint">{{ $t('settings.params.sendPhotosHint') }}</span>
+              </span>
+              <input type="checkbox" v-model="form.sendPhotos" class="toggle-input" />
+            </label>
+          </div>
+
           <button type="submit" class="btn primary" :disabled="loading">
             {{ loading ? $t('settings.saving') : $t('settings.saveChanges') }}
           </button>
@@ -252,6 +264,42 @@ async function handleLogout() {
       border-color: var(--color-primary);
     }
   }
+}
+
+.field-toggle {
+  margin-bottom: var(--space-6);
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  cursor: pointer;
+}
+
+.toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.toggle-title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.toggle-hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.toggle-input {
+  width: 2.5rem;
+  height: 1.5rem;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .btn {

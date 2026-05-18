@@ -1,6 +1,11 @@
 import { ref } from 'vue';
 import * as ort from 'onnxruntime-web';
 import { type Box, classAgnosticNms, kmeansRows, assembleNumber } from '../utils/ocr/postprocess';
+import type { components } from '../types/photo-api';
+
+type OcrMeta = components['schemas']['OcrMeta'];
+
+const MODEL_VERSION = 'int8_v1';
 
 ort.env.wasm.wasmPaths = '/ort-wasm/';
 ort.env.wasm.numThreads = 1;
@@ -178,12 +183,14 @@ export function useLocalOcr() {
   const digitBoxes = ref<Box[]>([]);
   const result = ref<OcrResult | null>(null);
   const errorMsg = ref<string | null>(null);
+  const ocrMeta = ref<OcrMeta | null>(null);
   let pendingObjectUrl: string | null = null;
 
   async function run(blob: Blob): Promise<OcrResult | null> {
     stage.value = 'idle';
     result.value = null;
     errorMsg.value = null;
+    ocrMeta.value = null;
     originalImageUrl.value = null;
     displayBbox.value = null;
     digitBoxes.value = [];
@@ -199,6 +206,7 @@ export function useLocalOcr() {
 
       // ── Stage 1: detect display ──────────────────────────────────────
       stage.value = 'detecting-display';
+      const t1 = performance.now();
       const { tensor: dTensor, scale: dScale, padX: dPadX, padY: dPadY } = letterboxToTensor(
         srcCanvas,
         DISPLAY_INPUT_SIZE,
@@ -206,6 +214,7 @@ export function useLocalOcr() {
       const dInput = new ort.Tensor('float32', dTensor, [1, 3, DISPLAY_INPUT_SIZE, DISPLAY_INPUT_SIZE]);
       const dOut = await displaySession!.run({ [displaySession!.inputNames[0]]: dInput });
       const dData = dOut[displaySession!.outputNames[0]].data as Float32Array;
+      const displayMs = Math.round(performance.now() - t1);
 
       const displayBoxes = decodeOutput(dData, 1, DISPLAY_ANCHORS, DISPLAY_CONF, dScale, dPadX, dPadY);
       if (displayBoxes.length === 0) {
@@ -232,6 +241,7 @@ export function useLocalOcr() {
 
       // ── Stage 2: detect digits ───────────────────────────────────────
       stage.value = 'detecting-digits';
+      const t2 = performance.now();
       const { tensor: gTensor, scale: gScale, padX: gPadX, padY: gPadY } = letterboxToTensor(
         cropCanvas_,
         DIGIT_INPUT_SIZE,
@@ -239,6 +249,7 @@ export function useLocalOcr() {
       const gInput = new ort.Tensor('float32', gTensor, [1, 3, DIGIT_INPUT_SIZE, DIGIT_INPUT_SIZE]);
       const gOut = await digitSession!.run({ [digitSession!.inputNames[0]]: gInput });
       const gData = gOut[digitSession!.outputNames[0]].data as Float32Array;
+      const digitsMs = Math.round(performance.now() - t2);
 
       let boxes = decodeOutput(gData, 10, DIGIT_ANCHORS, DIGIT_CONF, gScale, gPadX, gPadY);
       if (boxes.length === 0) {
@@ -249,8 +260,13 @@ export function useLocalOcr() {
       boxes = classAgnosticNms(boxes, NMS_IOU);
       digitBoxes.value = boxes;
 
+      const confs = boxes.map((b) => b.conf);
+      const minConf = Math.min(...confs);
+      const meanConf = confs.reduce((a, b) => a + b, 0) / confs.length;
+
       // ── Stage 3: assemble ────────────────────────────────────────────
       stage.value = 'assembling';
+      const t3 = performance.now();
       const rows = kmeansRows(boxes);
       if (rows.length !== 3) {
         errorMsg.value = 'wrong-row-count';
@@ -264,8 +280,19 @@ export function useLocalOcr() {
         return null;
       }
 
+      const postMs = Math.round(performance.now() - t3);
+
       const ocResult: OcrResult = { sys: nums[0]!, dia: nums[1]!, pul: nums[2]! };
       result.value = ocResult;
+      ocrMeta.value = {
+        engine: 'local',
+        model_version: MODEL_VERSION,
+        inference_ms: { display: displayMs, digits: digitsMs, postprocess: postMs },
+        confidence: { min: parseFloat(minConf.toFixed(4)), mean: parseFloat(meanConf.toFixed(4)) },
+        fallback_reason: null,
+        user_agent: navigator.userAgent,
+        hw_concurrency: navigator.hardwareConcurrency ?? null,
+      };
       stage.value = 'done';
       return ocResult;
     } catch (e) {
@@ -280,11 +307,12 @@ export function useLocalOcr() {
     stage.value = 'idle';
     result.value = null;
     errorMsg.value = null;
+    ocrMeta.value = null;
     if (pendingObjectUrl) { URL.revokeObjectURL(pendingObjectUrl); pendingObjectUrl = null; }
     originalImageUrl.value = null;
     displayBbox.value = null;
     digitBoxes.value = [];
   }
 
-  return { stage, originalImageUrl, displayBbox, digitBoxes, result, errorMsg, run, reset };
+  return { stage, originalImageUrl, displayBbox, digitBoxes, result, errorMsg, ocrMeta, run, reset };
 }

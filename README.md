@@ -149,9 +149,29 @@ src/composables/useApiErrorMessage.ts
    - `digit_detector_int8.onnx` — знаходить цифри на обрізку
    - NMS → K-means (k=3) → збирає три числа (SYS/DIA/PUL)
 4. Користувач підтверджує:
-   - **Онлайн:** `POST /measurements` → fire-and-forget `POST /measurements/{id}/photo` для поповнення датасету (Bearer token тільки на сервері). Поле `source`: `"local_ocr"` або `"user_confirmed"`.
-   - **Офлайн:** замір + Blob зберігаються в IndexedDB (`photos-queue`, ліміт 10, TTL 24 год.). При наступному синку — спочатку створюється замір з клієнтським timestamp, потім fire-and-forget upload фото.
+   - **Онлайн:** `POST /measurements` → fire-and-forget `POST /measurements/{id}/photo` для поповнення датасету (Bearer token тільки на сервері). Поле `source`: `"local_ocr"` або `"user_confirmed"`. Якщо `sendPhotos = false` у налаштуваннях — фото не відправляється.
+   - **Офлайн:** якщо `sendPhotos = true` → замір + Blob + `ocr_meta` зберігаються в IndexedDB (`photos-queue`, ліміт 10, TTL 24 год.); якщо `sendPhotos = false` → тільки замір у `measurements-queue`. При наступному синку — fire-and-forget upload фото.
 5. **Fallback:** якщо OCR не впорався — кнопка передає Blob у `MeasurementPage` через `usePendingPhoto` і запускає старий Gemini-шлях.
+
+5. **OCR метадані:** `useLocalOcr` збирає `ocr_meta` під час інференсу — таймінги кожної стадії (`performance.now()`), min/mean confidence digit-boxes, `model_version = "int8_v1"`, `user_agent`, `hw_concurrency`. Передається у `photo-api` як JSON-рядок у `ocr_meta` form-поля. TypeScript-типи генеруються з OpenAPI spec: `npm run generate:types`.
+
+### Екран результату сканування (`step === 'review'`)
+
+Після успішного ONNX-розпізнавання показується темний екран підтвердження:
+
+| Елемент | Деталь |
+|---------|--------|
+| Фон | `#0d0d12` — темний, без системних CSS-токенів (власна палітра екрану) |
+| Фото | Чистий кадр у контейнері `border-radius: 18px` без маски/затемнення |
+| Beam-анімація | Одноразова під час входу (900 мс, `requestAnimationFrame`, easeInOut). 70% часу — рух лінії, 30% — fade-out |
+| Zoom-значок | З'являється після beam; tap відкриває `<Teleport>`-оверлей з масштабом 1.4× |
+| Підсвічування фото | Кольорова рамка з `box-shadow` на відповідній ділянці фото активується при фокусі в полі вводу |
+| Поля вводу | Inline-форма із кольоровою точкою, підписом (`systolicLabel/Sub`) та великим числовим інпутом (26px/700) |
+| Кольори полів | SYS — `#a39bff`, DIA — `#5ecbff`, PUL — `#5effa0` |
+| Кнопки | «Скасувати» (flex 1, `#15151c`) + «Зберегти» (flex 1.4, `#a39bff` з тінню) |
+| Fallback | Текстове посилання «Розпізнати через сервер» під кнопками |
+
+`MeasurementForm.vue` не використовується на цьому екрані (залишений для Gemini-шляху без змін).
 
 Моделі та WASM-файли лежать у `public/` і отримуються без додаткових CORS-заголовків (сумісно з GitHub Pages).
 
