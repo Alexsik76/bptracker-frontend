@@ -141,6 +141,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <Teleport to="body">
   <div
     ref="shadeEl"
     class="shade"
@@ -236,6 +237,7 @@ onBeforeUnmount(() => {
     <!-- Drag handle -->
     <div class="drag-handle" aria-hidden="true" />
   </div>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -245,7 +247,7 @@ onBeforeUnmount(() => {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 40;
+  z-index: 999;
   display: flex;
   flex-direction: column;
   background: linear-gradient(
