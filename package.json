@@ -11,7 +11,8 @@
     "test:run": "vitest run",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "format": "prettier --write \"src/**/*.{ts,vue,css}\""
+    "format": "prettier --write \"src/**/*.{ts,vue,css}\"",
+    "generate:types": "openapi-typescript ../aivm-photo-api/openapi.json -o src/types/photo-api.ts"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.3.0",
@@ -41,6 +42,7 @@
     "vite": "^8.0.9",
     "vitest": "^4.1.5",
     "vue-eslint-parser": "^10.4.0",
-    "vue-tsc": "^3.2.7"
+    "vue-tsc": "^3.2.7",
+    "openapi-typescript": "^7.8.0"
   }
 }

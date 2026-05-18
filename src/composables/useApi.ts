@@ -5,8 +5,11 @@ import type {
   UserSettings,
   TreatmentSchema,
 } from '../types/api';
+import type { components } from '../types/photo-api';
 import type { RegistrationResponseJSON, AuthenticationResponseJSON } from '@simplewebauthn/browser';
 import { ApiError, httpStatusToCode } from '../utils/apiError';
+
+type PhotoApiUploadBody = components['schemas']['Body_upload_image_images_upload_post'];
 
 declare global {
   interface Window {
@@ -212,17 +215,26 @@ export function useApi() {
     aiResult: { sys: number; dia: number; pul: number } | null,
     source: 'local_ocr' | 'user_confirmed',
   ): Promise<void> {
+    // Typed against photo-api schema — tsc will error here when photo-api adds required fields
+    const body: Omit<PhotoApiUploadBody, 'file' | 'device_model' | 'corrected_by_user'> = {
+      sys: measurement.sys,
+      dia: measurement.dia,
+      pul: measurement.pul,
+      timestamp: measurement.recordedAt,
+      source,
+      ...(aiResult ? {
+        ai_suggested_sys: aiResult.sys,
+        ai_suggested_dia: aiResult.dia,
+        ai_suggested_pul: aiResult.pul,
+      } : undefined),
+    };
+
     const formData = new FormData();
     formData.append('image', blob, 'photo.jpg');
-    formData.append('sys', measurement.sys.toString());
-    formData.append('dia', measurement.dia.toString());
-    formData.append('pul', measurement.pul.toString());
-    formData.append('recordedAt', measurement.recordedAt);
-    formData.append('source', source);
-    if (aiResult) {
-      formData.append('aiSys', aiResult.sys.toString());
-      formData.append('aiDia', aiResult.dia.toString());
-      formData.append('aiPul', aiResult.pul.toString());
+    for (const [key, value] of Object.entries(body)) {
+      if (value !== null && value !== undefined) {
+        formData.append(key, String(value));
+      }
     }
     await _fetch(`${API_BASE_URL}/measurements/${id}/photo`, {
       method: 'POST',
