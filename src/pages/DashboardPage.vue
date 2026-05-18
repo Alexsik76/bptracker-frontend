@@ -143,7 +143,7 @@ onUnmounted(() => {
 .dashboard-layout {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  height: 100svh;
   overflow: hidden;
   background: var(--color-bg);
 }
