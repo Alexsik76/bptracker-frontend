@@ -409,18 +409,22 @@ onBeforeUnmount(() => {
   text-align: center;
   padding: 0 32px;
   flex-shrink: 0;
-  margin-bottom: 6px;
+  margin-top: auto;
+  margin-bottom: 24px;
   max-height: 40px;
   overflow: hidden;
 }
 
 /* ── Drag handle ──────────────────────────────────────────────────────────────── */
 .drag-handle {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
   width: 44px;
   height: 5px;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.35);
-  margin: 0 auto 10px;
-  flex-shrink: 0;
+  margin: 0 auto;
 }
 </style>
