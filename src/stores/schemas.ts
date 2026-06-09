@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import type { TreatmentSchema, CreateSchemaDto, UpdateSchemaDto } from '../types/api';
 import { useApi } from '../composables/useApi';
 import { useToast } from '../composables/useToast';
@@ -13,7 +12,6 @@ export const useSchemaStore = defineStore('schemas', () => {
 
   const api = useApi();
   const toast = useToast();
-  const { t } = useI18n();
   const { toMessage } = useApiErrorMessage();
 
   const active = computed(() => items.value.find((s) => s.isActive) ?? null);

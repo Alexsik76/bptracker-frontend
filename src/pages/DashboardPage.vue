@@ -121,7 +121,7 @@ function closeForm() {
             :error="measurements.error"
             @show-all="currentTab = 1"
           />
-          <SchemaCard v-if="schema" :schema="schema" />
+          <SchemaCard v-if="schemaStore.active" :schema="schemaStore.active" />
         </div>
       </template>
 

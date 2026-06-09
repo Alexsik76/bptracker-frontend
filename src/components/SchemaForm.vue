@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { ref, computed } from 'vue';
 import type { TreatmentSchema, MedicationEntry, SchemaScheduleDto } from '../types/api';
 import { useSchemaStore } from '../stores/schemas';
 
@@ -13,7 +12,7 @@ const emit = defineEmits<{
   cancel: [];
 }>();
 
-const { t } = useI18n();
+
 const schemaStore = useSchemaStore();
 
 const AMOUNT_PRESETS = ['0.5', '1', '2'];

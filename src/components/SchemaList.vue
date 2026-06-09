@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
 import type { TreatmentSchema } from '../types/api';
 import { useSchemaStore } from '../stores/schemas';
 
@@ -11,7 +10,6 @@ const emit = defineEmits<{
   edit: [schema: TreatmentSchema];
 }>();
 
-const { t } = useI18n();
 const schemaStore = useSchemaStore();
 </script>
 
