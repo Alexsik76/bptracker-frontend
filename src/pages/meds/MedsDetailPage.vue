@@ -41,11 +41,6 @@ async function handleActivate() {
   await schemaStore.activate(rx.value.id);
 }
 
-async function handleDelete() {
-  if (!rx.value) return;
-  await schemaStore.remove(rx.value.id);
-  router.replace('/meds');
-}
 </script>
 
 <template>
@@ -98,13 +93,6 @@ async function handleDelete() {
         <RxScheduleView :schedule-document="rx.scheduleDocument" />
       </div>
 
-      <button class="link-danger" @click="handleDelete">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/>
-          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-        </svg>
-        Видалити призначення
-      </button>
     </div>
 
     <div class="rx-fab-bar">
