@@ -11,6 +11,7 @@ const { t } = useI18n();
 
 const TIME_KEYS: Record<string, string> = {
   Morning: 'schema.morning',
+  Day: 'schema.day',
   Afternoon: 'schema.afternoon',
   Evening: 'schema.evening',
   Night: 'schema.night',
@@ -26,7 +27,7 @@ const blocks = computed((): TimeBlock[] => {
   const doc = props.schema.scheduleDocument;
   if (!doc) return [];
 
-  const order = ['Morning', 'Afternoon', 'Evening', 'Night'];
+  const order = ['Morning', 'Day', 'Afternoon', 'Evening', 'Night'];
   const keys = Object.keys(doc).sort(
     (a, b) =>
       (order.indexOf(a) === -1 ? 99 : order.indexOf(a)) -
@@ -40,7 +41,7 @@ const blocks = computed((): TimeBlock[] => {
     meds
       .filter((m) => m.Condition && m.Condition.toLowerCase() !== 'none')
       .forEach((m) => {
-        const c = m.Condition!.trim();
+        const c = m.Condition.trim();
         if (!condMap.has(c)) condMap.set(c, []);
         condMap.get(c)!.push(m);
       });

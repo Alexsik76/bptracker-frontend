@@ -33,11 +33,33 @@ export interface AuthStatus {
 export interface MedicationEntry {
   Medicine: string;
   Amount: string;
-  Condition?: string;
+  Condition: string;
 }
 
 export interface TreatmentSchema {
   id: string;
+  doctor: string | null;
+  prescribedOn: string | null;
+  createdAt: string;
   isActive: boolean;
   scheduleDocument: Record<string, MedicationEntry[]> | null;
+}
+
+export interface SchemaScheduleDto {
+  Morning?: MedicationEntry[];
+  Day?: MedicationEntry[];
+  Evening?: MedicationEntry[];
+}
+
+export interface CreateSchemaDto {
+  doctor: string;
+  prescribedOn?: string;
+  schedule: SchemaScheduleDto;
+  setActive: boolean;
+}
+
+export interface UpdateSchemaDto {
+  doctor: string;
+  prescribedOn?: string;
+  schedule: SchemaScheduleDto;
 }

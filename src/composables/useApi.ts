@@ -4,6 +4,8 @@ import type {
   User,
   UserSettings,
   TreatmentSchema,
+  CreateSchemaDto,
+  UpdateSchemaDto,
 } from '../types/api';
 import type { components } from '../types/photo-api';
 import type { RegistrationResponseJSON, AuthenticationResponseJSON } from '@simplewebauthn/browser';
@@ -209,6 +211,37 @@ export function useApi() {
     }
   }
 
+  async function getSchemas(signal?: AbortSignal): Promise<TreatmentSchema[]> {
+    const res = await _fetch(`${API_BASE_URL}/schemas`, { signal });
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  async function createSchema(data: CreateSchemaDto): Promise<TreatmentSchema> {
+    const res = await _fetch(`${API_BASE_URL}/schemas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  async function updateSchema(id: string, data: UpdateSchemaDto): Promise<TreatmentSchema> {
+    const res = await _fetch(`${API_BASE_URL}/schemas/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  async function activateSchema(id: string): Promise<void> {
+    const res = await _fetch(`${API_BASE_URL}/schemas/${id}/activate`, { method: 'POST' });
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
+  }
+
   async function uploadMeasurementPhoto(
     id: string,
     blob: Blob,
@@ -273,5 +306,9 @@ export function useApi() {
     uploadMeasurementPhoto,
     exportCsv,
     getActiveSchema,
+    getSchemas,
+    createSchema,
+    updateSchema,
+    activateSchema,
   };
 }

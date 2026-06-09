@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, useTemplateRef } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMeasurementStore } from '../stores/measurements';
-import { useApi } from '../composables/useApi';
+import { useSchemaStore } from '../stores/schemas';
 import { useKpi } from '../composables/useKpi';
 import { getZone, DEFAULT_ZONE } from '../composables/useZone';
 import ScanShade from '../components/dashboard/ScanShade.vue';
@@ -13,15 +13,18 @@ import HistoryPanel from '../components/dashboard/HistoryPanel.vue';
 import HistoryTab from '../components/dashboard/HistoryTab.vue';
 import BottomTabBar from '../components/dashboard/BottomTabBar.vue';
 import SchemaCard from '../components/SchemaCard.vue';
+import SchemaList from '../components/SchemaList.vue';
+import SchemaForm from '../components/SchemaForm.vue';
 import { preloadOcrModels } from '../composables/useLocalOcr';
 import type { TreatmentSchema } from '../types/api';
 
 const router = useRouter();
 const measurements = useMeasurementStore();
-const api = useApi();
-const schema = ref<TreatmentSchema | null>(null);
+const schemaStore = useSchemaStore();
 const controller = new AbortController();
 const currentTab = ref(0);
+const formDialogRef = useTemplateRef<HTMLDialogElement>('formDialog');
+const editingSchema = ref<TreatmentSchema | undefined>(undefined);
 
 const kpi = useKpi(() => measurements.items);
 
@@ -64,9 +67,7 @@ function onResize() {
 
 onMounted(() => {
   measurements.fetchMeasurements(controller.signal);
-  api.getActiveSchema(controller.signal).then((s) => {
-    schema.value = s;
-  });
+  schemaStore.fetchSchemas(controller.signal);
   window.addEventListener('resize', onResize, { passive: true });
   preloadOcrModels();
 });
@@ -75,6 +76,20 @@ onUnmounted(() => {
   controller.abort();
   window.removeEventListener('resize', onResize);
 });
+
+function openCreateForm() {
+  editingSchema.value = undefined;
+  formDialogRef.value?.showModal();
+}
+
+function openEditForm(schema: TreatmentSchema) {
+  editingSchema.value = schema;
+  formDialogRef.value?.showModal();
+}
+
+function closeForm() {
+  formDialogRef.value?.close();
+}
 </script>
 
 <template>
@@ -118,8 +133,12 @@ onUnmounted(() => {
       <!-- Tab: Ліки -->
       <template v-else-if="currentTab === 2">
         <div class="content-pad">
-          <SchemaCard v-if="schema" :schema="schema" />
-          <div v-else class="empty-tab">
+          <div class="meds-tab-header">
+            <button class="btn-add-schema" @click="openCreateForm">+ {{ $t('schema.addSchema') }}</button>
+          </div>
+          <SchemaList :schemas="schemaStore.items" @edit="openEditForm" />
+          <SchemaCard v-if="schemaStore.active" :schema="schemaStore.active" />
+          <div v-else-if="!schemaStore.loading && !schemaStore.items.length" class="empty-tab">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
               <path d="M10.5 20H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H20a2 2 0 0 1 2 2v3" />
               <circle cx="18" cy="18" r="4" />
@@ -136,6 +155,14 @@ onUnmounted(() => {
       :zone-color="currentZone.color"
       @profile="router.push({ name: 'settings' })"
     />
+
+    <dialog ref="formDialog" class="form-dialog" @cancel.prevent="closeForm">
+      <SchemaForm
+        :schema="editingSchema"
+        @saved="closeForm"
+        @cancel="closeForm"
+      />
+    </dialog>
   </div>
 </template>
 
@@ -179,5 +206,42 @@ onUnmounted(() => {
   color: var(--color-text-muted);
   font-size: 14px;
   text-align: center;
+}
+
+.meds-tab-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-add-schema {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-primary);
+  color: white;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-primary-hover);
+  }
+}
+
+.form-dialog {
+  border: none;
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  max-width: 520px;
+  width: calc(100vw - var(--space-8));
+  max-height: 90svh;
+  overflow-y: auto;
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+  }
 }
 </style>
