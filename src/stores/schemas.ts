@@ -62,6 +62,16 @@ export const useSchemaStore = defineStore('schemas', () => {
     }
   }
 
+  async function remove(id: string) {
+    try {
+      await api.deleteSchema(id);
+      items.value = items.value.filter((s) => s.id !== id);
+    } catch (err) {
+      toast.error(toMessage(err, 'errors.deleteFailed'));
+      throw err;
+    }
+  }
+
   return {
     items,
     loading,
@@ -71,5 +81,6 @@ export const useSchemaStore = defineStore('schemas', () => {
     create,
     update,
     activate,
+    remove,
   };
 });

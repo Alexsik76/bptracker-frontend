@@ -40,6 +40,30 @@ const router = createRouter({
       meta: { auth: true },
     },
     {
+      path: '/meds',
+      name: 'meds-list',
+      component: () => import('../pages/meds/MedsListPage.vue'),
+      meta: { auth: true },
+    },
+    {
+      path: '/meds/new',
+      name: 'meds-new',
+      component: () => import('../pages/meds/MedsFormPage.vue'),
+      meta: { auth: true },
+    },
+    {
+      path: '/meds/:id',
+      name: 'meds-detail',
+      component: () => import('../pages/meds/MedsDetailPage.vue'),
+      meta: { auth: true },
+    },
+    {
+      path: '/meds/:id/edit',
+      name: 'meds-edit',
+      component: () => import('../pages/meds/MedsFormPage.vue'),
+      meta: { auth: true },
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: { name: 'dashboard' },
     },

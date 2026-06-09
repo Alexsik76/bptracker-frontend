@@ -242,6 +242,11 @@ export function useApi() {
     if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
   }
 
+  async function deleteSchema(id: string): Promise<void> {
+    const res = await _fetch(`${API_BASE_URL}/schemas/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
+  }
+
   async function uploadMeasurementPhoto(
     id: string,
     blob: Blob,
@@ -310,5 +315,6 @@ export function useApi() {
     createSchema,
     updateSchema,
     activateSchema,
+    deleteSchema,
   };
 }
