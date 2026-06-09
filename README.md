@@ -40,6 +40,10 @@ bptracker-frontend/
 │   │   │   ├── KpiCard.vue         # Картка KPI
 │   │   │   ├── KpiGrid.vue         # Сітка з 4 карток KPI
 │   │   │   └── PeriodTabs.vue      # Перемикач періоду (7/30/90/365 днів)
+│   │   ├── meds/
+│   │   │   ├── RxScheduleView.vue  # Відображення розкладу прийому ліків
+│   │   │   ├── RxStatusTag.vue     # Тег статусу схеми (активна / неактивна)
+│   │   │   └── RxSwitch.vue        # Перемикач активації схеми
 │   │   ├── settings/
 │   │   │   └── BpScaleInfo.vue     # Таблиця шкали ESC (4 рівні), tie-break, дисклеймер
 │   │   ├── AiReview.vue        # Анімація під час розпізнавання AI
@@ -48,7 +52,11 @@ bptracker-frontend/
 │   │   ├── ConfirmDialog.vue   # Глобальний діалог підтвердження
 │   │   ├── MeasurementForm.vue # Форма ручного введення з валідацією
 │   │   ├── MeasurementList.vue # Список вимірювань з групуванням
-│   │   ├── SchemaCard.vue      # Відображення схеми лікування
+│   │   ├── OcrPhotoPreview.vue # Превью фото з результатом OCR
+│   │   ├── OcrReviewForm.vue   # Форма підтвердження/редагування OCR-результату
+│   │   ├── SchemaCard.vue      # Картка схеми лікування
+│   │   ├── SchemaForm.vue      # Форма створення/редагування схеми лікування
+│   │   ├── SchemaList.vue      # Список схем лікування
 │   │   └── ToastContainer.vue  # Контейнер toast-сповіщень
 │   ├── composables/
 │   │   ├── useApi.ts               # HTTP-клієнт; кидає ApiError (не рядки)
@@ -57,8 +65,10 @@ bptracker-frontend/
 │   │   ├── useConfirm.ts           # Діалог підтвердження
 │   │   ├── useExport.ts            # CSV-експорт
 │   │   ├── useKpi.ts               # KPI з вимірювань (normalCount через NORMAL_CLASSES)
+│   │   ├── useLocalOcr.ts          # ONNX-інференс у браузері (display + digit детектори)
 │   │   ├── useLocale.ts            # Управління локаллю (locale ref + setLocale → localStorage)
 │   │   ├── useOfflineQueue.ts      # Офлайн-черга (IndexedDB)
+│   │   ├── usePendingPhoto.ts      # Передача Blob між LocalOcrPage та MeasurementPage
 │   │   ├── useTheme.ts             # Управління темою (auto/light/dark, localStorage)
 │   │   ├── useToast.ts             # Toast-сповіщення
 │   │   ├── useZone.ts              # Тонка обгортка над bp.ts: getZone → Zone { key, color, bg }
@@ -70,15 +80,23 @@ bptracker-frontend/
 │   │   ├── uk.ts               # Українська (source of truth, визначає MessageSchema)
 │   │   └── en.ts               # Англійська (типізована як MessageSchema)
 │   ├── pages/
+│   │   ├── meds/
+│   │   │   ├── MedsListPage.vue    # Список всіх схем лікування
+│   │   │   ├── MedsDetailPage.vue  # Деталізація схеми лікування
+│   │   │   └── MedsFormPage.vue    # Форма створення/редагування схеми
 │   │   ├── DashboardPage.vue   # Головний екран (3 таби)
+│   │   ├── LocalOcrPage.vue    # Локальне ONNX-розпізнавання тонометра
 │   │   ├── LoginPage.vue       # Вхід (Passkey + Magic Link)
-│   │   ├── MeasurementPage.vue # Додавання заміру (камера / вручну)
+│   │   ├── MeasurementPage.vue # Додавання заміру через Gemini fallback (камера / вручну)
 │   │   └── SettingsPage.vue    # Налаштування (перемикачі теми та мови) + BpScaleInfo
 │   ├── router/
 │   │   └── index.ts            # Маршрути та Navigation Guard
 │   ├── stores/
+│   │   ├── __tests__/
+│   │   │   └── schemas.test.ts     # Тести useSchemaStore (CRUD, activate, валідація)
 │   │   ├── auth.ts             # Стан користувача
 │   │   ├── measurements.ts     # CRUD вимірювань + офлайн sync
+│   │   ├── schemas.ts          # CRUD схем лікування (TreatmentSchema)
 │   │   └── settings.ts         # Користувацькі налаштування
 │   ├── styles/
 │   │   ├── global.css          # Базові стилі
@@ -231,6 +249,7 @@ npm run test       # watch-режим (розробка)
 | `useTheme.test.ts` | Переключення теми |
 | `image.test.ts` | Передобробка фото (масштаб, JPEG-стиснення) |
 | `i18n.test.ts` | Паритет ключів uk/en — гарантує відсутність пропущених перекладів |
+| `schemas.test.ts` | `useSchemaStore`: завантаження, створення, активація схеми |
 
 CI (GitHub Actions) запускає тести перед кожним білдом. Скрипт `build` автоматично копіює `dist/index.html` у `dist/404.html` для коректної роботи SPA-роутингу на GitHub Pages.
 
