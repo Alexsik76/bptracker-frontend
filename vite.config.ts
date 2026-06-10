@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
 import { execSync } from 'node:child_process'
+import type { Plugin } from 'vite'
 
 function getGitCommit(): string {
   try {
@@ -10,8 +11,21 @@ function getGitCommit(): string {
   }
 }
 
+function localConfigPlugin(): Plugin {
+  return {
+    name: 'inject-local-config',
+    transformIndexHtml(html, ctx) {
+      if (!ctx.server) return html
+      return html.replace(
+        '<script src="/config.js"></script>',
+        '<script src="/config.js"></script>\n    <script src="/config.local.js" onerror="void 0"></script>',
+      )
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), localConfigPlugin()],
   optimizeDeps: {
     exclude: ['onnxruntime-web'],
   },

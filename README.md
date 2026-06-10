@@ -225,6 +225,24 @@ window.CONFIG = {
 };
 ```
 
+## Local development
+
+To run the frontend against a local backend instance:
+
+1. Copy `public/config.local.js` (already exists if cloned; otherwise create it):
+   ```javascript
+   window.CONFIG = {
+       API_BASE_URL: 'http://localhost:5000/api/v1'
+   };
+   ```
+2. Start the dev server — `config.local.js` is injected automatically after `config.js` and overrides `API_BASE_URL`:
+   ```bash
+   npm run dev
+   ```
+
+`config.local.js` is listed in `.gitignore` and will never be committed.
+The production build is unaffected — `config.local.js` is only injected by the Vite dev server.
+
 ## Розробка та збірка
 
 ```bash
