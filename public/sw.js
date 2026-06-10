@@ -113,8 +113,8 @@ self.addEventListener('push', event => {
 
         const options = {
             body: body,
-            // icon: '/icons/icon.png',
-            // badge: '/icons/icon.svg',
+            icon: '/icons/icon.svg',
+            badge: '/icons/icon.svg',
             tag: tag,
             requireInteraction: true,
             data: {
