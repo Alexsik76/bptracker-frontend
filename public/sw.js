@@ -92,7 +92,7 @@ self.addEventListener('fetch', event => {
 
 function getApiBaseUrl() {
     if (!self.CONFIG) {
-        const window = self;
+        self.window = self;
         importScripts('/config.js');
     }
     return self.CONFIG.API_BASE_URL;
@@ -154,16 +154,16 @@ self.addEventListener('notificationclick', event => {
                     body: JSON.stringify({ period: period }),
                     credentials: 'include' // session cookie
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Failed to confirm intake: ${response.status}`);
-                    }
-                    notification.close();
-                })
-                .catch(err => {
-                    console.error('[SW] Error confirming intake', err);
-                    notification.close();
-                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Failed to confirm intake: ${response.status}`);
+                        }
+                        notification.close();
+                    })
+                    .catch(err => {
+                        console.error('[SW] Error confirming intake', err);
+                        notification.close();
+                    })
             );
         } else {
             notification.close();
