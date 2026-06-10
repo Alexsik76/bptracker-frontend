@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive, ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
@@ -9,6 +9,7 @@ import { useConfirm } from '../composables/useConfirm';
 import { useTheme, setTheme } from '../composables/useTheme';
 import { useLocale } from '../composables/useLocale';
 import { useApiErrorMessage } from '../composables/useApiErrorMessage';
+import { usePush } from '../composables/usePush';
 import BpScaleInfo from '../components/settings/BpScaleInfo.vue';
 import type { Theme } from '../composables/useTheme';
 import type { AppLocale } from '../i18n';
@@ -34,6 +35,7 @@ const settingsStore = useSettingsStore();
 const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
+const push = usePush();
 
 const commit = __APP_COMMIT__
 const buildDate = __APP_BUILD_DATE__
@@ -47,12 +49,26 @@ const form = reactive({
 
 const loading = ref(false);
 
+const isIos = computed(() => {
+  const ua = window.navigator.userAgent.toLowerCase();
+  return ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod');
+});
+
+const isStandalone = computed(() => {
+  return window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+});
+
+const showIosHint = computed(() => {
+  return isIos.value && !isStandalone.value;
+});
+
 onMounted(async () => {
   await settingsStore.fetchSettings();
   form.geminiUrl = settingsStore.settings.geminiUrl || '';
   form.exportEmail = settingsStore.settings.exportEmail || '';
   form.sheetsTemplateUrl = settingsStore.settings.sheetsTemplateUrl || '';
   form.sendPhotos = settingsStore.settings.sendPhotos !== false;
+  push.checkStatus();
 });
 
 async function save() {
@@ -137,6 +153,54 @@ async function handleLogout() {
           >
             {{ opt.label }}
           </button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>{{ $t('settings.reminders.title') }}</h2>
+        <div class="reminders-setting">
+          <div v-if="showIosHint" class="ios-hint-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <span>{{ $t('settings.reminders.iosHint') }}</span>
+          </div>
+
+          <div v-else class="reminders-status-row">
+            <div class="status-info">
+              <span class="status-label">
+                {{
+                  push.status.value === 'subscribed'
+                    ? $t('settings.reminders.statusSupported')
+                    : push.status.value === 'denied'
+                    ? $t('settings.reminders.statusDenied')
+                    : push.status.value === 'unsupported'
+                    ? $t('settings.reminders.statusNotSupported')
+                    : $t('settings.reminders.statusNotSubscribed')
+                }}
+              </span>
+              <p v-if="push.status.value === 'denied'" class="guidance-text">
+                {{ $t('settings.reminders.deniedGuidance') }}
+              </p>
+            </div>
+
+            <button
+              v-if="push.status.value === 'subscribed'"
+              class="btn unsubscribe-btn danger-btn"
+              :disabled="push.loading.value"
+              @click="push.unsubscribe()"
+            >
+              {{ push.loading.value ? $t('common.wait') : $t('settings.reminders.disableBtn') }}
+            </button>
+            <button
+              v-else-if="push.status.value === 'not'"
+              class="btn subscribe-btn primary"
+              :disabled="push.loading.value"
+              @click="push.requestAndSubscribe()"
+            >
+              {{ push.loading.value ? $t('common.wait') : $t('settings.reminders.enableBtn') }}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -354,5 +418,63 @@ async function handleLogout() {
 .seg-btn.active {
   background: var(--color-primary);
   color: #fff;
+}
+
+.reminders-setting {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ios-hint-box {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+
+  & svg {
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+}
+
+.reminders-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.status-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.status-label {
+  font-weight: 600;
+  font-size: var(--text-base);
+}
+
+.guidance-text {
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+  line-height: 1.4;
+}
+
+.danger-btn {
+  background: var(--color-danger);
+  color: white;
+  border: none;
+  cursor: pointer;
+  
+  &:disabled {
+    opacity: 0.6;
+  }
 }
 </style>

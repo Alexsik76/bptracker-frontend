@@ -87,3 +87,106 @@ self.addEventListener('fetch', event => {
             .catch(() => caches.match(event.request))
     );
 });
+
+// -- Push Notifications Integration --
+
+function getApiBaseUrl() {
+    if (!self.CONFIG) {
+        const window = self;
+        importScripts('/config.js');
+    }
+    return self.CONFIG.API_BASE_URL;
+}
+
+self.addEventListener('push', event => {
+    if (!event.data) return;
+
+    try {
+        const payload = event.data.json();
+        const title = payload.title || 'BP Tracker';
+        const body = payload.body || '';
+        const period = payload.period;
+        const date = payload.date;
+        const templateId = payload.templateId;
+
+        // Tag based on period+date so repeats replace rather than stack
+        const tag = period && date ? `${period}-${date}` : undefined;
+
+        const options = {
+            body: body,
+            icon: '/icons/icon.svg',
+            badge: '/icons/icon.svg',
+            tag: tag,
+            requireInteraction: true,
+            data: {
+                period: period,
+                date: date,
+                templateId: templateId
+            },
+            actions: period ? [
+                { action: 'confirm', title: '✓ Прийняв' }
+            ] : []
+        };
+
+        event.waitUntil(
+            self.registration.showNotification(title, options)
+        );
+    } catch (e) {
+        console.error('[SW] Error parsing push data', e);
+    }
+});
+
+self.addEventListener('notificationclick', event => {
+    const notification = event.notification;
+    const action = event.action;
+
+    if (action === 'confirm') {
+        const period = notification.data?.period;
+        if (period) {
+            const apiBase = getApiBaseUrl();
+
+            event.waitUntil(
+                fetch(`${apiBase}/reminders/confirm`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ period: period }),
+                    credentials: 'include' // session cookie
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to confirm intake: ${response.status}`);
+                    }
+                    notification.close();
+                })
+                .catch(err => {
+                    console.error('[SW] Error confirming intake', err);
+                    notification.close();
+                })
+            );
+        } else {
+            notification.close();
+        }
+    } else {
+        event.waitUntil(
+            self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+                .then(clientList => {
+                    for (const client of clientList) {
+                        if ('focus' in client) {
+                            if ('navigate' in client) {
+                                client.navigate('/meds');
+                            }
+                            return client.focus();
+                        }
+                    }
+                    if (self.clients.openWindow) {
+                        return self.clients.openWindow('/meds');
+                    }
+                })
+                .then(() => {
+                    notification.close();
+                })
+        );
+    }
+});

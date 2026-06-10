@@ -123,7 +123,19 @@ const en: MessageSchema = {
       sendPhotos: 'Send photos to server',
       sendPhotosHint: 'Photos are processed locally on your device. Server upload is only needed for model training.',
     },
+    reminders: {
+      title: 'Medication Reminders',
+      statusSupported: 'Reminders enabled',
+      statusNotSupported: 'Reminders are not supported by your browser',
+      statusDenied: 'Notification access is blocked',
+      statusNotSubscribed: 'Reminders disabled',
+      enableBtn: 'Enable Reminders',
+      disableBtn: 'Disable Reminders',
+      deniedGuidance: 'Notification access is blocked in browser settings. To receive reminders, please allow notifications for this site in your browser settings.',
+      iosHint: 'To receive reminders on iOS, first add this app to your Home Screen (Share → Add to Home Screen).'
+    },
   },
+
   bp: {
     classes: {
       optimal: 'Optimal',
@@ -179,7 +191,16 @@ const en: MessageSchema = {
       medicinePlaceholder: 'Medicine name',
       conditionPlaceholder: 'condition (optional)',
     },
+    reminders: {
+      todayTitle: 'Medication Intake Today',
+      confirmed: 'Taken',
+      missed: 'Missed',
+      pending: 'Pending',
+      confirmBtn: 'Took meds',
+      noActiveTemplate: 'No active reminder template',
+    },
   },
+
   localOcr: {
     title: 'Scan monitor',
     stageLoading: 'Loading model…',

@@ -6,6 +6,9 @@ import type {
   TreatmentSchema,
   CreateSchemaDto,
   UpdateSchemaDto,
+  ReminderTemplate,
+  IntakeReport,
+  PushSubscribeDto,
 } from '../types/api';
 import type { components } from '../types/photo-api';
 import type { RegistrationResponseJSON, AuthenticationResponseJSON } from '@simplewebauthn/browser';
@@ -292,6 +295,54 @@ export function useApi() {
     return await res.json();
   }
 
+  async function getVapidPublicKey(): Promise<{ publicKey: string }> {
+    const res = await _fetch(`${API_BASE_URL}/push/vapid-public-key`);
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  async function subscribePush(data: PushSubscribeDto): Promise<{ status: string }> {
+    const res = await _fetch(`${API_BASE_URL}/push/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  async function unsubscribePush(endpoint: string): Promise<void> {
+    const res = await _fetch(`${API_BASE_URL}/push/unsubscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint }),
+    });
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
+  }
+
+  async function getActiveTemplate(): Promise<ReminderTemplate | null> {
+    const res = await _fetch(`${API_BASE_URL}/reminders/template/active`);
+    if (res.status === 404) return null;
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  async function confirmIntake(period: string): Promise<IntakeReport> {
+    const res = await _fetch(`${API_BASE_URL}/reminders/confirm`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ period }),
+    });
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  async function getReminderReports(days: number): Promise<IntakeReport[]> {
+    const res = await _fetch(`${API_BASE_URL}/reminders/reports?days=${days}`);
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
+    return await res.json();
+  }
+
   return {
     checkMe,
     logout,
@@ -316,5 +367,11 @@ export function useApi() {
     updateSchema,
     activateSchema,
     deleteSchema,
+    getVapidPublicKey,
+    subscribePush,
+    unsubscribePush,
+    getActiveTemplate,
+    confirmIntake,
+    getReminderReports,
   };
 }

@@ -2,18 +2,41 @@
 import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSchemaStore } from '../../stores/schemas';
+import { useReminderStore } from '../../stores/reminders';
 import RxStatusTag from '../../components/meds/RxStatusTag.vue';
 import RxSwitch from '../../components/meds/RxSwitch.vue';
 
 const router = useRouter();
 const schemaStore = useSchemaStore();
+const reminderStore = useReminderStore();
 
 const active = computed(() => schemaStore.active);
 const others = computed(() => schemaStore.items.filter((s) => !s.isActive));
 
 onMounted(() => {
   if (!schemaStore.items.length) schemaStore.fetchSchemas();
+  reminderStore.init();
 });
+
+function getPeriodNameTranslation(name: any): string {
+  const key = String(name).toLowerCase();
+  if (key === 'morning') return 'Ранок';
+  if (key === 'day' || key === 'afternoon') return 'День';
+  if (key === 'evening') return 'Вечір';
+  if (key === 'night') return 'Ніч';
+  return String(name);
+}
+
+function getReportStatus(periodName: any): 'Confirmed' | 'Missed' | 'Pending' {
+  const report = reminderStore.todayReports.find(
+    (r) => r.period.toLowerCase() === String(periodName).toLowerCase()
+  );
+  return report ? report.status : 'Pending';
+}
+
+async function handleConfirmIntake(periodName: string) {
+  await reminderStore.confirm(periodName);
+}
 
 function fmtShort(iso: string | null): string {
   if (!iso) return '—';
@@ -66,6 +89,42 @@ async function handleActivate(id: string) {
     </header>
 
     <div class="rx-scroll">
+      <!-- Today's medication intake reminders -->
+      <div v-if="reminderStore.activeTemplate" class="rx-section-label">
+        <span>{{ $t('schema.reminders.todayTitle') }}</span>
+      </div>
+
+      <div v-if="reminderStore.activeTemplate" class="rx-card today-reminders-card">
+        <div class="today-reminders-list">
+          <div
+            v-for="(config, periodName) in reminderStore.activeTemplate.periods"
+            :key="periodName"
+            class="today-reminder-row"
+          >
+            <div class="reminder-period-info">
+              <span class="reminder-period-name">{{ getPeriodNameTranslation(periodName) }}</span>
+              <span class="reminder-period-time">({{ config.time }})</span>
+              <div class="reminder-meds">{{ config.meds.join(', ') }}</div>
+            </div>
+            <div class="reminder-status-action">
+              <span v-if="getReportStatus(periodName) === 'Confirmed'" class="status-badge status-confirmed">
+                ✓ {{ $t('schema.reminders.confirmed') }}
+              </span>
+              <span v-else-if="getReportStatus(periodName) === 'Missed'" class="status-badge status-missed">
+                ✗ {{ $t('schema.reminders.missed') }}
+              </span>
+              <button
+                v-else
+                class="confirm-btn rx-btn-primary"
+                @click.stop="handleConfirmIntake(String(periodName))"
+              >
+                {{ $t('schema.reminders.confirmBtn') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="rx-section-label">
         <span>Активне призначення</span>
       </div>
@@ -509,5 +568,89 @@ async function handleActivate(id: string) {
 .rx-btn-primary--big {
   height: 54px;
   font-size: 16px;
+}
+
+.today-reminders-card {
+  margin-bottom: 16px;
+  border: 1.5px solid var(--rx-accent-bd);
+  background: linear-gradient(180deg, rgba(141, 140, 245, 0.05), transparent), var(--rx-card);
+}
+
+.today-reminders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.today-reminder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rx-line);
+}
+
+.today-reminder-row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.reminder-period-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.reminder-period-name {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--rx-accent2);
+}
+
+.reminder-period-time {
+  font-size: 13px;
+  color: var(--rx-dim);
+  margin-left: 5px;
+  font-weight: 600;
+}
+
+.reminder-meds {
+  font-size: 13px;
+  color: var(--rx-text);
+  margin-top: 3px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reminder-status-action {
+  flex: none;
+  margin-left: 10px;
+}
+
+.status-badge {
+  font-size: 13.5px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-confirmed {
+  background: rgba(20, 170, 90, 0.15);
+  color: var(--rx-green2);
+}
+
+.status-missed {
+  background: rgba(231, 107, 125, 0.15);
+  color: var(--rx-danger);
+}
+
+.confirm-btn {
+  height: 34px !important;
+  font-size: 13.5px !important;
+  padding: 0 12px;
+  border-radius: 9px;
 }
 </style>

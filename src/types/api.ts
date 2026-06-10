@@ -63,3 +63,41 @@ export interface UpdateSchemaDto {
   prescribedOn?: string;
   schedule: SchemaScheduleDto;
 }
+
+export interface ReminderPeriodConfig {
+  time: string;
+  meds: string[];
+}
+
+export interface ReminderTemplate {
+  id: string;
+  schemaId: string;
+  isActive: boolean;
+  durationMinutes: number;
+  maxReminders: number;
+  periods: Record<string, ReminderPeriodConfig>;
+  createdAt: string;
+}
+
+export interface IntakeReport {
+  id: string;
+  templateId: string;
+  period: string;
+  date: string;
+  status: 'Confirmed' | 'Missed';
+  time: string;
+}
+
+export interface PushSubscriptionKeysDto {
+  p256dh: string;
+  auth: string;
+}
+
+export interface PushSubscribeDto {
+  endpoint: string;
+  keys: PushSubscriptionKeysDto;
+}
+
+export interface PushUnsubscribeDto {
+  endpoint: string;
+}
