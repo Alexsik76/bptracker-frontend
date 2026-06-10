@@ -1,3 +1,6 @@
+self.window = self;
+importScripts('/config.js');
+
 const CACHE = 'bp-tracker-shell-v1';
 const SHARE_CACHE = 'share-target-v1';
 
@@ -91,10 +94,6 @@ self.addEventListener('fetch', event => {
 // -- Push Notifications Integration --
 
 function getApiBaseUrl() {
-    if (!self.CONFIG) {
-        self.window = self;
-        importScripts('/config.js');
-    }
     return self.CONFIG.API_BASE_URL;
 }
 
