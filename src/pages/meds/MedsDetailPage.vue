@@ -21,12 +21,12 @@ function fmtLong(iso: string | null): string {
 
 function countMeds(): number {
   if (!rx.value?.scheduleDocument) return 0;
-  return Object.values(rx.value.scheduleDocument).reduce((n, arr) => n + arr.length, 0);
+  return Object.values(rx.value.scheduleDocument).reduce((n, arr) => n + (Array.isArray(arr) ? arr.length : 0), 0);
 }
 
 function activePeriodCount(): number {
   if (!rx.value?.scheduleDocument) return 0;
-  return Object.values(rx.value.scheduleDocument).filter((arr) => arr.length > 0).length;
+  return Object.values(rx.value.scheduleDocument).filter((arr) => Array.isArray(arr) && arr.length > 0).length;
 }
 
 function pluralMeds(n: number): string {

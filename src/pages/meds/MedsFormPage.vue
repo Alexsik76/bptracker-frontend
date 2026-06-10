@@ -64,8 +64,9 @@ onMounted(async () => {
       isActive.value = rx.isActive;
       
       for (const key of PERIOD_ORDER) {
-        const meds = rx.scheduleDocument?.[key] || [];
-        schedule.value[key] = meds.map((m) => {
+        const meds = rx.scheduleDocument?.[key];
+        const medsArray = Array.isArray(meds) ? meds : [];
+        schedule.value[key] = medsArray.map((m) => {
           const parsed = parseMedicine(m.Medicine);
           return {
             name: parsed.name,

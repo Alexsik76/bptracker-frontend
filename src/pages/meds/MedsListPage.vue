@@ -46,7 +46,7 @@ function fmtShort(iso: string | null): string {
 
 function countMeds(schema: typeof schemaStore.items[number]): number {
   if (!schema.scheduleDocument) return 0;
-  return Object.values(schema.scheduleDocument).reduce((n, arr) => n + arr.length, 0);
+  return Object.values(schema.scheduleDocument).reduce((n, arr) => n + (Array.isArray(arr) ? arr.length : 0), 0);
 }
 
 function pluralMeds(n: number): string {
@@ -59,7 +59,7 @@ function pluralMeds(n: number): string {
 function activePeriods(schema: typeof schemaStore.items[number]): string[] {
   if (!schema.scheduleDocument) return [];
   const order = ['Morning', 'Day', 'Evening', 'Night', 'Afternoon'];
-  return order.filter((k) => schema.scheduleDocument![k]?.length);
+  return order.filter((k) => Array.isArray(schema.scheduleDocument![k]) && schema.scheduleDocument![k].length > 0);
 }
 
 const PERIOD_ICONS: Record<string, string> = {
@@ -104,7 +104,7 @@ async function handleActivate(id: string) {
             <div class="reminder-period-info">
               <span class="reminder-period-name">{{ getPeriodNameTranslation(periodName) }}</span>
               <span class="reminder-period-time">({{ config.time }})</span>
-              <div class="reminder-meds">{{ config.meds.join(', ') }}</div>
+              <div class="reminder-meds">{{ (config?.meds || []).join(', ') }}</div>
             </div>
             <div class="reminder-status-action">
               <span v-if="getReportStatus(periodName) === 'Confirmed'" class="status-badge status-confirmed">
@@ -172,7 +172,7 @@ async function handleActivate(id: string) {
             <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>
             </svg>
-            {{ active.scheduleDocument?.[k]?.length }}
+            {{ Array.isArray(active.scheduleDocument?.[k]) ? active.scheduleDocument[k].length : 0 }}
           </span>
         </div>
 
