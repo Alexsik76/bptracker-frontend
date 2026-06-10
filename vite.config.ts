@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { execSync } from 'node:child_process'
 import type { Plugin } from 'vite'
@@ -24,28 +24,33 @@ function localConfigPlugin(): Plugin {
   }
 }
 
-export default defineConfig({
-  plugins: [vue(), localConfigPlugin()],
-  optimizeDeps: {
-    exclude: ['onnxruntime-web'],
-  },
-  define: {
-    __APP_COMMIT__: JSON.stringify(getGitCommit()),
-    __APP_BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)),
-  },
-  base: '/',
-  server: {
-    proxy: {
-      '/api': {
-        target: 'https://api-bptracker.home.vn.ua',
-        changeOrigin: true,
-        secure: true,
-        cookieDomainRewrite: 'localhost',
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  const apiTarget = env.VITE_API_PROXY_TARGET || 'https://api-bptracker.home.vn.ua'
+
+  return {
+    plugins: [vue(), localConfigPlugin()],
+    optimizeDeps: {
+      include: ['onnxruntime-web'],
+    },
+    define: {
+      __APP_COMMIT__: JSON.stringify(getGitCommit()),
+      __APP_BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)),
+    },
+    base: '/',
+    server: {
+      proxy: {
+        '/api': {
+          target: apiTarget,
+          changeOrigin: true,
+          secure: apiTarget.startsWith('https:'),
+          cookieDomainRewrite: 'localhost',
+        },
       },
     },
-  },
-  test: {
-    environment: 'happy-dom',
-    globals: true,
-  },
+    test: {
+      environment: 'happy-dom',
+      globals: true,
+    },
+  }
 })
