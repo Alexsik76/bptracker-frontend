@@ -1,8 +1,8 @@
 self.window = self;
 importScripts('/config.js');
 
-const CACHE = 'bp-tracker-shell-v2';
-const SHARE_CACHE = 'share-target-v2';
+const CACHE = 'bp-tracker-shell-v3';
+const SHARE_CACHE = 'share-target-v3';
 
 self.addEventListener('install', event => {
     // Cache the app shell so navigation fallback works offline
@@ -48,6 +48,21 @@ self.addEventListener('fetch', event => {
     // Always fetch fresh index.html from network; fall back to cache if offline.
     // This is the critical SPA fix: /settings, /measurement/new, etc. all get index.html.
     if (event.request.mode === 'navigate') {
+        if (url.pathname.endsWith('.html')) {
+            event.respondWith(
+                fetch(event.request, { cache: 'no-store' })
+                    .then(resp => {
+                        if (resp.ok) {
+                            const toCache = resp.clone();
+                            caches.open(CACHE).then(c => c.put(event.request, toCache));
+                        }
+                        return resp;
+                    })
+                    .catch(() => caches.match(event.request))
+            );
+            return;
+        }
+
         event.respondWith(
             fetch('/index.html', { cache: 'no-store' })
                 .then(resp => {
