@@ -1,8 +1,8 @@
 self.window = self;
 importScripts('/config.js');
 
-const CACHE = 'bp-tracker-shell-v1';
-const SHARE_CACHE = 'share-target-v1';
+const CACHE = 'bp-tracker-shell-v2';
+const SHARE_CACHE = 'share-target-v2';
 
 self.addEventListener('install', event => {
     // Cache the app shell so navigation fallback works offline
@@ -97,42 +97,144 @@ function getApiBaseUrl() {
     return self.CONFIG.API_BASE_URL;
 }
 
+function openPushDebugDb() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open("push-debug", 1);
+        request.onupgradeneeded = event => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains("events")) {
+                db.createObjectStore("events", { keyPath: "id", autoIncrement: true });
+            }
+        };
+        request.onsuccess = event => {
+            resolve(event.target.result);
+        };
+        request.onerror = event => {
+            reject(request.error || new Error("Failed to open IndexedDB"));
+        };
+    });
+}
+
+function logPushEvent(entry) {
+    return openPushDebugDb().then(db => {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(["events"], "readwrite");
+            const store = transaction.objectStore("events");
+
+            const keysRequest = store.getAllKeys();
+            keysRequest.onsuccess = () => {
+                const keys = keysRequest.result;
+                if (keys.length >= 200) {
+                    const toDeleteCount = keys.length - 199;
+                    for (let i = 0; i < toDeleteCount && i < keys.length; i++) {
+                        store.delete(keys[i]);
+                    }
+                }
+                const addRequest = store.add(entry);
+                addRequest.onsuccess = () => resolve();
+                addRequest.onerror = () => reject(addRequest.error || new Error("Failed to add entry"));
+            };
+
+            keysRequest.onerror = () => {
+                const addRequest = store.add(entry);
+                addRequest.onsuccess = () => resolve();
+                addRequest.onerror = () => reject(addRequest.error || new Error("Failed to add entry"));
+            };
+
+            transaction.oncomplete = () => {
+                db.close();
+            };
+            transaction.onerror = () => {
+                db.close();
+                reject(transaction.error || new Error("Transaction failed"));
+            };
+        });
+    }).catch(err => {
+        console.error("[SW] IndexedDB error logging push event:", err);
+    });
+}
+
 self.addEventListener('push', event => {
-    if (!event.data) return;
-
-    try {
-        const payload = event.data.json();
-        const title = payload.title || 'BP Tracker';
-        const body = payload.body || '';
-        const period = payload.period;
-        const date = payload.date;
-        const templateId = payload.templateId;
-
-        // Tag based on period+date so repeats replace rather than stack
-        const tag = period && date ? `${period}-${date}` : undefined;
-
-        const options = {
-            body: body,
-            icon: '/icons/icon.svg',
-            badge: '/icons/icon.svg',
-            tag: tag,
-            requireInteraction: true,
-            data: {
-                period: period,
-                date: date,
-                templateId: templateId
-            },
-            actions: period ? [
-                { action: 'confirm', title: '✓ Прийняв' }
-            ] : []
+    event.waitUntil((async () => {
+        const entry = {
+            receivedAt: new Date().toISOString(),
+            receivedEpochMs: Date.now(),
+            hasData: !!event.data,
+            rawText: null,
+            parsedOk: false,
+            title: null,
+            shown: false,
+            error: null
         };
 
-        event.waitUntil(
-            self.registration.showNotification(title, options)
-        );
-    } catch (e) {
-        console.error('[SW] Error parsing push data', e);
-    }
+        if (event.data) {
+            try {
+                entry.rawText = event.data.text();
+            } catch (err) {
+                entry.error = "Failed to read raw text: " + err.message;
+            }
+        }
+
+        let payload = null;
+        if (event.data) {
+            try {
+                payload = event.data.json();
+                entry.parsedOk = true;
+            } catch (err) {
+                entry.parsedOk = false;
+                entry.error = "JSON parse error: " + err.message;
+            }
+        }
+
+        if (entry.parsedOk && payload) {
+            entry.title = payload.title || 'BP Tracker';
+        }
+
+        if (!event.data) {
+            entry.error = "No event data payload";
+            await logPushEvent(entry);
+            return;
+        }
+
+        if (!entry.parsedOk) {
+            await logPushEvent(entry);
+            return;
+        }
+
+        try {
+            const title = payload.title || 'BP Tracker';
+            const body = payload.body || '';
+            const period = payload.period;
+            const date = payload.date;
+            const templateId = payload.templateId;
+
+            const tag = period && date ? `${period}-${date}` : undefined;
+
+            const options = {
+                body: body,
+                icon: '/icons/icon.svg',
+                badge: '/icons/icon.svg',
+                tag: tag,
+                requireInteraction: true,
+                data: {
+                    period: period,
+                    date: date,
+                    templateId: templateId
+                },
+                actions: period ? [
+                    { action: 'confirm', title: '✓ Прийняв' }
+                ] : []
+            };
+
+            await self.registration.showNotification(title, options);
+            entry.shown = true;
+        } catch (err) {
+            entry.shown = false;
+            entry.error = (entry.error ? entry.error + "; " : "") + "showNotification error: " + err.message;
+        }
+
+        await logPushEvent(entry);
+    })());
 });
 
 self.addEventListener('notificationclick', event => {
