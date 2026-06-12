@@ -1,20 +1,51 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useMeasurementStore } from '../stores/measurements';
 import { useKpi } from '../composables/useKpi';
 import { getZone, DEFAULT_ZONE } from '../composables/useZone';
 import BottomTabBar from '../components/dashboard/BottomTabBar.vue';
+import ScanShade from '../components/dashboard/ScanShade.vue';
+import { preloadOcrModels } from '../composables/useLocalOcr';
+import { useUiStore } from '../stores/ui';
 
 const router = useRouter();
 const route = useRoute();
 const measurements = useMeasurementStore();
 const kpi = useKpi(() => measurements.items);
+const uiStore = useUiStore();
+
+// ── Scan shade state ──────────────────────────────────────────────────────────
+const COLLAPSED_H = 64;
+const EXPANDED_PCT = 0.70;
+
+const shadeProgress = ref(uiStore.hasOpenedShutter ? 0 : 1);
+const screenH = ref(window.innerHeight);
+const expandedH = computed(() => Math.round(screenH.value * EXPANDED_PCT));
+const shadeH = computed(() =>
+  Math.round(COLLAPSED_H + (expandedH.value - COLLAPSED_H) * shadeProgress.value)
+);
+
+function onResize() {
+  screenH.value = window.innerHeight;
+}
 
 onMounted(() => {
   if (!measurements.items.length) {
     measurements.fetchMeasurements();
   }
+  window.addEventListener('resize', onResize, { passive: true });
+  preloadOcrModels();
+  uiStore.markShutterAsOpened();
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', onResize);
+});
+
+// Collapse the shutter upon navigating between different screens/tabs
+watch(() => route.fullPath, () => {
+  shadeProgress.value = 0;
 });
 
 const zoneColor = computed(() => {
@@ -47,6 +78,13 @@ function handleProfile() {
 
 <template>
   <div class="app-shell">
+    <ScanShade
+      v-model="shadeProgress"
+      :expanded-height="expandedH"
+      :shade-height="shadeH"
+      @scan="router.push({ name: 'measurement-local' })"
+      @settings="router.push({ name: 'settings' })"
+    />
     <div class="shell-content">
       <router-view />
     </div>

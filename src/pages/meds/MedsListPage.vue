@@ -83,14 +83,6 @@ async function handleActivate(id: string) {
         <h1 class="rx-topbar__title">Ліки</h1>
         <p class="rx-topbar__sub">Ваші призначення</p>
       </div>
-      <button class="rx-scan-btn" @click="router.push({ name: 'measurement-local' })">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 8V6a2 2 0 0 1 2-2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/>
-          <path d="M20 16v2a2 2 0 0 1-2 2h-2"/><path d="M8 20H6a2 2 0 0 1-2-2v-2"/>
-          <line x1="4" y1="12" x2="20" y2="12"/>
-        </svg>
-        <span>Скан</span>
-      </button>
     </header>
 
     <div class="rx-scroll">
@@ -274,6 +266,7 @@ async function handleActivate(id: string) {
   background: var(--rx-body);
   font-family: 'Manrope', system-ui, sans-serif;
   color: var(--rx-text);
+  padding-top: 64px; /* always reserve space for collapsed shade */
 }
 
 .rx-topbar {
@@ -298,20 +291,7 @@ async function handleActivate(id: string) {
   font-weight: 500;
 }
 
-.rx-scan-btn {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 9px 15px 9px 13px;
-  border-radius: 13px;
-  background: linear-gradient(160deg, var(--rx-green1), var(--rx-green2));
-  color: #04210f;
-  font-weight: 800;
-  font-size: 14px;
-  box-shadow: 0 6px 18px rgba(20, 170, 90, 0.32);
-  border: none;
-  cursor: pointer;
-}
+
 
 .rx-scroll {
   flex: 1;

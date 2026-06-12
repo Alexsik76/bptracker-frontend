@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { computed, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useMeasurementStore } from '../stores/measurements';
 import { useSchemaStore } from '../stores/schemas';
 import { useKpi } from '../composables/useKpi';
-import ScanShade from '../components/dashboard/ScanShade.vue';
 import HeroCard from '../components/dashboard/HeroCard.vue';
 import KpiGrid from '../components/dashboard/KpiGrid.vue';
 import ChartPanel from '../components/dashboard/ChartPanel.vue';
 import HistoryPanel from '../components/dashboard/HistoryPanel.vue';
 import HistoryTab from '../components/dashboard/HistoryTab.vue';
-import { preloadOcrModels } from '../composables/useLocalOcr';
 import type { TreatmentSchema } from '../types/api';
 
 const router = useRouter();
@@ -21,8 +19,6 @@ const controller = new AbortController();
 const currentTab = computed(() => route.query.tab === 'history' ? 1 : 0);
 
 const kpi = useKpi(() => measurements.items);
-
-
 
 const sparkData = computed(() => {
   const sorted = [...measurements.items]
@@ -40,32 +36,13 @@ const recentMeasurements = computed(() => {
   );
 });
 
-// ── Scan shade state ──────────────────────────────────────────────────────────
-
-const COLLAPSED_H = 64;
-const EXPANDED_PCT = 0.70;
-
-const shadeProgress = ref(1);
-const screenH = ref(window.innerHeight);
-const expandedH = computed(() => Math.round(screenH.value * EXPANDED_PCT));
-const shadeH = computed(() =>
-  Math.round(COLLAPSED_H + (expandedH.value - COLLAPSED_H) * shadeProgress.value)
-);
-
-function onResize() {
-  screenH.value = window.innerHeight;
-}
-
 onMounted(() => {
   measurements.fetchMeasurements(controller.signal);
   schemaStore.fetchSchemas(controller.signal);
-  window.addEventListener('resize', onResize, { passive: true });
-  preloadOcrModels();
 });
 
 onUnmounted(() => {
   controller.abort();
-  window.removeEventListener('resize', onResize);
 });
 
 function fmtShort(iso: string | null): string {
@@ -99,15 +76,6 @@ const PERIOD_ICONS: Record<string, string> = {
 
 <template>
   <div class="dashboard-layout">
-
-    <!-- Frosted-glass scan shade (fixed overlay) -->
-    <ScanShade
-      v-model="shadeProgress"
-      :expanded-height="expandedH"
-      :shade-height="shadeH"
-      @scan="router.push({ name: 'measurement-local' })"
-      @settings="router.push({ name: 'settings' })"
-    />
 
     <main class="scroll-content" :class="{ 'tab-history': currentTab === 1 }">
       <!-- Tab: Дашборд -->

@@ -28,10 +28,16 @@ const btnSize = computed(() => Math.min(Math.round(0.55 * props.shadeHeight), 26
 const iconSize = computed(() => Math.round(btnSize.value * 0.26));
 const textSize = computed(() => Math.round(btnSize.value * 0.16));
 
-const topStyle = computed(() => ({
+const logoStyle = computed(() => ({
   opacity: props.modelValue,
   pointerEvents: props.modelValue < 0.1 ? ('none' as const) : ('auto' as const),
 }));
+
+const settingsStyle = computed(() => ({
+  opacity: 1 - props.modelValue,
+  pointerEvents: props.modelValue > 0.9 ? ('none' as const) : ('auto' as const),
+}));
+
 
 const hintStyle = computed(() => ({
   opacity: props.modelValue,
@@ -152,8 +158,8 @@ onBeforeUnmount(() => {
     @pointercancel="onPointerUp"
   >
     <!-- Top row: logo + settings -->
-    <div class="shade-top" :style="topStyle">
-      <div class="shade-logo">
+    <div class="shade-top">
+      <div class="shade-logo" :style="logoStyle">
         <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
           <path
             d="M2 10 Q5 4 10 10 Q15 16 18 10"
@@ -167,6 +173,7 @@ onBeforeUnmount(() => {
       </div>
       <button
         class="shade-settings"
+        :style="settingsStyle"
         :aria-label="t('settings.title')"
         @click.stop="$emit('settings')"
       >
