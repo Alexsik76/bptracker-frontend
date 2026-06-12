@@ -104,4 +104,17 @@ router.beforeEach(async (to) => {
   }
 });
 
+router.onError((error, to) => {
+  const isChunkLoadFailed = error.message.includes('Failed to fetch dynamically imported module') || 
+                            error.name === 'ChunkLoadError';
+  if (isChunkLoadFailed) {
+    const targetPath = to.fullPath;
+    const reloadKey = `chunk-reload-${targetPath}`;
+    if (!sessionStorage.getItem(reloadKey)) {
+      sessionStorage.setItem(reloadKey, 'true');
+      window.location.href = targetPath;
+    }
+  }
+});
+
 export default router;
