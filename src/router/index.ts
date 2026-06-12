@@ -17,9 +17,20 @@ const router = createRouter({
     },
     {
       path: '/',
-      name: 'dashboard',
-      component: () => import('../pages/DashboardPage.vue'),
+      component: () => import('../layouts/AppShell.vue'),
       meta: { auth: true },
+      children: [
+        {
+          path: '',
+          name: 'dashboard',
+          component: () => import('../pages/DashboardPage.vue'),
+        },
+        {
+          path: 'meds',
+          name: 'meds-list',
+          component: () => import('../pages/meds/MedsListPage.vue'),
+        },
+      ],
     },
     {
       path: '/measurement/local',
@@ -37,12 +48,6 @@ const router = createRouter({
       path: '/settings',
       name: 'settings',
       component: () => import('../pages/SettingsPage.vue'),
-      meta: { auth: true },
-    },
-    {
-      path: '/meds',
-      name: 'meds-list',
-      component: () => import('../pages/meds/MedsListPage.vue'),
       meta: { auth: true },
     },
     {

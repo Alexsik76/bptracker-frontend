@@ -269,7 +269,8 @@ async function handleActivate(id: string) {
 .meds-screen {
   display: flex;
   flex-direction: column;
-  min-height: 100svh;
+  flex: 1;
+  overflow: hidden;
   background: var(--rx-body);
   font-family: 'Manrope', system-ui, sans-serif;
   color: var(--rx-text);

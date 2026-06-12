@@ -1,32 +1,28 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useMeasurementStore } from '../stores/measurements';
 import { useSchemaStore } from '../stores/schemas';
 import { useKpi } from '../composables/useKpi';
-import { getZone, DEFAULT_ZONE } from '../composables/useZone';
 import ScanShade from '../components/dashboard/ScanShade.vue';
 import HeroCard from '../components/dashboard/HeroCard.vue';
 import KpiGrid from '../components/dashboard/KpiGrid.vue';
 import ChartPanel from '../components/dashboard/ChartPanel.vue';
 import HistoryPanel from '../components/dashboard/HistoryPanel.vue';
 import HistoryTab from '../components/dashboard/HistoryTab.vue';
-import BottomTabBar from '../components/dashboard/BottomTabBar.vue';
 import { preloadOcrModels } from '../composables/useLocalOcr';
 import type { TreatmentSchema } from '../types/api';
 
 const router = useRouter();
+const route = useRoute();
 const measurements = useMeasurementStore();
 const schemaStore = useSchemaStore();
 const controller = new AbortController();
-const currentTab = ref(0);
+const currentTab = computed(() => route.query.tab === 'history' ? 1 : 0);
 
 const kpi = useKpi(() => measurements.items);
 
-const currentZone = computed(() => {
-  if (!kpi.value) return DEFAULT_ZONE;
-  return getZone(kpi.value.last.sys, kpi.value.last.dia);
-});
+
 
 const sparkData = computed(() => {
   const sorted = [...measurements.items]
@@ -128,7 +124,7 @@ const PERIOD_ICONS: Record<string, string> = {
             :measurements="recentMeasurements"
             :loading="measurements.loading"
             :error="measurements.error"
-            @show-all="currentTab = 1"
+            @show-all="router.push({ name: 'dashboard', query: { tab: 'history' } })"
           />
           <div v-if="schemaStore.active" class="section-label-active">
             <span>Активне призначення</span>
@@ -181,12 +177,6 @@ const PERIOD_ICONS: Record<string, string> = {
       </svg>
     </div>
 
-    <BottomTabBar
-      :model-value="currentTab"
-      :zone-color="currentZone.color"
-      @update:model-value="val => val === 2 ? router.push('/meds') : currentTab = val"
-      @profile="router.push({ name: 'settings' })"
-    />
   </div>
 </template>
 
@@ -194,7 +184,7 @@ const PERIOD_ICONS: Record<string, string> = {
 .dashboard-layout {
   display: flex;
   flex-direction: column;
-  height: 100svh;
+  flex: 1;
   overflow: hidden;
   background: var(--color-bg);
 }
