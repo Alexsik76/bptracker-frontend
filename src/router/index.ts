@@ -44,12 +44,13 @@ const router = createRouter({
           component: () => import('../pages/meds/MedsListPage.vue'),
           meta: { tab: 'schedule' },
         },
-        {
-          path: 'settings',
-          name: 'settings',
-          component: () => import('../pages/SettingsPage.vue'),
-        },
       ],
+    },
+    {
+      path: '/settings',
+      name: 'settings',
+      component: () => import('../pages/SettingsPage.vue'),
+      meta: { auth: true },
     },
     {
       path: '/measurement/local',
