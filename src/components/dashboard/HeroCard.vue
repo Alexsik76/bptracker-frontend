@@ -15,7 +15,7 @@ const { locale, t } = useI18n();
 const router = useRouter();
 
 function openScaleInfo() {
-  router.push({ path: '/settings', hash: '#bp-scale-info' });
+  router.push({ path: '/info' });
 }
 const bpLabels = useBpLabels();
 

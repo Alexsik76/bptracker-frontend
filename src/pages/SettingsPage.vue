@@ -10,7 +10,6 @@ import { useTheme, setTheme } from '../composables/useTheme';
 import { useLocale } from '../composables/useLocale';
 import { useApiErrorMessage } from '../composables/useApiErrorMessage';
 import { usePush } from '../composables/usePush';
-import BpScaleInfo from '../components/settings/BpScaleInfo.vue';
 import type { Theme } from '../composables/useTheme';
 import type { AppLocale } from '../i18n';
 
@@ -97,6 +96,17 @@ async function handleLogout() {
 
 <template>
   <div class="settings-page">
+    <button
+      class="corner-help"
+      :aria-label="$t('info.title')"
+      @click="router.push('/info')"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa2b0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+    </button>
     <header class="back-header">
       <button class="back-btn" @click="router.back()" aria-label="Назад">
         <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#e8eaee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -235,10 +245,6 @@ async function handleLogout() {
             {{ loading ? $t('settings.saving') : $t('settings.saveChanges') }}
           </button>
         </form>
-      </section>
-
-      <section class="card">
-        <BpScaleInfo />
       </section>
 
       <p class="version">BP Tracker · build {{ commit }} · {{ buildDate }}</p>
@@ -481,5 +487,24 @@ async function handleLogout() {
   &:disabled {
     opacity: 0.6;
   }
+}
+
+.corner-help {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 999;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(21, 24, 29, 0.82);
+  border: 1px solid #262b33;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  cursor: pointer;
+  padding: 0;
 }
 </style>

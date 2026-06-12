@@ -239,6 +239,9 @@ const en: MessageSchema = {
     exportFailed: 'Failed to send export.',
     loginFailed: 'Failed to sign in.',
   },
+  info: {
+    title: 'Help',
+  },
 };
 
 export default en;

@@ -237,6 +237,9 @@ const uk = {
     exportFailed: 'Не вдалося надіслати експорт.',
     loginFailed: 'Не вдалося увійти.',
   },
+  info: {
+    title: 'Довідка',
+  },
 };
 
 export default uk;
