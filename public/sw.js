@@ -43,6 +43,9 @@ self.addEventListener('fetch', event => {
     // Skip cross-origin requests (API calls, CDN, etc.)
     if (url.origin !== self.location.origin) return;
 
+    // Skip API requests and non-GET requests
+    if (url.pathname.startsWith('/api/') || event.request.method !== 'GET') return;
+
     // Navigation requests (opening any route of the SPA):
     // Always fetch fresh index.html from network; fall back to cache if offline.
     // This is the critical SPA fix: /settings, /measurement/new, etc. all get index.html.

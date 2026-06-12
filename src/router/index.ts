@@ -89,7 +89,7 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach(async (to, _from, next) => {
+router.beforeEach(async (to) => {
   const auth = useAuthStore();
 
   if (auth.status === 'idle') {
@@ -97,11 +97,10 @@ router.beforeEach(async (to, _from, next) => {
   }
 
   if (to.meta.auth && auth.status !== 'authenticated') {
-    next({ name: 'login' });
-  } else if (to.meta.guest && auth.status === 'authenticated') {
-    next({ name: 'dashboard' });
-  } else {
-    next();
+    return { name: 'login' };
+  }
+  if (to.meta.guest && auth.status === 'authenticated') {
+    return { name: 'dashboard' };
   }
 });
 
