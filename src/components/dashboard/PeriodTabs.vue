@@ -1,15 +1,19 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
 interface Props {
   modelValue: 7 | 30 | 90 | 365;
 }
 defineProps<Props>();
 defineEmits<{ 'update:modelValue': [value: 7 | 30 | 90 | 365] }>();
 
+const { t } = useI18n();
+
 const periods = [
-  { label: '7д', value: 7 },
-  { label: '30д', value: 30 },
-  { label: '3м', value: 90 },
-  { label: 'Рік', value: 365 },
+  { key: 'period7d', value: 7 },
+  { key: 'period30d', value: 30 },
+  { key: 'period3m', value: 90 },
+  { key: 'periodYear', value: 365 },
 ] as const;
 </script>
 
@@ -21,7 +25,7 @@ const periods = [
       :class="['period-btn', { active: modelValue === p.value }]"
       @click="$emit('update:modelValue', p.value)"
     >
-      {{ p.label }}
+      {{ t('dashboard.' + p.key) }}
     </button>
   </div>
 </template>

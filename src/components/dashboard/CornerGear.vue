@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useScrollDirection } from '../../composables/useScrollDirection';
 
 const router = useRouter();
 const { isVisible } = useScrollDirection();
+const { t } = useI18n();
 </script>
 
 <template>
   <button
     class="corner-gear"
     :class="{ 'corner-gear--hidden': !isVisible }"
-    aria-label="Налаштування"
+    :aria-label="t('settings.title')"
     @click="router.push({ name: 'settings' })"
   >
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa2b0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">

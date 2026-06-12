@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useSchemaStore } from '../../stores/schemas';
 import RxStatusTag from '../../components/meds/RxStatusTag.vue';
 import RxScheduleView from '../../components/meds/RxScheduleView.vue';
@@ -8,15 +9,14 @@ import RxScheduleView from '../../components/meds/RxScheduleView.vue';
 const router = useRouter();
 const route = useRoute();
 const schemaStore = useSchemaStore();
+const { t, locale } = useI18n();
 
 const rx = computed(() => schemaStore.items.find((s) => s.id === route.params.id));
 
-const MONTHS = ['січ.','лют.','бер.','квіт.','трав.','черв.','лип.','серп.','вер.','жовт.','лист.','груд.'];
-
 function fmtLong(iso: string | null): string {
   if (!iso) return '—';
-  const [y, m, d] = iso.split('-').map(Number);
-  return `${d} ${MONTHS[m - 1]} ${y}`;
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString(locale.value, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function countMeds(): number {
@@ -29,13 +29,6 @@ function activePeriodCount(): number {
   return Object.values(rx.value.scheduleDocument).filter((arr) => Array.isArray(arr) && arr.length > 0).length;
 }
 
-function pluralMeds(n: number): string {
-  const t = n % 10, h = n % 100;
-  if (t === 1 && h !== 11) return 'препарат';
-  if (t >= 2 && t <= 4 && (h < 12 || h > 14)) return 'препарати';
-  return 'препаратів';
-}
-
 async function handleActivate() {
   if (!rx.value) return;
   await schemaStore.activate(rx.value.id);
@@ -46,13 +39,13 @@ async function handleActivate() {
 <template>
   <div v-if="rx" class="detail-screen">
     <header class="rx-pagebar">
-      <button class="rx-iconbtn" aria-label="Назад" @click="router.back()">
+      <button class="rx-iconbtn" :aria-label="t('common.back')" @click="router.back()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
       </button>
-      <span class="rx-pagebar__title">Призначення</span>
-      <button class="rx-iconbtn" aria-label="Редагувати" @click="router.push(`/meds/${rx.id}/edit`)">
+      <span class="rx-pagebar__title">{{ t('schema.prescriptionsTitle') }}</span>
+      <button class="rx-iconbtn" :aria-label="t('schema.edit')" @click="router.push(`/meds/${rx.id}/edit`)">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
         </svg>
@@ -74,18 +67,18 @@ async function handleActivate() {
             <rect x="3" y="4.5" width="18" height="16" rx="2.5"/><line x1="3" y1="9" x2="21" y2="9"/>
             <line x1="8" y1="2.5" x2="8" y2="6"/><line x1="16" y1="2.5" x2="16" y2="6"/>
           </svg>
-          Призначено {{ fmtLong(rx.prescribedOn) }}
+          {{ t('schema.form.prescribedOn') }} {{ fmtLong(rx.prescribedOn) }}
         </div>
       </div>
 
       <div class="detail-counts">
         <div class="detail-cnt">
           <b>{{ countMeds() }}</b>
-          <span>{{ pluralMeds(countMeds()) }}</span>
+          <span>{{ t('schema.medsCount', countMeds()).replace(String(countMeds()), '').trim() }}</span>
         </div>
         <div class="detail-cnt">
           <b>{{ activePeriodCount() }}</b>
-          <span>прийоми / день</span>
+          <span>{{ t('schema.intakesPerDay') }}</span>
         </div>
       </div>
 
@@ -100,29 +93,29 @@ async function handleActivate() {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="20 6 9 17 4 12"/>
         </svg>
-        Активне зараз
+        {{ t('schema.activeNow') }}
       </button>
       <button v-else class="rx-btn-primary" @click="handleActivate">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 3v9"/><path d="M6.4 6.4a8 8 0 1 0 11.2 0"/>
         </svg>
-        Зробити активним
+        {{ t('schema.makeActive') }}
       </button>
     </div>
   </div>
 
   <div v-else class="detail-screen detail-screen--loading">
     <header class="rx-pagebar">
-      <button class="rx-iconbtn" aria-label="Назад" @click="router.back()">
+      <button class="rx-iconbtn" :aria-label="t('common.back')" @click="router.back()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
       </button>
-      <span class="rx-pagebar__title">Призначення</span>
+      <span class="rx-pagebar__title">{{ t('schema.prescriptionsTitle') }}</span>
       <span style="width:38px" />
     </header>
     <div class="rx-scroll" style="display:flex;align-items:center;justify-content:center;color:var(--rx-dim);font-size:14px;">
-      Завантаження…
+      {{ t('common.loading') }}
     </div>
   </div>
 </template>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
 const props = defineProps<{
   modelValue: number; // 0 = Dashboard, 1 = Schedule
   hasMissedIntakes: boolean;
@@ -8,6 +10,8 @@ const emit = defineEmits<{
   'update:modelValue': [value: number];
   scan: [];
 }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -24,12 +28,12 @@ const emit = defineEmits<{
         <rect x="3.5" y="13.5" width="7" height="7" rx="2"></rect>
         <rect x="13.5" y="13.5" width="7" height="7" rx="2"></rect>
       </svg>
-      <span class="tab-label">Дашборд</span>
+      <span class="tab-label">{{ t('dashboard.tabs.dashboard') }}</span>
     </button>
 
     <!-- CENTER: Scan Button (protruding, raised) -->
     <div class="scan-btn-wrapper">
-      <button class="scan-btn" aria-label="Сканувати тонометр" @click="emit('scan')">
+      <button class="scan-btn" :aria-label="t('localOcr.title')" @click="emit('scan')">
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round">
           <path d="M4 9 V6 a2 2 0 0 1 2 -2 H9"></path>
           <path d="M19 4 H22 a2 2 0 0 1 2 2 V9"></path>
@@ -55,7 +59,7 @@ const emit = defineEmits<{
         </svg>
         <div v-if="hasMissedIntakes" class="badge-dot" />
       </div>
-      <span class="tab-label">Розклад</span>
+      <span class="tab-label">{{ t('dashboard.tabs.schedule') }}</span>
     </button>
   </nav>
 </template>

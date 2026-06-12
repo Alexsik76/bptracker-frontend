@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useSchemaStore } from '../../stores/schemas';
 import RxSwitch from '../../components/meds/RxSwitch.vue';
 import type { MedicationEntry, SchemaScheduleDto } from '../../types/api';
@@ -8,11 +9,12 @@ import type { MedicationEntry, SchemaScheduleDto } from '../../types/api';
 const router = useRouter();
 const route = useRoute();
 const schemaStore = useSchemaStore();
+const { t } = useI18n();
 
 const isEditing = computed(() => route.name === 'meds-edit' || !!route.params.id);
 
 function parseMedicine(raw: string): { name: string; strength: string } {
-  const match = raw.match(/^(.*?)\s+(\d+(?:\.\d+)?\s*(?:mg|мг|mcg|мкг|ml|мл|g|г|ед|ED|tab|таб))$/i);
+  const match = raw.match(/^(.*?)\s+(\d+(?:\.\d+)?\s*(?:mg|\u043C\u0433|mcg|\u043C\u043A\u0433|ml|\u043C\u043B|g|\u0433|\u0435\u0434|ED|tab|\u0442\u0430\u0431))$/i);
   if (match) {
     return { name: match[1], strength: match[2] };
   }
@@ -27,12 +29,6 @@ interface MedRow {
 
 const PERIOD_ORDER = ['Morning', 'Day', 'Evening'] as const;
 type PeriodKey = typeof PERIOD_ORDER[number];
-
-const PERIOD_LABELS: Record<PeriodKey, string> = {
-  Morning: 'Ранок',
-  Day: 'День',
-  Evening: 'Вечір',
-};
 
 const doctor = ref('');
 const prescribedOn = ref(new Date().toISOString().slice(0, 10));
@@ -157,12 +153,12 @@ async function handleSave() {
 <template>
   <div class="screen page">
     <header class="pagebar">
-      <button class="iconbtn ghost" aria-label="Скасувати" @click="router.back()">
+      <button class="iconbtn ghost" :aria-label="t('common.cancel')" @click="router.back()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
       </button>
-      <span class="pagebar-title">{{ isEditing ? 'Редагувати' : 'Нове призначення' }}</span>
+      <span class="pagebar-title">{{ isEditing ? t('schema.form.editTitle') : t('schema.form.createTitle') }}</span>
       <span style="width: 38px" />
     </header>
 
@@ -172,12 +168,12 @@ async function handleSave() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="7.5" r="3.5"/><path d="M5 20.5a7 7 0 0 1 14 0"/><path d="M12 11v2"/><path d="M10.5 12.5h3"/>
           </svg>
-          Лікар
+          {{ t('schema.form.doctor') }}
         </label>
         <input
           v-model="doctor"
           class="inp"
-          placeholder="Прізвище лікаря"
+          :placeholder="t('schema.form.doctorPlaceholder')"
           list="doctors-list"
         />
         <datalist id="doctors-list">
@@ -190,7 +186,7 @@ async function handleSave() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="4.5" width="18" height="16" rx="2.5"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2.5" x2="8" y2="6"/><line x1="16" y1="2.5" x2="16" y2="6"/>
           </svg>
-          Дата призначення
+          {{ t('schema.form.prescribedOn') }}
         </label>
         <div class="date-field">
           <span>{{ fmtShort(prescribedOn) }}</span>
@@ -207,7 +203,7 @@ async function handleSave() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 3v9"/><path d="M6.4 6.4a8 8 0 1 0 11.2 0"/>
           </svg>
-          Зробити активним
+          {{ t('schema.form.setActive') }}
         </span>
         <RxSwitch :model-value="isActive" @update:model-value="isActive = $event" />
       </button>
@@ -229,7 +225,7 @@ async function handleSave() {
           <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>
           </svg>
-          <span>{{ PERIOD_LABELS[period] }}</span>
+          <span>{{ t('schema.' + period.toLowerCase()) }}</span>
           <span v-if="schedule[period].length" class="fp-count">{{ schedule[period].length }}</span>
         </div>
 
@@ -237,12 +233,12 @@ async function handleSave() {
           <input
             v-model="m.name"
             class="inp name"
-            placeholder="Назва"
+            :placeholder="t('schema.form.medicinePlaceholder')"
           />
           <input
             v-model="m.strength"
             class="inp strength"
-            placeholder="мг"
+            :placeholder="t('schema.form.amountPlaceholder')"
           />
           <input
             v-model="m.dose"
@@ -252,7 +248,7 @@ async function handleSave() {
           <button
             type="button"
             class="iconbtn danger"
-            aria-label="Видалити"
+            :aria-label="t('common.delete')"
             @click="delMed(period, i)"
           >
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
@@ -265,19 +261,19 @@ async function handleSave() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
-          Додати препарат
+          {{ t('common.add') }} {{ t('schema.prescriptionLabel') }}
         </button>
       </section>
       <div style="height: 12px" />
     </div>
 
     <div class="fab-bar two">
-      <button class="btn-ghost" @click="router.back()">Скасувати</button>
+      <button class="btn-ghost" @click="router.back()">{{ t('common.cancel') }}</button>
       <button class="btn-primary" :disabled="!canSave || saving" @click="handleSave">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="20 6 9 17 4 12"/>
         </svg>
-        Зберегти
+        {{ t('common.save') }}
       </button>
     </div>
   </div>

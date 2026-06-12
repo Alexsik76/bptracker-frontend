@@ -26,12 +26,7 @@ function countMeds(schema: typeof schemaStore.items[number]): number {
   return Object.values(schema.scheduleDocument).reduce((n, arr) => n + (Array.isArray(arr) ? arr.length : 0), 0);
 }
 
-function pluralMeds(n: number): string {
-  const t = n % 10, h = n % 100;
-  if (t === 1 && h !== 11) return 'препарат';
-  if (t >= 2 && t <= 4 && (h < 12 || h > 14)) return 'препарати';
-  return 'препаратів';
-}
+
 
 function activePeriods(schema: typeof schemaStore.items[number]): string[] {
   if (!schema.scheduleDocument) return [];
@@ -52,21 +47,21 @@ async function handleActivate(id: string) {
   <div class="meds-screen">
     <header class="rx-topbar">
       <div class="back-header">
-        <button class="back-btn" @click="router.push({ name: 'schedule' })" aria-label="Назад">
+        <button class="back-btn" @click="router.push({ name: 'schedule' })" :aria-label="$t('common.back')">
           <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#e8eaee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12.5 4 L6 10 L12.5 16"></path>
           </svg>
         </button>
         <div>
-          <h1 class="rx-topbar__title">Призначення</h1>
-          <p class="rx-topbar__sub">Ваші призначення</p>
+          <h1 class="rx-topbar__title">{{ $t('schema.prescriptionsTitle') }}</h1>
+          <p class="rx-topbar__sub">{{ $t('schema.prescriptionsSub') }}</p>
         </div>
       </div>
     </header>
 
     <div class="rx-scroll">
       <div class="rx-section-label">
-        <span>Активне призначення</span>
+        <span>{{ $t('schema.activePrescription') }}</span>
       </div>
 
       <article v-if="active" class="rx-card rx-card--active" @click="router.push(`/meds/${active.id}`)">
@@ -95,7 +90,7 @@ async function handleActivate(id: string) {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="8.5" width="18" height="7" rx="3.5"/><line x1="12" y1="8.5" x2="12" y2="15.5"/>
               </svg>
-              {{ countMeds(active) }} {{ pluralMeds(countMeds(active)) }}
+              {{ $t('schema.medsCount', countMeds(active)) }}
             </span>
           </div>
 
@@ -120,7 +115,7 @@ async function handleActivate(id: string) {
           <div class="rx-card__edit-row">
             <button
               class="rx-iconbtn rx-iconbtn--soft"
-              aria-label="Редагувати"
+              :aria-label="$t('schema.edit')"
               @click.stop="router.push(`/meds/${active.id}/edit`)"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -132,7 +127,7 @@ async function handleActivate(id: string) {
         <span class="arrow-icon">›</span>
       </article>
 
-      <div v-else class="rx-no-active">Немає активного призначення</div>
+      <div v-else class="rx-no-active">{{ $t('schema.noActivePrescription') }}</div>
 
       <div class="rx-section-label rx-section-label--between">
         <span>
@@ -140,7 +135,7 @@ async function handleActivate(id: string) {
             <rect x="3" y="4" width="18" height="4.5" rx="1.2"/><path d="M5 8.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8.5"/>
             <line x1="10" y1="12" x2="14" y2="12"/>
           </svg>
-          Інші призначення
+          {{ $t('schema.otherPrescriptions') }}
         </span>
         <span class="rx-count-pill">{{ others.length }}</span>
       </div>
@@ -163,7 +158,7 @@ async function handleActivate(id: string) {
             <div class="rx-row__meta">
               {{ fmtShort(schema.prescribedOn) }}
               <span class="rx-dotsep" />
-              {{ countMeds(schema) }} {{ pluralMeds(countMeds(schema)) }}
+              {{ $t('schema.medsCount', countMeds(schema)) }}
             </div>
           </div>
           <div class="rx-row__actions" @click.stop>
@@ -174,7 +169,7 @@ async function handleActivate(id: string) {
             />
             <button
               class="rx-iconbtn"
-              aria-label="Редагувати"
+              :aria-label="$t('schema.edit')"
               @click.stop="router.push(`/meds/${schema.id}/edit`)"
             >
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -191,7 +186,7 @@ async function handleActivate(id: string) {
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
-        Нове призначення
+        {{ $t('schema.form.createTitle') }}
       </button>
     </div>
   </div>

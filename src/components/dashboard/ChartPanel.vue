@@ -19,24 +19,24 @@ const filtered = computed(() => {
 <template>
   <div class="panel">
     <div class="panel-head">
-      <span class="panel-title">Динаміка</span>
+      <span class="panel-title">{{ $t('dashboard.dynamics') }}</span>
       <PeriodTabs v-model="period" />
     </div>
     <div class="legend">
       <div class="legend-item">
         <div class="legend-line" style="background: #818cf8" />
-        <span>СИС</span>
+        <span>{{ $t('measurement.sys') }}</span>
       </div>
       <div class="legend-item">
         <div class="legend-line" style="background: #60a5fa" />
-        <span>ДІА</span>
+        <span>{{ $t('measurement.dia') }}</span>
       </div>
       <div class="legend-item">
         <div class="legend-line dashed" style="background: #34d399" />
-        <span>Пульс</span>
+        <span>{{ $t('measurement.pulse') }}</span>
       </div>
     </div>
-    <div v-if="filtered.length === 0" class="chart-empty">Немає даних за вибраний період</div>
+    <div v-if="filtered.length === 0" class="chart-empty">{{ $t('dashboard.noData') }}</div>
     <BpChart v-else :data="filtered" />
   </div>
 </template>

@@ -4,6 +4,7 @@ import type { TodayRemindersResponse } from '../types/api';
 import { useApi } from '../composables/useApi';
 import { useToast } from '../composables/useToast';
 import { useApiErrorMessage } from '../composables/useApiErrorMessage';
+import { i18n } from '../i18n';
 
 export const useReminderStore = defineStore('reminders', () => {
   const todayData = ref<TodayRemindersResponse | null>(null);
@@ -39,7 +40,7 @@ export const useReminderStore = defineStore('reminders', () => {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       await api.confirmIntake(period, tz);
       await fetchTodayData();
-      toast.success('Прийом ліків підтверджено!');
+      toast.success(i18n.global.t('schema.reminders.confirmedToast'));
     } catch (err) {
       if (todayData.value) {
         todayData.value.intakes = backupIntakes;

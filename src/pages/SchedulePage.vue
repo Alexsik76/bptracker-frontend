@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useSchemaStore } from '../stores/schemas';
 import { useReminderStore } from '../stores/reminders';
 import type { TodayIntake } from '../types/api';
@@ -8,6 +9,7 @@ import type { TodayIntake } from '../types/api';
 const router = useRouter();
 const schemaStore = useSchemaStore();
 const reminderStore = useReminderStore();
+const { t, locale } = useI18n();
 
 onMounted(() => {
   if (!schemaStore.items.length) schemaStore.fetchSchemas();
@@ -18,18 +20,17 @@ const active = computed(() => schemaStore.active);
 
 function getPeriodNameTranslation(name: string): string {
   const key = String(name).toLowerCase();
-  if (key === 'morning') return 'Ранок';
-  if (key === 'day' || key === 'afternoon') return 'День';
-  if (key === 'evening') return 'Вечір';
-  if (key === 'night') return 'Ніч';
+  if (['morning', 'day', 'afternoon', 'evening', 'night'].includes(key)) {
+    return t(`schema.${key}`);
+  }
   return String(name);
 }
 
 function getTodayFormatted(): string {
   const d = new Date();
   const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long' };
-  const str = d.toLocaleDateString('uk-UA', options);
-  return `Сьогодні · ${str}`;
+  const str = d.toLocaleDateString(locale.value, options);
+  return `${t('common.today')} · ${str}`;
 }
 
 function isMissed(intake: TodayIntake): boolean {
@@ -47,9 +48,9 @@ function getPeriodStatusText(intake: TodayIntake): string {
       const d = new Date(intake.timeTaken);
       const hrs = String(d.getHours()).padStart(2, '0');
       const mins = String(d.getMinutes()).padStart(2, '0');
-      return `Прийнято о ${hrs}:${mins}`;
+      return t('schema.reminders.takenAt', { time: `${hrs}:${mins}` });
     }
-    return 'Прийнято';
+    return t('schema.reminders.confirmed');
   }
 
   const [hours, minutes] = intake.time.split(':').map(Number);
@@ -58,7 +59,7 @@ function getPeriodStatusText(intake: TodayIntake): string {
   scheduled.setHours(hours, minutes, 0, 0);
 
   if (now > scheduled) {
-    return 'Пропущено';
+    return t('schema.reminders.missed');
   }
 
   const diffMs = scheduled.getTime() - now.getTime();
@@ -66,9 +67,9 @@ function getPeriodStatusText(intake: TodayIntake): string {
   
   if (diffHrs <= 1) {
     const diffMins = Math.ceil(diffMs / (1000 * 60));
-    return `через ${diffMins} хв`;
+    return t('schema.reminders.inMinutes', { n: diffMins });
   }
-  return `через ${diffHrs} год`;
+  return t('schema.reminders.inHours', { n: diffHrs });
 }
 
 function fmtShort(iso: string | null): string {
@@ -77,17 +78,7 @@ function fmtShort(iso: string | null): string {
   return `${String(d).padStart(2, '0')}.${String(m).padStart(2, '0')}.${y}`;
 }
 
-function countMeds(schema: typeof schemaStore.items[number]): number {
-  if (!schema.scheduleDocument) return 0;
-  return Object.values(schema.scheduleDocument).reduce((n, arr) => n + (Array.isArray(arr) ? arr.length : 0), 0);
-}
 
-function pluralMeds(n: number): string {
-  const t = n % 10, h = n % 100;
-  if (t === 1 && h !== 11) return 'препарат';
-  if (t >= 2 && t <= 4 && (h < 12 || h > 14)) return 'препарати';
-  return 'препаратів';
-}
 
 async function handleConfirm(period: string) {
   await reminderStore.confirm(period);
@@ -101,7 +92,7 @@ async function handleConfirm(period: string) {
         
         <!-- Header -->
         <header class="schedule-header">
-          <h1 class="page-title">Розклад</h1>
+          <h1 class="page-title">{{ t('schema.reminders.scheduleTitle') }}</h1>
           <p class="subtitle">{{ getTodayFormatted() }}</p>
         </header>
 
@@ -113,11 +104,11 @@ async function handleConfirm(period: string) {
         >
           <div class="rx-card-main">
             <div class="doctor-row">
-              <span class="doctor-name">{{ active.doctor || 'Лікар не вказаний' }}</span>
-              <span class="status-chip">● Активна</span>
+              <span class="doctor-name">{{ active.doctor || t('schema.form.noDoctor') }}</span>
+              <span class="status-chip">● {{ t('schema.activeBadge') }}</span>
             </div>
             <p class="meta-row">
-              {{ fmtShort(active.prescribedOn) }} · {{ countMeds(active) }} {{ pluralMeds(countMeds(active)) }} · призначення ›
+              {{ fmtShort(active.prescribedOn) }} · {{ t('schema.medsCount', active.scheduleDocument ? Object.values(active.scheduleDocument).reduce((n, arr) => n + (Array.isArray(arr) ? arr.length : 0), 0) : 0) }} · {{ t('schema.prescriptionLabel') }} ›
             </p>
           </div>
           <span class="arrow-icon">›</span>
@@ -151,7 +142,7 @@ async function handleConfirm(period: string) {
                     <span class="status-confirmed-text">{{ getPeriodStatusText(intake) }}</span>
                   </template>
                   <template v-else-if="isMissed(intake)">
-                    <span class="status-missed-badge">! Пропущено</span>
+                    <span class="status-missed-badge">! {{ t('schema.reminders.missed') }}</span>
                   </template>
                   <template v-else>
                     <span class="status-upcoming-text">{{ getPeriodStatusText(intake) }}</span>
@@ -181,14 +172,14 @@ async function handleConfirm(period: string) {
                   class="confirm-btn"
                   @click="handleConfirm(intake.period)"
                 >
-                  Прийняв
+                  {{ t('schema.reminders.confirmBtn') }}
                 </button>
               </div>
             </div>
           </template>
 
           <div v-else class="empty-intakes">
-            <p>Немає запланованих прийомів ліків на сьогодні.</p>
+            <p>{{ t('schema.reminders.noIntakesToday') }}</p>
           </div>
         </div>
 

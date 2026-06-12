@@ -16,7 +16,7 @@ const emit = defineEmits<{ 'show-all': [] }>();
   <div class="panel" @click="emit('show-all')">
     <div class="panel-main">
       <div class="panel-head">
-        <span class="panel-title">ОСТАННІ ВИМІРИ</span>
+        <span class="panel-title">{{ $t('dashboard.recentReadings') }}</span>
       </div>
 
       <div v-if="error" class="error-banner" role="alert">

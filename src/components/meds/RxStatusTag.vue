@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 defineProps<{ active: boolean }>();
+const { t } = useI18n();
 </script>
 
 <template>
   <span :class="['rx-tag', active ? 'rx-tag--on' : 'rx-tag--off']">
     <span class="rx-tag__dot" />
-    {{ active ? 'Активна' : 'Неактивна' }}
+    {{ active ? t('schema.activeStatus') : t('schema.inactiveStatus') }}
   </span>
 </template>
 

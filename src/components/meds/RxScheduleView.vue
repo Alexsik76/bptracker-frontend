@@ -1,20 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { MedicationEntry } from '../../types/api';
 
 const props = defineProps<{
   scheduleDocument: Record<string, MedicationEntry[]> | null;
 }>();
 
-const PERIOD_ORDER = ['Morning', 'Day', 'Evening', 'Night', 'Afternoon'] as const;
+const { t } = useI18n();
 
-const PERIOD_LABELS: Record<string, string> = {
-  Morning: 'Ранок',
-  Day: 'День',
-  Evening: 'Вечір',
-  Night: 'Ніч',
-  Afternoon: 'День',
-};
+const PERIOD_ORDER = ['Morning', 'Day', 'Evening', 'Night', 'Afternoon'] as const;
 
 const activePeriods = computed(() => {
   if (!props.scheduleDocument) return [];
@@ -25,7 +20,7 @@ const activePeriods = computed(() => {
 </script>
 
 <template>
-  <div v-if="!activePeriods.length" class="empty-sched">Без призначень</div>
+  <div v-if="!activePeriods.length" class="empty-sched">{{ t('schema.empty') }}</div>
   <div v-else class="sched">
     <div v-for="key in activePeriods" :key="key" class="sched-block">
       <div class="sched-head">
@@ -44,7 +39,7 @@ const activePeriods = computed(() => {
         <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>
         </svg>
-        <span>{{ PERIOD_LABELS[key] ?? key }}</span>
+        <span>{{ t('schema.' + key.toLowerCase()) }}</span>
       </div>
       <div class="sched-lines">
         <div v-for="(med, i) in scheduleDocument![key]" :key="i" class="medline">

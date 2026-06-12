@@ -10,7 +10,7 @@ const { toasts, dismiss } = useToast();
       <TransitionGroup name="toast" tag="div" class="toast-list">
         <div v-for="t in toasts" :key="t.id" :class="['toast', t.type]" role="status">
           <span class="toast-msg">{{ t.message }}</span>
-          <button class="toast-close" aria-label="Закрити" @click="dismiss(t.id)">✕</button>
+          <button class="toast-close" :aria-label="$t('common.close')" @click="dismiss(t.id)">✕</button>
         </div>
       </TransitionGroup>
     </div>
