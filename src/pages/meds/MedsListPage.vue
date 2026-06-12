@@ -70,69 +70,66 @@ async function handleActivate(id: string) {
       </div>
 
       <article v-if="active" class="rx-card rx-card--active" @click="router.push(`/meds/${active.id}`)">
-        <div class="rx-card__top">
-          <div class="rx-card__doctor">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="7.5" r="3.5"/><path d="M5 20.5a7 7 0 0 1 14 0"/>
-              <path d="M12 11v2"/><path d="M10.5 12.5h3"/>
-            </svg>
-            <span>{{ active.doctor || '—' }}</span>
+        <div class="rx-card-main">
+          <div class="rx-card__top">
+            <div class="rx-card__doctor">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="7.5" r="3.5"/><path d="M5 20.5a7 7 0 0 1 14 0"/>
+                <path d="M12 11v2"/><path d="M10.5 12.5h3"/>
+              </svg>
+              <span>{{ active.doctor || '—' }}</span>
+            </div>
+            <RxStatusTag :active="true" />
           </div>
-          <RxStatusTag :active="true" />
-        </div>
 
-        <div class="rx-card__meta">
-          <span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4.5" width="18" height="16" rx="2.5"/><line x1="3" y1="9" x2="21" y2="9"/>
-              <line x1="8" y1="2.5" x2="8" y2="6"/><line x1="16" y1="2.5" x2="16" y2="6"/>
-            </svg>
-            {{ fmtShort(active.prescribedOn) }}
-          </span>
-          <span class="rx-dotsep" />
-          <span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="8.5" width="18" height="7" rx="3.5"/><line x1="12" y1="8.5" x2="12" y2="15.5"/>
-            </svg>
-            {{ countMeds(active) }} {{ pluralMeds(countMeds(active)) }}
-          </span>
-        </div>
+          <div class="rx-card__meta">
+            <span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4.5" width="18" height="16" rx="2.5"/><line x1="3" y1="9" x2="21" y2="9"/>
+                <line x1="8" y1="2.5" x2="8" y2="6"/><line x1="16" y1="2.5" x2="16" y2="6"/>
+              </svg>
+              {{ fmtShort(active.prescribedOn) }}
+            </span>
+            <span class="rx-dotsep" />
+            <span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="8.5" width="18" height="7" rx="3.5"/><line x1="12" y1="8.5" x2="12" y2="15.5"/>
+              </svg>
+              {{ countMeds(active) }} {{ pluralMeds(countMeds(active)) }}
+            </span>
+          </div>
 
-        <div class="rx-active-chips">
-          <span v-for="k in activePeriods(active)" :key="k" class="rx-chip">
-            <svg v-if="PERIOD_ICONS[k] === 'morning'" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 18a5 5 0 0 0-10 0"/><line x1="2" y1="18" x2="22" y2="18"/>
-              <line x1="12" y1="3" x2="12" y2="6"/><polyline points="9 9 12 6 15 9"/>
-            </svg>
-            <svg v-else-if="PERIOD_ICONS[k] === 'day'" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="4.2"/>
-              <line x1="12" y1="2.5" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="21.5"/>
-              <line x1="2.5" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="21.5" y2="12"/>
-            </svg>
-            <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>
-            </svg>
-            {{ Array.isArray(active.scheduleDocument?.[k]) ? active.scheduleDocument[k].length : 0 }}
-          </span>
-        </div>
+          <div class="rx-active-chips">
+            <span v-for="k in activePeriods(active)" :key="k" class="rx-chip">
+              <svg v-if="PERIOD_ICONS[k] === 'morning'" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 18a5 5 0 0 0-10 0"/><line x1="2" y1="18" x2="22" y2="18"/>
+                <line x1="12" y1="3" x2="12" y2="6"/><polyline points="9 9 12 6 15 9"/>
+              </svg>
+              <svg v-else-if="PERIOD_ICONS[k] === 'day'" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="4.2"/>
+                <line x1="12" y1="2.5" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="21.5"/>
+                <line x1="2.5" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="21.5" y2="12"/>
+              </svg>
+              <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>
+              </svg>
+              {{ Array.isArray(active.scheduleDocument?.[k]) ? active.scheduleDocument[k].length : 0 }}
+            </span>
+          </div>
 
-        <div class="rx-card__foot">
-          <span class="rx-card__detail-link">
-            Деталі
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </span>
-          <button
-            class="rx-iconbtn rx-iconbtn--soft"
-            aria-label="Редагувати"
-            @click.stop="router.push(`/meds/${active.id}/edit`)"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
-            </svg>
-          </button>
+          <div class="rx-card__edit-row">
+            <button
+              class="rx-iconbtn rx-iconbtn--soft"
+              aria-label="Редагувати"
+              @click.stop="router.push(`/meds/${active.id}/edit`)"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+              </svg>
+            </button>
+          </div>
         </div>
+        <span class="arrow-icon">›</span>
       </article>
 
       <div v-else class="rx-no-active">Немає активного призначення</div>
@@ -305,12 +302,31 @@ async function handleActivate(id: string) {
   border-radius: var(--rx-r);
   padding: 16px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.1s;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.rx-card-main {
+  flex: 1;
+  min-width: 0;
 }
 
 .rx-card--active {
   border: 1.5px solid var(--rx-accent-bd);
   background: linear-gradient(180deg, rgba(141, 140, 245, 0.10), rgba(141, 140, 245, 0.02) 60%, transparent), var(--rx-card);
   box-shadow: var(--rx-shadow-active);
+}
+
+.arrow-icon {
+  font-size: 22px;
+  color: var(--rx-accent-bd);
+  flex-shrink: 0;
 }
 
 .rx-card__top {
@@ -383,22 +399,13 @@ async function handleActivate(id: string) {
   font-weight: 800;
 }
 
-.rx-card__foot {
+.rx-card__edit-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-top: 14px;
   padding-top: 13px;
   border-top: 1px solid var(--rx-line);
-}
-
-.rx-card__detail-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  color: var(--rx-accent2);
-  font-weight: 700;
-  font-size: 14px;
 }
 
 .rx-no-active {
