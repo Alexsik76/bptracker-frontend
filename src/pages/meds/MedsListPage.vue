@@ -27,11 +27,16 @@ function getPeriodNameTranslation(name: any): string {
   return String(name);
 }
 
-function getReportStatus(periodName: any): 'Confirmed' | 'Missed' | 'Pending' {
-  const report = reminderStore.todayReports.find(
-    (r) => r.period.toLowerCase() === String(periodName).toLowerCase()
-  );
-  return report ? report.status : 'Pending';
+function formatTime(isoString: string): string {
+  if (!isoString) return '';
+  try {
+    const d = new Date(isoString);
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  } catch {
+    return '';
+  }
 }
 
 async function handleConfirmIntake(periodName: string) {
@@ -90,33 +95,33 @@ async function handleActivate(id: string) {
 
     <div class="rx-scroll">
       <!-- Today's medication intake reminders -->
-      <div v-if="reminderStore.activeTemplate" class="rx-section-label">
+      <div v-if="reminderStore.todayData && reminderStore.todayData.intakes && reminderStore.todayData.intakes.length > 0" class="rx-section-label">
         <span>{{ $t('schema.reminders.todayTitle') }}</span>
       </div>
 
-      <div v-if="reminderStore.activeTemplate" class="rx-card today-reminders-card">
+      <div v-if="reminderStore.todayData && reminderStore.todayData.intakes && reminderStore.todayData.intakes.length > 0" class="rx-card today-reminders-card">
         <div class="today-reminders-list">
           <div
-            v-for="(config, periodName) in reminderStore.activeTemplate.periods"
-            :key="periodName"
+            v-for="intake in reminderStore.todayData.intakes"
+            :key="intake.period"
             class="today-reminder-row"
           >
             <div class="reminder-period-info">
-              <span class="reminder-period-name">{{ getPeriodNameTranslation(periodName) }}</span>
-              <span class="reminder-period-time">({{ config.time }})</span>
-              <div class="reminder-meds">{{ (config?.meds || []).join(', ') }}</div>
+              <span class="reminder-period-name">{{ getPeriodNameTranslation(intake.period) }}</span>
+              <span class="reminder-period-time">({{ intake.time }})</span>
+              <div class="reminder-meds">{{ (intake?.meds || []).join(', ') }}</div>
             </div>
             <div class="reminder-status-action">
-              <span v-if="getReportStatus(periodName) === 'Confirmed'" class="status-badge status-confirmed">
+              <span v-if="intake.status === 'Confirmed'" class="status-badge status-confirmed">
                 ✓ {{ $t('schema.reminders.confirmed') }}
-              </span>
-              <span v-else-if="getReportStatus(periodName) === 'Missed'" class="status-badge status-missed">
-                ✗ {{ $t('schema.reminders.missed') }}
+                <span v-if="intake.timeTaken" class="confirmed-at-time">
+                  о {{ formatTime(intake.timeTaken) }}
+                </span>
               </span>
               <button
-                v-else
+                v-else-if="intake.status === null"
                 class="confirm-btn rx-btn-primary"
-                @click.stop="handleConfirmIntake(String(periodName))"
+                @click.stop="handleConfirmIntake(intake.period)"
               >
                 {{ $t('schema.reminders.confirmBtn') }}
               </button>
@@ -652,5 +657,12 @@ async function handleActivate(id: string) {
   font-size: 13.5px !important;
   padding: 0 12px;
   border-radius: 9px;
+}
+
+.confirmed-at-time {
+  font-size: 12px;
+  opacity: 0.85;
+  margin-left: 4px;
+  font-weight: 500;
 }
 </style>

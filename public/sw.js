@@ -1,8 +1,7 @@
 self.window = self;
 importScripts('/config.js');
-
-const CACHE = 'bp-tracker-shell-v3';
-const SHARE_CACHE = 'share-target-v3';
+const CACHE = 'bp-tracker-shell-v5';
+const SHARE_CACHE = 'share-target-v5';
 
 self.addEventListener('install', event => {
     // Cache the app shell so navigation fallback works offline
@@ -252,14 +251,40 @@ self.addEventListener('push', event => {
     })());
 });
 
+function openMedsApp() {
+    return self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then(clientList => {
+            for (const client of clientList) {
+                if ('focus' in client) {
+                    if ('navigate' in client) {
+                        client.navigate('/meds');
+                    }
+                    return client.focus();
+                }
+            }
+            if (self.clients.openWindow) {
+                return self.clients.openWindow('/meds');
+            }
+        });
+}
+
 self.addEventListener('notificationclick', event => {
     const notification = event.notification;
     const action = event.action;
+
+    // Call notification.close() in ALL paths immediately so it always closes after tap.
+    notification.close();
 
     if (action === 'confirm') {
         const period = notification.data?.period;
         if (period) {
             const apiBase = getApiBaseUrl();
+            let timezone;
+            try {
+                timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            } catch (e) {
+                console.error('[SW] Failed to get timezone:', e);
+            }
 
             event.waitUntil(
                 fetch(`${apiBase}/reminders/confirm`, {
@@ -267,42 +292,25 @@ self.addEventListener('notificationclick', event => {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ period: period }),
+                    body: JSON.stringify({ period: period, timezone: timezone }),
                     credentials: 'include' // session cookie
                 })
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error(`Failed to confirm intake: ${response.status}`);
+                            console.error('[SW] Non-OK status when confirming intake:', response.status);
+                            // On non-OK status (e.g. WAF 403), open the app at /meds so the user can confirm manually
+                            return openMedsApp();
                         }
-                        notification.close();
                     })
                     .catch(err => {
-                        console.error('[SW] Error confirming intake', err);
-                        notification.close();
+                        console.error('[SW] Error confirming intake:', err);
+                        // On fetch error (e.g. offline/network failure), open the app at /meds
+                        return openMedsApp();
                     })
             );
-        } else {
-            notification.close();
         }
     } else {
-        event.waitUntil(
-            self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-                .then(clientList => {
-                    for (const client of clientList) {
-                        if ('focus' in client) {
-                            if ('navigate' in client) {
-                                client.navigate('/meds');
-                            }
-                            return client.focus();
-                        }
-                    }
-                    if (self.clients.openWindow) {
-                        return self.clients.openWindow('/meds');
-                    }
-                })
-                .then(() => {
-                    notification.close();
-                })
-        );
+        // Tapping the notification body opens the app
+        event.waitUntil(openMedsApp());
     }
 });

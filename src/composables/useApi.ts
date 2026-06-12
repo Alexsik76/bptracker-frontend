@@ -9,6 +9,7 @@ import type {
   ReminderTemplate,
   IntakeReport,
   PushSubscribeDto,
+  TodayRemindersResponse,
 } from '../types/api';
 import type { components } from '../types/photo-api';
 import type { RegistrationResponseJSON, AuthenticationResponseJSON } from '@simplewebauthn/browser';
@@ -327,11 +328,11 @@ export function useApi() {
     return await res.json();
   }
 
-  async function confirmIntake(period: string): Promise<IntakeReport> {
+  async function confirmIntake(period: string, timezone?: string): Promise<IntakeReport> {
     const res = await _fetch(`${API_BASE_URL}/reminders/confirm`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ period }),
+      body: JSON.stringify({ period, timezone }),
     });
     if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
     return await res.json();
@@ -339,6 +340,12 @@ export function useApi() {
 
   async function getReminderReports(days: number): Promise<IntakeReport[]> {
     const res = await _fetch(`${API_BASE_URL}/reminders/reports?days=${days}`);
+    if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  async function getTodayReminders(timezone: string): Promise<TodayRemindersResponse> {
+    const res = await _fetch(`${API_BASE_URL}/reminders/today?timezone=${encodeURIComponent(timezone)}`);
     if (!res.ok) throw new ApiError(httpStatusToCode(res.status), `HTTP ${res.status}`);
     return await res.json();
   }
@@ -373,5 +380,6 @@ export function useApi() {
     getActiveTemplate,
     confirmIntake,
     getReminderReports,
+    getTodayReminders,
   };
 }

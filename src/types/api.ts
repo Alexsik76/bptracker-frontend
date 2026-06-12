@@ -101,3 +101,17 @@ export interface PushSubscribeDto {
 export interface PushUnsubscribeDto {
   endpoint: string;
 }
+
+export interface TodayIntake {
+  period: string;
+  time: string;
+  meds: string[];
+  status: 'Confirmed' | null;
+  timeTaken: string | null;
+}
+
+export interface TodayRemindersResponse {
+  date: string;
+  intakes: TodayIntake[];
+}
+
