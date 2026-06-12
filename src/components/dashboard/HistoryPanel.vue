@@ -13,55 +13,68 @@ const emit = defineEmits<{ 'show-all': [] }>();
 </script>
 
 <template>
-  <div class="panel">
-    <div class="panel-head">
-      <span class="panel-title">ОСТАННІ ВИМІРИ</span>
-      <button class="show-all-btn" @click="emit('show-all')">
-        Всі <span class="chevron">›</span>
-      </button>
-    </div>
+  <div class="panel" @click="emit('show-all')">
+    <div class="panel-main">
+      <div class="panel-head">
+        <span class="panel-title">ОСТАННІ ВИМІРИ</span>
+      </div>
 
-    <div v-if="error" class="error-banner" role="alert">
-      {{ $t('errors.loadMeasurements') }}
-    </div>
+      <div v-if="error" class="error-banner" role="alert">
+        {{ $t('errors.loadMeasurements') }}
+      </div>
 
-    <div v-else-if="!loading && measurements.length === 0" class="empty-state">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="40"
-        height="40"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        opacity="0.3"
-      >
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-      </svg>
-      <p>{{ $t('dashboard.noMeasurements') }}</p>
-    </div>
+      <div v-else-if="!loading && measurements.length === 0" class="empty-state">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="40"
+          height="40"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          opacity="0.3"
+        >
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+        </svg>
+        <p>{{ $t('dashboard.noMeasurements') }}</p>
+      </div>
 
-    <MeasurementList
-      v-else
-      :items="measurements"
-      :loading="loading"
-      :show-delete="false"
-    />
+      <MeasurementList
+        v-else
+        :items="measurements"
+        :loading="loading"
+        :show-delete="false"
+      />
+    </div>
+    <span class="arrow-icon">›</span>
   </div>
 </template>
 
 <style scoped>
 .panel {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: #14162a;
+  border: 1.5px solid #5b55c7;
   border-radius: 20px;
   padding: 14px 16px;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 0 24px rgba(91, 85, 199, 0.18);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.1s;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.panel-main {
+  flex: 1;
+  min-width: 0;
 }
 
 .panel-head {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
 }
@@ -74,27 +87,10 @@ const emit = defineEmits<{ 'show-all': [] }>();
   color: var(--color-text-muted);
 }
 
-.show-all-btn {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--rx-accent2, #b9b4f3);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  transition: opacity 0.15s;
-
-  &:hover {
-    opacity: 0.75;
-  }
-}
-
-.chevron {
-  font-size: 15px;
-  line-height: 1;
+.arrow-icon {
+  font-size: 22px;
+  color: #6f6acb;
+  flex-shrink: 0;
 }
 
 .error-banner {
