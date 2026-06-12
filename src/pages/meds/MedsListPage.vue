@@ -2,46 +2,18 @@
 import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSchemaStore } from '../../stores/schemas';
-import { useReminderStore } from '../../stores/reminders';
 import RxStatusTag from '../../components/meds/RxStatusTag.vue';
 import RxSwitch from '../../components/meds/RxSwitch.vue';
 
 const router = useRouter();
 const schemaStore = useSchemaStore();
-const reminderStore = useReminderStore();
 
 const active = computed(() => schemaStore.active);
 const others = computed(() => schemaStore.items.filter((s) => !s.isActive));
 
 onMounted(() => {
   if (!schemaStore.items.length) schemaStore.fetchSchemas();
-  reminderStore.init();
 });
-
-function getPeriodNameTranslation(name: any): string {
-  const key = String(name).toLowerCase();
-  if (key === 'morning') return 'Ранок';
-  if (key === 'day' || key === 'afternoon') return 'День';
-  if (key === 'evening') return 'Вечір';
-  if (key === 'night') return 'Ніч';
-  return String(name);
-}
-
-function formatTime(isoString: string): string {
-  if (!isoString) return '';
-  try {
-    const d = new Date(isoString);
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
-  } catch {
-    return '';
-  }
-}
-
-async function handleConfirmIntake(periodName: string) {
-  await reminderStore.confirm(periodName);
-}
 
 function fmtShort(iso: string | null): string {
   if (!iso) return '—';
@@ -79,49 +51,20 @@ async function handleActivate(id: string) {
 <template>
   <div class="meds-screen">
     <header class="rx-topbar">
-      <div>
-        <h1 class="rx-topbar__title">Ліки</h1>
-        <p class="rx-topbar__sub">Ваші призначення</p>
+      <div class="back-header">
+        <button class="back-btn" @click="router.push({ name: 'schedule' })" aria-label="Назад">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#e8eaee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.5 4 L6 10 L12.5 16"></path>
+          </svg>
+        </button>
+        <div>
+          <h1 class="rx-topbar__title">Призначення</h1>
+          <p class="rx-topbar__sub">Ваші призначення</p>
+        </div>
       </div>
     </header>
 
     <div class="rx-scroll">
-      <!-- Today's medication intake reminders -->
-      <div v-if="reminderStore.todayData && reminderStore.todayData.intakes && reminderStore.todayData.intakes.length > 0" class="rx-section-label">
-        <span>{{ $t('schema.reminders.todayTitle') }}</span>
-      </div>
-
-      <div v-if="reminderStore.todayData && reminderStore.todayData.intakes && reminderStore.todayData.intakes.length > 0" class="rx-card today-reminders-card">
-        <div class="today-reminders-list">
-          <div
-            v-for="intake in reminderStore.todayData.intakes"
-            :key="intake.period"
-            class="today-reminder-row"
-          >
-            <div class="reminder-period-info">
-              <span class="reminder-period-name">{{ getPeriodNameTranslation(intake.period) }}</span>
-              <span class="reminder-period-time">({{ intake.time }})</span>
-              <div class="reminder-meds">{{ (intake?.meds || []).join(', ') }}</div>
-            </div>
-            <div class="reminder-status-action">
-              <span v-if="intake.status === 'Confirmed'" class="status-badge status-confirmed">
-                ✓ {{ $t('schema.reminders.confirmed') }}
-                <span v-if="intake.timeTaken" class="confirmed-at-time">
-                  о {{ formatTime(intake.timeTaken) }}
-                </span>
-              </span>
-              <button
-                v-else-if="intake.status === null"
-                class="confirm-btn rx-btn-primary"
-                @click.stop="handleConfirmIntake(intake.period)"
-              >
-                {{ $t('schema.reminders.confirmBtn') }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="rx-section-label">
         <span>Активне призначення</span>
       </div>
@@ -266,7 +209,7 @@ async function handleActivate(id: string) {
   background: var(--rx-body);
   font-family: 'Manrope', system-ui, sans-serif;
   color: var(--rx-text);
-  padding-top: 64px; /* always reserve space for collapsed shade */
+  padding-top: 16px;
 }
 
 .rx-topbar {
@@ -291,7 +234,30 @@ async function handleActivate(id: string) {
   font-weight: 500;
 }
 
+.back-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #15181d;
+  border: 1px solid #21262d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #e8eaee;
+  padding: 0;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
 
 .rx-scroll {
   flex: 1;
@@ -554,96 +520,5 @@ async function handleActivate(id: string) {
 .rx-btn-primary--big {
   height: 54px;
   font-size: 16px;
-}
-
-.today-reminders-card {
-  margin-bottom: 16px;
-  border: 1.5px solid var(--rx-accent-bd);
-  background: linear-gradient(180deg, rgba(141, 140, 245, 0.05), transparent), var(--rx-card);
-}
-
-.today-reminders-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.today-reminder-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--rx-line);
-}
-
-.today-reminder-row:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.reminder-period-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.reminder-period-name {
-  font-weight: 800;
-  font-size: 15px;
-  color: var(--rx-accent2);
-}
-
-.reminder-period-time {
-  font-size: 13px;
-  color: var(--rx-dim);
-  margin-left: 5px;
-  font-weight: 600;
-}
-
-.reminder-meds {
-  font-size: 13px;
-  color: var(--rx-text);
-  margin-top: 3px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.reminder-status-action {
-  flex: none;
-  margin-left: 10px;
-}
-
-.status-badge {
-  font-size: 13.5px;
-  font-weight: 800;
-  padding: 4px 8px;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-}
-
-.status-confirmed {
-  background: rgba(20, 170, 90, 0.15);
-  color: var(--rx-green2);
-}
-
-.status-missed {
-  background: rgba(231, 107, 125, 0.15);
-  color: var(--rx-danger);
-}
-
-.confirm-btn {
-  height: 34px !important;
-  font-size: 13.5px !important;
-  padding: 0 12px;
-  border-radius: 9px;
-}
-
-.confirmed-at-time {
-  font-size: 12px;
-  opacity: 0.85;
-  margin-left: 4px;
-  font-weight: 500;
 }
 </style>

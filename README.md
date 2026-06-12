@@ -31,17 +31,15 @@ bptracker-frontend/
 ├── src/
 │   ├── components/
 │   │   ├── dashboard/
-│   │   │   ├── BottomTabBar.vue    # Нижня навігація: 4 таби (Дашборд/Історія/Ліки/Профіль)
-│   │   │   ├── ChartPanel.vue      # Панель Chart.js з перемикачем periodу та легендою ліній
-│   │   │   ├── DashboardHeader.vue # Хедер: heartbeat-логотип, кнопка налаштувань, "+ Додати"
+│   │   │   ├── BottomTabBar.vue    # Нижня навігація: асиметричний таб-бар на 2 вкладки (Дашборд/Розклад) з великою кнопкою SCAN по центру
+│   │   │   ├── ChartPanel.vue      # Панель Chart.js з перемикачем періоду та легендою ліній
+│   │   │   ├── CornerGear.vue      # Плаваюча скрол-залежна кнопка налаштувань (Settings)
 │   │   │   ├── HeroCard.vue        # Блок з останнім виміром, sparkline, badge зони + кнопка ⓘ
-│   │   │   ├── HistoryPanel.vue    # Прев'ю вимірювань за сьогодні та вчора
-│   │   │   ├── HistoryTab.vue      # Таб повної історії з фільтрами та видаленням
+│   │   │   ├── HistoryPanel.vue    # Прев'ю 2 останніх вимірювань на Дашборді з лінком на повну Історію
 │   │   │   ├── KpiCard.vue         # Картка KPI
 │   │   │   ├── KpiGrid.vue         # Сітка з 4 карток KPI
 │   │   │   └── PeriodTabs.vue      # Перемикач періоду (7/30/90/365 днів)
 │   │   ├── meds/
-│   │   │   ├── RxScheduleView.vue  # Відображення розкладу прийому ліків
 │   │   │   ├── RxStatusTag.vue     # Тег статусу схеми (активна / неактивна)
 │   │   │   └── RxSwitch.vue        # Перемикач активації схеми
 │   │   ├── settings/
@@ -81,14 +79,16 @@ bptracker-frontend/
 │   │   └── en.ts               # Англійська (типізована як MessageSchema)
 │   ├── pages/
 │   │   ├── meds/
-│   │   │   ├── MedsListPage.vue    # Список всіх схем лікування
+│   │   │   ├── MedsListPage.vue    # Перегляд та управління схемами прийому ліків (призначеннями)
 │   │   │   ├── MedsDetailPage.vue  # Деталізація схеми лікування
 │   │   │   └── MedsFormPage.vue    # Форма створення/редагування схеми
-│   │   ├── DashboardPage.vue   # Головний екран (3 таби)
+│   │   ├── DashboardPage.vue   # Головний екран (показники, графік, KPI, прев'ю історії; без табів)
+│   │   ├── HistoryPage.vue     # Повна історія вимірювань тиску з групуванням по днях
 │   │   ├── LocalOcrPage.vue    # Локальне ONNX-розпізнавання тонометра
 │   │   ├── LoginPage.vue       # Вхід (Passkey + Magic Link)
 │   │   ├── MeasurementPage.vue # Додавання заміру через Gemini fallback (камера / вручну)
-│   │   └── SettingsPage.vue    # Налаштування (перемикачі теми та мови) + BpScaleInfo
+│   │   ├── SchedulePage.vue    # Розклад прийому ліків на сьогодні із можливістю підтвердження
+│   │   └── SettingsPage.vue    # Налаштування (перемикачі теми та мови, імпорт/експорт) + BpScaleInfo
 │   ├── router/
 │   │   └── index.ts            # Маршрути та Navigation Guard
 │   ├── stores/

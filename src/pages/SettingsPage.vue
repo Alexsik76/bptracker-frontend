@@ -97,24 +97,13 @@ async function handleLogout() {
 
 <template>
   <div class="settings-page">
-    <header class="header">
-      <button class="back-btn" @click="router.back()">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <line x1="19" y1="12" x2="5" y2="12"></line>
-          <polyline points="12 19 5 12 12 5"></polyline>
+    <header class="back-header">
+      <button class="back-btn" @click="router.back()" aria-label="Назад">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#e8eaee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12.5 4 L6 10 L12.5 16"></path>
         </svg>
       </button>
-      <h1>{{ $t('settings.title') }}</h1>
+      <h1 class="page-title">{{ $t('settings.title') }}</h1>
     </header>
 
     <main class="content">
@@ -258,22 +247,38 @@ async function handleLogout() {
 </template>
 
 <style scoped>
-.header {
-  padding: var(--space-4);
+.back-header {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-
-  & h1 {
-    font-size: var(--text-base);
-    font-weight: bold;
-  }
+  gap: 12px;
+  padding: 18px 16px 8px;
+  flex-shrink: 0;
 }
 
 .back-btn {
-  color: var(--color-text-muted);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #15181d;
+  border: 1px solid #21262d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #e8eaee;
+  padding: 0;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #f2f4f7;
+  margin: 0;
 }
 
 .content {

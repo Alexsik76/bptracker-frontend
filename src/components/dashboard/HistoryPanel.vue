@@ -15,8 +15,10 @@ const emit = defineEmits<{ 'show-all': [] }>();
 <template>
   <div class="panel">
     <div class="panel-head">
-      <span class="panel-title">{{ $t('dashboard.tabs.history') }}</span>
-      <button class="show-all-btn" @click="emit('show-all')">{{ $t('dashboard.showAll') }}</button>
+      <span class="panel-title">ОСТАННІ ВИМІРИ</span>
+      <button class="show-all-btn" @click="emit('show-all')">
+        Всі <span class="chevron">›</span>
+      </button>
     </div>
 
     <div v-if="error" class="error-banner" role="alert">
@@ -45,10 +47,6 @@ const emit = defineEmits<{ 'show-all': [] }>();
       :loading="loading"
       :show-delete="false"
     />
-
-    <button class="see-all-row" @click="emit('show-all')">
-      {{ $t('dashboard.viewAll') }}
-    </button>
   </div>
 </template>
 
@@ -65,7 +63,7 @@ const emit = defineEmits<{ 'show-all': [] }>();
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2px;
+  margin-bottom: 8px;
 }
 
 .panel-title {
@@ -77,17 +75,26 @@ const emit = defineEmits<{ 'show-all': [] }>();
 }
 
 .show-all-btn {
-  font-size: 11px;
-  font-weight: 500;
-  color: #818cf8;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rx-accent2, #b9b4f3);
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  transition: opacity 0.15s;
 
   &:hover {
     opacity: 0.75;
   }
+}
+
+.chevron {
+  font-size: 15px;
+  line-height: 1;
 }
 
 .error-banner {
@@ -108,25 +115,5 @@ const emit = defineEmits<{ 'show-all': [] }>();
   align-items: center;
   gap: 8px;
   font-size: 13px;
-}
-
-.see-all-row {
-  display: block;
-  width: 100%;
-  margin-top: 12px;
-  padding: 10px;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 500;
-  color: #818cf8;
-  border: 1px solid rgba(129, 140, 248, 0.25);
-  border-radius: 10px;
-  background: rgba(129, 140, 248, 0.05);
-  cursor: pointer;
-  transition: background 0.15s;
-
-  &:hover {
-    background: rgba(129, 140, 248, 0.1);
-  }
 }
 </style>
