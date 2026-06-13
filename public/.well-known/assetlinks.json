@@ -1,0 +1,15 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls",
+            "delegate_permission/common.get_login_creds"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "ua.vn.home.bptracker",
+            "sha256_cert_fingerprints": [
+                "C8:9A:4D:ED:61:AE:32:C4:4D:05:A2:C0:59:6C:8C:61:F6:17:21:0C:CF:32:6E:DB:EF:98:BE:F4:94:11:CD:FB"
+            ]
+        }
+    }
+]
