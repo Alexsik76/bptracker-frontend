@@ -9,6 +9,7 @@ const MODEL_VERSION = 'int8_v1';
 
 ort.env.wasm.wasmPaths = '/ort-wasm/';
 ort.env.wasm.numThreads = 1;
+ort.env.wasm.proxy = true;
 
 const DISPLAY_MODEL_URL = '/models/display_detector_int8.onnx';
 const DIGIT_MODEL_URL = '/models/digit_detector_int8.onnx';
@@ -48,13 +49,17 @@ export interface DisplayBbox {
 // Singleton sessions — loaded once, reused across calls
 let displaySession: ort.InferenceSession | null = null;
 let digitSession: ort.InferenceSession | null = null;
+let loadPromise: Promise<void> | null = null;
 
-async function loadSessions(): Promise<void> {
-  if (displaySession && digitSession) return;
-  [displaySession, digitSession] = await Promise.all([
+function loadSessions(): Promise<void> {
+  if (displaySession && digitSession) return Promise.resolve();
+  return (loadPromise ??= Promise.all([
     ort.InferenceSession.create(DISPLAY_MODEL_URL, { executionProviders: ['wasm'] }),
     ort.InferenceSession.create(DIGIT_MODEL_URL, { executionProviders: ['wasm'] }),
-  ]);
+  ]).then(([d, g]) => {
+    displaySession = d;
+    digitSession = g;
+  }));
 }
 
 export function preloadOcrModels(): void {
@@ -67,22 +72,13 @@ export function preloadOcrModels(): void {
 }
 
 function blobToCanvas(blob: Blob): Promise<HTMLCanvasElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(blob);
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      canvas.getContext('2d')!.drawImage(img, 0, 0);
-      URL.revokeObjectURL(url);
-      resolve(canvas);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load image'));
-    };
-    img.src = url;
+  return createImageBitmap(blob).then((bitmap) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    canvas.getContext('2d')!.drawImage(bitmap, 0, 0);
+    bitmap.close();
+    return canvas;
   });
 }
 
@@ -104,7 +100,7 @@ function letterboxToTensor(srcCanvas: HTMLCanvasElement, targetSize: number): Le
   const canvas = document.createElement('canvas');
   canvas.width = targetSize;
   canvas.height = targetSize;
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
   ctx.fillStyle = 'rgb(114,114,114)';
   ctx.fillRect(0, 0, targetSize, targetSize);
   ctx.drawImage(srcCanvas, padX, padY, newW, newH);
@@ -196,6 +192,10 @@ export function useLocalOcr() {
   let pendingObjectUrl: string | null = null;
 
   async function run(blob: Blob): Promise<OcrResult | null> {
+    if (pendingObjectUrl) {
+      URL.revokeObjectURL(pendingObjectUrl);
+      pendingObjectUrl = null;
+    }
     stage.value = 'idle';
     result.value = null;
     errorMsg.value = null;
@@ -209,7 +209,6 @@ export function useLocalOcr() {
       await loadSessions();
 
       const srcCanvas = await blobToCanvas(blob);
-      if (pendingObjectUrl) URL.revokeObjectURL(pendingObjectUrl);
       pendingObjectUrl = URL.createObjectURL(blob);
       originalImageUrl.value = pendingObjectUrl;
 

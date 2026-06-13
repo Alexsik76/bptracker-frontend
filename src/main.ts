@@ -5,8 +5,10 @@ import router from './router';
 import './styles/global.css';
 import { initTheme } from './composables/useTheme';
 import { i18n } from './i18n';
+import { preloadOcrModels } from './composables/useLocalOcr';
 
 initTheme();
+preloadOcrModels();
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -18,3 +20,4 @@ app.use(i18n);
 document.documentElement.setAttribute('lang', i18n.global.locale.value as string);
 
 app.mount('#app');
+
