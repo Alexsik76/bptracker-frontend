@@ -9,7 +9,7 @@ const MODEL_VERSION = 'int8_v1';
 
 ort.env.wasm.wasmPaths = '/ort-wasm/';
 ort.env.wasm.numThreads = 1;
-ort.env.wasm.proxy = true;
+// ort.env.wasm.proxy = true;
 
 const DISPLAY_MODEL_URL = '/models/display_detector_int8.onnx';
 const DIGIT_MODEL_URL = '/models/digit_detector_int8.onnx';
