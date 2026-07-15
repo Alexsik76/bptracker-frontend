@@ -12,5 +12,18 @@
         "0B:3B:50:B8:2B:D1:C0:60:F3:09:64:6E:A4:D7:5C:75:EA:1F:97:52:AD:63:77:69:69:B4:89:10:9D:07:3E:F1"
       ]
     }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ua.vn.home.bptracker.dev",
+      "sha256_cert_fingerprints": [
+        "0B:3B:50:B8:2B:D1:C0:60:F3:09:64:6E:A4:D7:5C:75:EA:1F:97:52:AD:63:77:69:69:B4:89:10:9D:07:3E:F1"
+      ]
+    }
   }
 ]
