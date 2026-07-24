@@ -4,7 +4,7 @@ Single Page Application for tracking blood pressure. Built with **Vue 3** (Compo
 
 ## Backend Integration
 
-This frontend is a client for [BP Tracker Backend](../bptracker-backend/README.md). It communicates with the REST API to save measurements, handle authentication, and fetch settings. The full list of endpoints and contracts is available in the backend documentation.
+This frontend is a client for [BP Tracker Backend](https://github.com/Alexsik76/bptracker-backend-fastapi). It communicates with the REST API to save measurements, handle authentication, and fetch settings. The full list of endpoints and contracts is available in the backend documentation.
 
 ## Tech Stack
 
