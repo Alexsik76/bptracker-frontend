@@ -1,223 +1,222 @@
 # BP Tracker — Frontend (Vue 3 SPA)
 
-Single Page Application для відстеження артеріального тиску. Побудований на **Vue 3** (Composition API) з використанням **TypeScript** та **Vite**.
+Single Page Application for tracking blood pressure. Built with **Vue 3** (Composition API) using **TypeScript** and **Vite**.
 
-## Backend integration
+## Backend Integration
 
-Цей фронтенд є клієнтом для [BP Tracker Backend](../bptracker-backend/README.md). Він взаємодіє з REST API для збереження вимірювань, автентифікації та отримання налаштувань. Повний перелік ендпоінтів та контрактів доступний у документації бекенду.
+This frontend is a client for [BP Tracker Backend](../bptracker-backend/README.md). It communicates with the REST API to save measurements, handle authentication, and fetch settings. The full list of endpoints and contracts is available in the backend documentation.
 
-## Технологічний стек
+## Tech Stack
 
-- **Фреймворк:** Vue 3 (`<script setup>`)
-- **Збірка:** Vite
-- **Мова:** TypeScript (Strict mode, `erasableSyntaxOnly`)
-- **Маршрутизація:** Vue Router
-- **Управління станом:** Pinia
-- **Локалізація:** vue-i18n v11 (`legacy: false`, Composition API)
-- **Офлайн/PWA:** IndexedDB (`idb`), Service Worker (`sw.js`), Web App Manifest
-- **Стилізація:** Нативний CSS (Custom Properties, CSS Nesting, без UI-фреймворків)
-- **Графіки:** Chart.js
-- **Автентифікація:** WebAuthn (Passkeys) через `@simplewebauthn/browser`
+- **Framework:** Vue 3 (`<script setup>`)
+- **Build Tool:** Vite
+- **Language:** TypeScript (Strict mode, `erasableSyntaxOnly`)
+- **Routing:** Vue Router
+- **State Management:** Pinia
+- **Localization:** vue-i18n v11 (`legacy: false`, Composition API)
+- **Offline / PWA:** IndexedDB (`idb`), Service Worker (`sw.js`), Web App Manifest
+- **Styling:** Native CSS (Custom Properties, CSS Nesting, no UI frameworks)
+- **Charts:** Chart.js
+- **Authentication:** WebAuthn (Passkeys) via `@simplewebauthn/browser`
 
-## Структура проекту
+## Project Structure
 
 ```text
 bptracker-frontend/
 ├── public/
-│   ├── config.js           # Глобальна конфігурація (API_BASE_URL)
-│   ├── manifest.json       # PWA маніфест
-│   ├── sw.js               # Service Worker (кешування app shell, SPA навігація, Web Share Target)
+│   ├── config.js           # Global configuration (API_BASE_URL)
+│   ├── manifest.json       # PWA manifest
+│   ├── sw.js               # Service Worker (app shell caching, SPA navigation, Web Share Target)
 │   └── CNAME               # GitHub Pages custom domain
 ├── src/
 │   ├── components/
 │   │   ├── dashboard/
-│   │   │   ├── BottomTabBar.vue    # Нижня навігація: асиметричний таб-бар на 2 вкладки (Дашборд/Розклад) з великою кнопкою SCAN по центру
-│   │   │   ├── ChartPanel.vue      # Панель Chart.js з перемикачем періоду та легендою ліній
-│   │   │   ├── CornerGear.vue      # Плаваюча скрол-залежна кнопка налаштувань (Settings)
-│   │   │   ├── HeroCard.vue        # Блок з останнім виміром, sparkline, badge зони + кнопка ⓘ
-│   │   │   ├── HistoryPanel.vue    # Прев'ю 2 останніх вимірювань на Дашборді з лінком на повну Історію
-│   │   │   ├── KpiCard.vue         # Картка KPI
-│   │   │   ├── KpiGrid.vue         # Сітка з 4 карток KPI
-│   │   │   └── PeriodTabs.vue      # Перемикач періоду (7/30/90/365 днів)
+│   │   │   ├── BottomTabBar.vue    # Bottom navigation: asymmetrical 2-tab bar (Dashboard/Schedule) with large SCAN button in the center
+│   │   │   ├── ChartPanel.vue      # Chart.js panel with period switcher and line legend
+│   │   │   ├── CornerGear.vue      # Floating scroll-dependent Settings button
+│   │   │   ├── HeroCard.vue        # Block with latest measurement, sparkline, zone badge + info button ⓘ
+│   │   │   ├── HistoryPanel.vue    # Preview of 2 latest measurements on Dashboard with link to full History
+│   │   │   ├── KpiCard.vue         # KPI card
+│   │   │   ├── KpiGrid.vue         # Grid of 4 KPI cards
+│   │   │   └── PeriodTabs.vue      # Period switcher (7/30/90/365 days)
 │   │   ├── meds/
-│   │   │   ├── RxStatusTag.vue     # Тег статусу схеми (активна / неактивна)
-│   │   │   └── RxSwitch.vue        # Перемикач активації схеми
+│   │   │   ├── RxStatusTag.vue     # Prescription status tag (active / inactive)
+│   │   │   └── RxSwitch.vue        # Prescription activation switch
 │   │   ├── settings/
-│   │   │   └── BpScaleInfo.vue     # Таблиця шкали ESC (4 рівні), tie-break, дисклеймер
-│   │   ├── AiReview.vue        # Анімація під час розпізнавання AI
-│   │   ├── BpChart.vue         # Графік Chart.js з лініями норм; реагує на зміну локалі
-│   │   ├── CameraCapture.vue   # Сканування фото (getUserMedia)
-│   │   ├── ConfirmDialog.vue   # Глобальний діалог підтвердження
-│   │   ├── MeasurementForm.vue # Форма ручного введення з валідацією
-│   │   ├── MeasurementList.vue # Список вимірювань з групуванням
-│   │   ├── OcrPhotoPreview.vue # Превью фото з результатом OCR
-│   │   ├── OcrReviewForm.vue   # Форма підтвердження/редагування OCR-результату
-│   │   ├── SchemaCard.vue      # Картка схеми лікування
-│   │   ├── SchemaForm.vue      # Форма створення/редагування схеми лікування
-│   │   ├── SchemaList.vue      # Список схем лікування
-│   │   └── ToastContainer.vue  # Контейнер toast-сповіщень
+│   │   │   └── BpScaleInfo.vue     # ESC scale table (4 levels), tie-break rule, disclaimer
+│   │   ├── AiReview.vue        # Animation during AI recognition
+│   │   ├── BpChart.vue         # Chart.js chart with norm lines; updates on locale change
+│   │   ├── CameraCapture.vue   # Photo scanning (getUserMedia)
+│   │   ├── ConfirmDialog.vue   # Global confirmation dialog
+│   │   ├── MeasurementForm.vue # Manual input form with validation
+│   │   ├── MeasurementList.vue # Measurement list with grouping
+│   │   ├── OcrPhotoPreview.vue # Photo preview with OCR result
+│   │   ├── OcrReviewForm.vue   # OCR result confirmation/editing form
+│   │   ├── SchemaCard.vue      # Treatment plan card
+│   │   ├── SchemaForm.vue      # Treatment plan create/edit form
+│   │   ├── SchemaList.vue      # Treatment plan list
+│   │   └── ToastContainer.vue  # Toast notification container
 │   ├── composables/
-│   │   ├── useApi.ts               # HTTP-клієнт; кидає ApiError (не рядки)
-│   │   ├── useApiErrorMessage.ts   # toMessage(err, fallbackKey) → локалізований текст помилки
-│   │   ├── useBpLabels.ts          # Реактивний computed<Record<BpClass, string>> через t()
-│   │   ├── useConfirm.ts           # Діалог підтвердження
-│   │   ├── useExport.ts            # CSV-експорт
-│   │   ├── useKpi.ts               # KPI з вимірювань (normalCount через NORMAL_CLASSES)
-│   │   ├── useLocalOcr.ts          # ONNX-інференс у браузері (display + digit детектори)
-│   │   ├── useLocale.ts            # Управління локаллю (locale ref + setLocale → localStorage)
-│   │   ├── useOfflineQueue.ts      # Офлайн-черга (IndexedDB)
-│   │   ├── usePendingPhoto.ts      # Передача Blob між LocalOcrPage та MeasurementPage
-│   │   ├── useTheme.ts             # Управління темою (auto/light/dark, localStorage)
-│   │   ├── useToast.ts             # Toast-сповіщення
-│   │   ├── useZone.ts              # Тонка обгортка над bp.ts: getZone → Zone { key, color, bg }
+│   │   ├── useApi.ts               # HTTP client; throws ApiError (not strings)
+│   │   ├── useApiErrorMessage.ts   # toMessage(err, fallbackKey) → localized error message
+│   │   ├── useBpLabels.ts          # Reactive computed<Record<BpClass, string>> via t()
+│   │   ├── useConfirm.ts           # Confirmation dialog
+│   │   ├── useExport.ts            # CSV export
+│   │   ├── useKpi.ts               # KPI from measurements (normalCount via NORMAL_CLASSES)
+│   │   ├── useLocalOcr.ts          # In-browser ONNX inference (display + digit detectors)
+│   │   ├── useLocale.ts            # Locale management (locale ref + setLocale → localStorage)
+│   │   ├── useOfflineQueue.ts      # Offline queue (IndexedDB)
+│   │   ├── usePendingPhoto.ts      # Blob transfer between LocalOcrPage and MeasurementPage
+│   │   ├── useTheme.ts             # Theme management (auto/light/dark, localStorage)
+│   │   ├── useToast.ts             # Toast notifications
+│   │   ├── useZone.ts              # Thin wrapper over bp.ts: getZone → Zone { key, color, bg }
 │   │   └── __tests__/
-│   │       ├── useKpi.test.ts      # Тести KPI-агрегатів
-│   │       └── useTheme.test.ts    # Тести переключення теми
-│   ├── i18n.ts                 # vue-i18n: createI18n, AppLocale тип, експорт i18n
+│   │       ├── useKpi.test.ts      # KPI aggregates tests
+│   │       └── useTheme.test.ts    # Theme switching tests
+│   ├── i18n.ts                 # vue-i18n: createI18n, AppLocale type, i18n export
 │   ├── locales/
-│   │   ├── uk.ts               # Українська (source of truth, визначає MessageSchema)
-│   │   └── en.ts               # Англійська (типізована як MessageSchema)
+│   │   ├── uk.ts               # Ukrainian (source of truth, defines MessageSchema)
+│   │   └── en.ts               # English (typed as MessageSchema)
 │   ├── pages/
 │   │   ├── meds/
-│   │   │   ├── MedsListPage.vue    # Перегляд та управління схемами прийому ліків (призначеннями)
-│   │   │   ├── MedsDetailPage.vue  # Деталізація схеми лікування
-│   │   │   └── MedsFormPage.vue    # Форма створення/редагування схеми
-│   │   ├── DashboardPage.vue   # Головний екран (показники, графік, KPI, прев'ю історії; без табів)
-│   │   ├── HistoryPage.vue     # Повна історія вимірювань тиску з групуванням по днях
-│   │   ├── LocalOcrPage.vue    # Локальне ONNX-розпізнавання тонометра
-│   │   ├── LoginPage.vue       # Вхід (Passkey + Magic Link)
-│   │   ├── MeasurementPage.vue # Додавання заміру через Gemini fallback (камера / вручну)
-│   │   ├── SchedulePage.vue    # Розклад прийому ліків на сьогодні із можливістю підтвердження
-│   │   └── SettingsPage.vue    # Налаштування (перемикачі теми та мови, імпорт/експорт) + BpScaleInfo
+│   │   │   ├── MedsListPage.vue    # View and manage medication schedules (prescriptions)
+│   │   │   ├── MedsDetailPage.vue  # Treatment plan details
+│   │   │   └── MedsFormPage.vue    # Treatment plan create/edit form
+│   │   ├── DashboardPage.vue   # Main screen (metrics, chart, KPI, history preview; without tabs)
+│   │   ├── HistoryPage.vue     # Full pressure measurement history grouped by days
+│   │   ├── LocalOcrPage.vue    # Local ONNX blood pressure monitor recognition
+│   │   ├── LoginPage.vue       # Login (Passkey + Magic Link)
+│   │   ├── MeasurementPage.vue # Add measurement via Gemini fallback (camera / manual)
+│   │   ├── SchedulePage.vue    # Today's medication schedule with confirmation option
+│   │   └── SettingsPage.vue    # Settings (theme and language switchers, import/export) + BpScaleInfo
 │   ├── router/
-│   │   └── index.ts            # Маршрути та Navigation Guard
+│   │   └── index.ts            # Routes and Navigation Guard
 │   ├── stores/
 │   │   ├── __tests__/
-│   │   │   └── schemas.test.ts     # Тести useSchemaStore (CRUD, activate, валідація)
-│   │   ├── auth.ts             # Стан користувача
-│   │   ├── measurements.ts     # CRUD вимірювань + офлайн sync
-│   │   ├── schemas.ts          # CRUD схем лікування (TreatmentSchema)
-│   │   └── settings.ts         # Користувацькі налаштування
+│   │   │   └── schemas.test.ts     # useSchemaStore tests (CRUD, activate, validation)
+│   │   ├── auth.ts             # User state
+│   │   ├── measurements.ts     # Measurements CRUD + offline sync
+│   │   ├── schemas.ts          # Treatment plan CRUD (TreatmentSchema)
+│   │   └── settings.ts         # User settings
 │   ├── styles/
-│   │   ├── global.css          # Базові стилі
-│   │   └── tokens.css          # CSS-змінні: темна (default) + повна світла палітра
+│   │   ├── global.css          # Base styles
+│   │   └── tokens.css          # CSS variables: dark (default) + full light palette
 │   ├── types/
-│   │   └── api.ts              # DTO-типи
+│   │   └── api.ts              # DTO types
 │   ├── utils/
 │   │   ├── apiError.ts         # ApiError, ApiErrorCode, isApiError, httpStatusToCode
-│   │   ├── bp.ts               # Класифікація ESC: classifyBP, BP_CLASS_COLOR/BG/RANGE, NORMAL_CLASSES
-│   │   ├── image.ts            # Клієнтська передобробка фото (масштабування, стиснення)
-│   │   ├── theme.ts            # Робота з CSS-змінними
+│   │   ├── bp.ts               # ESC classification: classifyBP, BP_CLASS_COLOR/BG/RANGE, NORMAL_CLASSES
+│   │   ├── image.ts            # Client-side photo preprocessing (resizing, compression)
+│   │   ├── theme.ts            # Working with CSS variables
 │   │   └── __tests__/
-│   │       ├── bp.test.ts      # Тести класифікації, NORMAL_CLASSES та BP_CLASS_RANGE
-│   │       ├── i18n.test.ts    # Тест паритету ключів uk/en
-│   │       └── image.test.ts   # Тести обробки зображень
-│   ├── App.vue                 # Кореневий компонент
-│   └── main.ts                 # Точка входу; реєструє i18n + встановлює lang на <html>
+│   │       ├── bp.test.ts      # Tests for classification, NORMAL_CLASSES, and BP_CLASS_RANGE
+│   │       ├── i18n.test.ts    # Key parity test between uk/en
+│   │       └── image.test.ts   # Image processing tests
+│   ├── App.vue                 # Root component
+│   └── main.ts                 # Entry point; registers i18n + sets lang on <html>
 ├── index.html
 ├── package.json
 ├── tsconfig.json
 └── vite.config.ts
 ```
 
-## Локалізація (i18n)
+## Localization (i18n)
 
-Підтримуються дві мови: **Українська** (`uk`, за замовчуванням) та **Англійська** (`en`). Перемикач розташований у **Settings → Мова / Language**.
+Two languages are supported: **Ukrainian** (`uk`, default) and **English** (`en`). The language switcher is located in **Settings → Language**.
 
-| Аспект | Деталь |
+| Aspect | Detail |
 |--------|--------|
-| Бібліотека | vue-i18n v11, `legacy: false`, `globalInjection: true` |
-| Зберігання | `localStorage('bptracker:locale')` |
-| Source of truth | `src/locales/uk.ts` визначає `MessageSchema` — TypeScript-тип для обох локалей |
-| Паритет ключів | `src/utils/__tests__/i18n.test.ts` гарантує однаковий набір ключів у uk та en |
-| Composable | `useLocale.ts` — `locale` ref + `setLocale()`; синхронізує `document.documentElement.lang` |
-| Мітки BP-зон | `useBpLabels.ts` — `computed<Record<BpClass, string>>` через `t()`; реагує на зміну мови |
-| Графіки | `BpChart.vue` має `watch(locale, ...)` для оновлення Chart.js dataset labels без перерендеру |
-| Формати дат | `locale.value` передається напряму в `toLocaleDateString()` (BCP 47: `'uk'`/`'en'`) |
-| Шкала ESC | `bpScale.*` ключі + `<i18n-t>` для tie-break з `<strong>` — без хардкоду розмітки в локалях |
+| Library | vue-i18n v11, `legacy: false`, `globalInjection: true` |
+| Storage | `localStorage('bptracker:locale')` |
+| Source of truth | `src/locales/uk.ts` defines `MessageSchema` — TypeScript type for both locales |
+| Key parity | `src/utils/__tests__/i18n.test.ts` guarantees identical set of keys in uk and en |
+| Composable | `useLocale.ts` — `locale` ref + `setLocale()`; synchronizes `document.documentElement.lang` |
+| BP zone labels | `useBpLabels.ts` — `computed<Record<BpClass, string>>` via `t()`; updates on language change |
+| Charts | `BpChart.vue` uses `watch(locale, ...)` to update Chart.js dataset labels without re-rendering |
+| Date formats | `locale.value` is passed directly to `toLocaleDateString()` (BCP 47: `'uk'`/`'en'`) |
+| ESC scale | `bpScale.*` keys + `<i18n-t>` for tie-break with `<strong>` — no hardcoded markup in locales |
 
-**Архітектурний принцип помилок API:** помилка — це *сигнал* (машинно-читний код), а не текст для користувача. `useApi.ts` кидає `ApiError` з типізованим `code: ApiErrorCode`. Текст вибирає компонент-споживач через `useApiErrorMessage().toMessage(err, fallbackKey)`.
+**API Error Architectural Rule:** An error is a *signal* (machine-readable code), not a text for the user. `useApi.ts` throws `ApiError` with typed `code: ApiErrorCode`. The display text is chosen by the consumer component using `useApiErrorMessage().toMessage(err, fallbackKey)`.
 
-## Обробка помилок API
+## API Error Handling
 
 ```
 src/utils/apiError.ts
   ApiErrorCode = 'network' | 'unauthorized' | 'forbidden' | 'notFound'
                | 'conflict' | 'rateLimit' | 'serverError' | 'validation' | 'unknown'
-  ApiError extends Error   — поле code: ApiErrorCode
+  ApiError extends Error   — field code: ApiErrorCode
   isApiError(err)          — type guard
   httpStatusToCode(status) — HTTP status → ApiErrorCode
 
 src/composables/useApiErrorMessage.ts
   toMessage(err, fallbackKey?)
-    ApiError  → t(`errors.${err.code}`)   // локалізований текст за кодом
-    інше      → t(fallbackKey)             // контекстний fallback ('errors.loadFailed' тощо)
+    ApiError  → t(`errors.${err.code}`)   // localized text by code
+    other     → t(fallbackKey)             // contextual fallback ('errors.loadFailed' etc.)
 ```
 
-Контекстні fallback-ключі: `errors.loadFailed`, `errors.saveFailed`, `errors.deleteFailed`, `errors.analyzeFailed`, `errors.exportFailed`, `errors.loginFailed`.
+Contextual fallback keys: `errors.loadFailed`, `errors.saveFailed`, `errors.deleteFailed`, `errors.analyzeFailed`, `errors.exportFailed`, `errors.loginFailed`.
 
-## Локальний OCR (Local OCR Flow)
+## Local OCR (Local OCR Flow)
 
-Основний шлях додавання заміру через фото виконується повністю на клієнті — без звернення до бекенду:
+The main path for adding a measurement via photo runs entirely on the client side — without calling the backend:
 
-1. `DashboardPage` → `LocalOcrPage` (маршрут `/measurement/local`)
-2. **Камера** (`CameraCapture.vue`) → `preprocessImage` (1024px, JPEG 0.85) → `useLocalOcr.run(blob)`
+1. `DashboardPage` → `LocalOcrPage` (route `/measurement/local`)
+2. **Camera** (`CameraCapture.vue`) → `preprocessImage` (1024px, JPEG 0.85) → `useLocalOcr.run(blob)`
 3. **ONNX inference** (`onnxruntime-web` 1.14.0, non-threaded WASM):
-   - `display_detector_int8.onnx` — знаходить дисплей тонометра, обрізає
-   - `digit_detector_int8.onnx` — знаходить цифри на обрізку
-   - NMS → K-means (k=3) → збирає три числа (SYS/DIA/PUL)
-4. Користувач підтверджує:
-   - **Онлайн:** `POST /measurements` → fire-and-forget `POST /measurements/{id}/photo` для поповнення датасету (Bearer token тільки на сервері). Поле `source`: `"local_ocr"` або `"user_confirmed"`. Якщо `sendPhotos = false` у налаштуваннях — фото не відправляється.
-   - **Офлайн:** якщо `sendPhotos = true` → замір + Blob + `ocr_meta` зберігаються в IndexedDB (`photos-queue`, ліміт 10, TTL 24 год.); якщо `sendPhotos = false` → тільки замір у `measurements-queue`. При наступному синку — fire-and-forget upload фото.
-5. **Fallback:** якщо OCR не впорався — кнопка передає Blob у `MeasurementPage` через `usePendingPhoto` і запускає старий Gemini-шлях.
+   - `display_detector_int8.onnx` — finds the blood pressure monitor display and crops it
+   - `digit_detector_int8.onnx` — finds digits on the cropped image
+   - NMS → K-means (k=3) → extracts three numbers (SYS/DIA/PUL)
+4. User confirmation:
+   - **Online:** `POST /measurements` → fire-and-forget `POST /measurements/{id}/photo` to contribute to dataset (Bearer token only on server). Field `source`: `"local_ocr"` or `"user_confirmed"`. If `sendPhotos = false` in settings — photo is not sent.
+   - **Offline:** if `sendPhotos = true` → measurement + Blob + `ocr_meta` are saved in IndexedDB (`photos-queue`, limit 10, TTL 24 hours); if `sendPhotos = false` → only measurement is saved in `measurements-queue`. On next sync — fire-and-forget photo upload.
+5. **Fallback:** if OCR fails — button passes Blob to `MeasurementPage` via `usePendingPhoto` and runs the legacy Gemini flow.
+6. **OCR Metadata:** `useLocalOcr` collects `ocr_meta` during inference — timings for each stage (`performance.now()`), min/mean confidence of digit boxes, `model_version = "int8_v1"`, `user_agent`, `hw_concurrency`. Sent to `photo-api` as a JSON string in `ocr_meta` form field. TypeScript types are generated from OpenAPI spec: `npm run generate:types`.
 
-5. **OCR метадані:** `useLocalOcr` збирає `ocr_meta` під час інференсу — таймінги кожної стадії (`performance.now()`), min/mean confidence digit-boxes, `model_version = "int8_v1"`, `user_agent`, `hw_concurrency`. Передається у `photo-api` як JSON-рядок у `ocr_meta` form-поля. TypeScript-типи генеруються з OpenAPI spec: `npm run generate:types`.
+### Scan Result Screen (`step === 'review'`)
 
-### Екран результату сканування (`step === 'review'`)
+After successful ONNX recognition, a dark confirmation screen is displayed:
 
-Після успішного ONNX-розпізнавання показується темний екран підтвердження:
-
-| Елемент | Деталь |
+| Element | Detail |
 |---------|--------|
-| Фон | `#0d0d12` — темний, без системних CSS-токенів (власна палітра екрану) |
-| Фото | Чистий кадр у контейнері `border-radius: 18px` без маски/затемнення |
-| Beam-анімація | Одноразова під час входу (900 мс, `requestAnimationFrame`, easeInOut). 70% часу — рух лінії, 30% — fade-out |
-| Zoom-значок | З'являється після beam; tap відкриває `<Teleport>`-оверлей з масштабом 1.4× |
-| Підсвічування фото | Кольорова рамка з `box-shadow` на відповідній ділянці фото активується при фокусі в полі вводу |
-| Поля вводу | Inline-форма із кольоровою точкою, підписом (`systolicLabel/Sub`) та великим числовим інпутом (26px/700) |
-| Кольори полів | SYS — `#a39bff`, DIA — `#5ecbff`, PUL — `#5effa0` |
-| Кнопки | «Скасувати» (flex 1, `#15151c`) + «Зберегти» (flex 1.4, `#a39bff` з тінню) |
-| Fallback | Текстове посилання «Розпізнати через сервер» під кнопками |
+| Background | `#0d0d12` — dark, without system CSS tokens (custom screen palette) |
+| Photo | Clean frame in `border-radius: 18px` container without mask/dimming |
+| Beam animation | One-time animation on enter (900 ms, `requestAnimationFrame`, easeInOut). 70% duration — line movement, 30% — fade-out |
+| Zoom icon | Appears after beam; tap opens `<Teleport>` overlay with 1.4× zoom |
+| Photo highlighting | Colored border with `box-shadow` on the corresponding photo area activates when input field is focused |
+| Input fields | Inline form with colored dot, label (`systolicLabel/Sub`), and large numeric input (26px/700) |
+| Field colors | SYS — `#a39bff`, DIA — `#5ecbff`, PUL — `#5effa0` |
+| Buttons | "Cancel" (flex 1, `#15151c`) + "Save" (flex 1.4, `#a39bff` with shadow) |
+| Fallback | Text link "Recognize via server" below buttons |
 
-`MeasurementForm.vue` не використовується на цьому екрані (залишений для Gemini-шляху без змін).
+`MeasurementForm.vue` is not used on this screen (kept for Gemini flow without changes).
 
-Моделі та WASM-файли лежать у `public/` і отримуються без додаткових CORS-заголовків (сумісно з GitHub Pages).
+Models and WASM files are located in `public/` and loaded without extra CORS headers (compatible with GitHub Pages).
 
-| Файл | Розмір |
-|------|--------|
+| File | Size |
+|------|------|
 | `public/models/display_detector_int8.onnx` | 3.2 MB |
 | `public/models/digit_detector_int8.onnx` | 3.2 MB |
 | `public/ort-wasm/ort-wasm.wasm` | 8.8 MB |
 | `public/ort-wasm/ort-wasm-simd.wasm` | 9.6 MB |
 
-## Потік обробки фото (Photo Flow)
+## Photo Processing Flow
 
-При додаванні вимірювання через фото відбувається наступний ланцюжок дій:
+When adding a measurement via photo, the following steps take place:
 
-1. **Отримання зображення:** через камеру (`CameraCapture.vue`) або через Web Share Target (користувач "ділиться" фото з галереї у застосунок).
-2. **Передобробка (`src/utils/image.ts`):** зображення масштабується до **1024px** по довшій стороні, перекодовується в **JPEG з якістю 0.85**, враховується EXIF orientation.
-3. **AI Аналіз:** отриманий стиснений `Blob` надсилається на `/measurements/analyze`. Бекенд проксіює його в Gemini AI для OCR.
-4. **Редагування:** користувач перевіряє розпізнані дані. Оригінальна відповідь Gemini та стиснений `Blob` зберігаються у локальному стані компонента `MeasurementPage.vue` (`lastAnalysis`).
-5. **Збереження:**
-   - Якщо є `lastAnalysis` → виклик `POST /measurements/with-photo` (`multipart/form-data`). Надсилаються фінальні значення, AI-пропозиції та саме фото. **Примітка:** цей потік НЕ використовує офлайн-чергу. Якщо `navigator.onLine === false`, буде показано помилку.
-   - Якщо фото немає (ручне введення) → виклик `POST /measurements` (JSON). Використовується `useOfflineQueue`.
-6. **Очищення:** стан `lastAnalysis` скидається після успішного збереження або скасування.
+1. **Image Acquisition:** via camera (`CameraCapture.vue`) or Web Share Target (user shares photo from gallery to app).
+2. **Preprocessing (`src/utils/image.ts`):** image is resized to **1024px** on the longer side, re-encoded to **JPEG with quality 0.85**, taking EXIF orientation into account.
+3. **AI Analysis:** the compressed `Blob` is sent to `/measurements/analyze`. Backend proxies it to Gemini AI for OCR.
+4. **Editing:** user checks recognized data. Original Gemini response and compressed `Blob` are stored in component state of `MeasurementPage.vue` (`lastAnalysis`).
+5. **Saving:**
+   - If `lastAnalysis` exists → call `POST /measurements/with-photo` (`multipart/form-data`). Final values, AI suggestions, and the photo itself are sent. **Note:** this flow does NOT use offline queue. If `navigator.onLine === false`, an error will be shown.
+   - If no photo (manual entry) → call `POST /measurements` (JSON). Uses `useOfflineQueue`.
+6. **Cleanup:** `lastAnalysis` state is reset after successful save or cancellation.
 
-Файли: `src/composables/useApi.ts`, `src/stores/measurements.ts`, `src/pages/MeasurementPage.vue`, `src/utils/image.ts`.
+Files: `src/composables/useApi.ts`, `src/stores/measurements.ts`, `src/pages/MeasurementPage.vue`, `src/utils/image.ts`.
 
-## Конфігурація
+## Configuration
 
-Базова адреса бекенду налаштовується у `public/config.js`. Завантажується синхронно до Vue bundle, тому зміна не потребує перезбірки:
+Backend base URL is configured in `public/config.js`. Loaded synchronously before Vue bundle, so updating it does not require a rebuild:
 
 ```javascript
 window.CONFIG = {
@@ -225,7 +224,7 @@ window.CONFIG = {
 };
 ```
 
-## Local development
+## Local Development
 
 To run the frontend against a local backend instance:
 
@@ -243,94 +242,94 @@ To run the frontend against a local backend instance:
 `config.local.js` is listed in `.gitignore` and will never be committed.
 The production build is unaffected — `config.local.js` is only injected by the Vite dev server.
 
-## Розробка та збірка
+## Development and Build
 
 ```bash
 npm install
-npm run dev      # dev-сервер
-npm run build    # production збірка → dist/
+npm run dev      # dev server
+npm run build    # production build → dist/
 ```
 
-## Тести
+## Testing
 
 ```bash
-npm run test:run   # одноразовий запуск (CI)
-npm run test       # watch-режим (розробка)
+npm run test:run   # single run (CI)
+npm run test       # watch mode (development)
 ```
 
-Покриті юніт-тестами:
+Covered by unit tests:
 
-| Файл | Що перевіряється |
-|------|-----------------|
-| `bp.test.ts` | `classifyBP`, `NORMAL_CLASSES`, `BP_CLASS_RANGE` (ESC-класифікація) |
-| `useKpi.test.ts` | Медичні агрегати (avg, % в нормі, динаміка) |
-| `useTheme.test.ts` | Переключення теми |
-| `image.test.ts` | Передобробка фото (масштаб, JPEG-стиснення) |
-| `i18n.test.ts` | Паритет ключів uk/en — гарантує відсутність пропущених перекладів |
-| `schemas.test.ts` | `useSchemaStore`: завантаження, створення, активація схеми |
+| File | What is tested |
+|------|----------------|
+| `bp.test.ts` | `classifyBP`, `NORMAL_CLASSES`, `BP_CLASS_RANGE` (ESC classification) |
+| `useKpi.test.ts` | Medical aggregates (avg, % normal, dynamics) |
+| `useTheme.test.ts` | Theme switching |
+| `image.test.ts` | Photo preprocessing (resizing, JPEG compression) |
+| `i18n.test.ts` | Key parity between uk/en — ensures no missing translations |
+| `schemas.test.ts` | `useSchemaStore`: loading, creating, activating schema |
 
-CI (GitHub Actions) запускає тести перед кожним білдом. Скрипт `build` автоматично копіює `dist/index.html` у `dist/404.html` для коректної роботи SPA-роутингу на GitHub Pages.
+CI (GitHub Actions) runs tests before every build. The `build` script automatically copies `dist/index.html` to `dist/404.html` for proper SPA routing on GitHub Pages.
 
-## Класифікація артеріального тиску
+## Blood Pressure Classification
 
-Єдине джерело правди — `src/utils/bp.ts`. Шкала ESC (4 рівні, tie-break = вищий рівень):
+Single source of truth — `src/utils/bp.ts`. ESC scale (4 levels, tie-break = higher level):
 
-| Клас | Систолічний | Діастолічний |
-|------|-------------|--------------|
-| `optimal` | < 120 | І < 80 |
-| `normal`  | 120–139 | АБО 80–89 |
-| `stage1`  | 140–159 | АБО 90–99 |
-| `stage2`  | ≥ 160   | АБО ≥ 100 |
+| Class | Systolic | Diastolic |
+|-------|----------|-----------|
+| `optimal` | < 120 | AND < 80 |
+| `normal`  | 120–139 | OR 80–89 |
+| `stage1`  | 140–159 | OR 90–99 |
+| `stage2`  | ≥ 160   | OR ≥ 100 |
 
-Експорти `bp.ts`:
-- `classifyBP(sys, dia)` — повертає `BpClass`
-- `BP_CLASS_COLOR` / `BP_CLASS_BG` — CSS-токени кольорів для кожного рівня
-- `BP_CLASS_RANGE` — текстові діапазони (`{ sys, dia }`) для відображення в UI (використовується в `BpScaleInfo`)
-- `NORMAL_CLASSES` — `Set(['optimal', 'normal'])`, використовується в `useKpi`
+Exports from `bp.ts`:
+- `classifyBP(sys, dia)` — returns `BpClass`
+- `BP_CLASS_COLOR` / `BP_CLASS_BG` — CSS color tokens for each level
+- `BP_CLASS_RANGE` — text ranges (`{ sys, dia }`) for UI display (used in `BpScaleInfo`)
+- `NORMAL_CLASSES` — `Set(['optimal', 'normal'])`, used in `useKpi`
 
-`useZone.ts` — тонка обгортка: `getZone(sys, dia)` повертає `Zone = { key, color, bg }` з CSS-токенами. Назва зони береться через `useBpLabels` з поточного перекладу — жодних хардкодних рядків у компонентах.
+`useZone.ts` — thin wrapper: `getZone(sys, dia)` returns `Zone = { key, color, bg }` with CSS tokens. Zone label is retrieved via `useBpLabels` from current translation — no hardcoded strings in components.
 
-**Довідка для користувача:** компонент `BpScaleInfo.vue` (Settings → кінець сторінки) показує таблицю рівнів з badge-кольорами, пояснення tie-break та дисклеймер. З головного екрану туди веде кнопка ⓘ біля badge зони на `HeroCard`. Роутер налаштований на smooth-scroll до якоря `#bp-scale-info` з відступом 80px під хедер.
+**User Help:** component `BpScaleInfo.vue` (Settings → bottom of the page) displays a level table with badge colors, tie-break explanation, and disclaimer. A button ⓘ next to zone badge on `HeroCard` links there from Dashboard. Router is configured with smooth scroll to anchor `#bp-scale-info` with 80px offset below header.
 
-## Система тем
+## Theme System
 
-Підтримуються три режими: **Авто** (слідує ОС), **Світла**, **Темна**.
+Three modes are supported: **Auto** (follows OS), **Light**, **Dark**.
 
-| Аспект | Деталь |
+| Aspect | Detail |
 |--------|--------|
-| Зберігання | `localStorage('bptracker:theme')` |
-| Застосування | атрибут `data-theme` на `<html>` |
+| Storage | `localStorage('bptracker:theme')` |
+| Application | `data-theme` attribute on `<html>` |
 | Composable | `src/composables/useTheme.ts` — singleton ref + `setTheme()` + `initTheme()` |
-| UI | Segmented control «Тема» у `SettingsPage.vue` |
-| FOUC | Інлайн-скрипт у `index.html` встановлює `data-theme` до завантаження CSS |
-| Ініціалізація | `initTheme()` викликається у `main.ts` перед `app.mount()` |
+| UI | Segmented control "Theme" in `SettingsPage.vue` |
+| FOUC | Inline script in `index.html` sets `data-theme` before CSS loads |
+| Initialization | `initTheme()` is called in `main.ts` before `app.mount()` |
 
-**CSS-патерн** у `tokens.css`:
+**CSS pattern** in `tokens.css`:
 
 ```css
-:root { /* темна палітра (default) */ }
+:root { /* dark palette (default) */ }
 
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) { /* світла — для auto + OS=light */ }
+  :root:not([data-theme="dark"]) { /* light — for auto + OS=light */ }
 }
 
-:root[data-theme="light"] { /* світла — при ручному виборі */ }
+:root[data-theme="light"] { /* light — manual choice */ }
 ```
 
-Обидва light-блоки синхронізовані (`SYNC`-коментарі). `BpChart.vue` слухає зміни теми через `watch(theme, updateTheme)` на додаток до `matchMedia`-listener (для auto-режиму при зміні ОС-теми).
+Both light blocks are synchronized (`SYNC` comments). `BpChart.vue` listens to theme changes via `watch(theme, updateTheme)` in addition to `matchMedia` listener (for auto mode when OS theme changes).
 
-## Деплой (GitHub Pages)
+## Deployment (GitHub Pages)
 
-При пуші в гілку `main` GitHub Action (`.github/workflows/deploy.yml`) автоматично збирає проект і публікує `dist/` на GitHub Pages.
+On push to `main` branch, GitHub Action (`.github/workflows/deploy.yml`) automatically builds the project and publishes `dist/` to GitHub Pages.
 
-> У Settings → Pages → Source має бути вибрано **GitHub Actions**.
+> In Settings → Pages → Source, select **GitHub Actions**.
 
-## PWA та офлайн режим
+## PWA and Offline Mode
 
-Додаток є повноцінним Progressive Web App:
+The application is a full Progressive Web App:
 
-- **Встановлення** на головний екран (Android/iOS).
-- **SPA-навігація через SW:** Service Worker перехоплює всі navigation requests (`mode === 'navigate'`) і повертає свіжий `index.html`, завдяки чому прямі переходи на `/settings`, `/measurement/new` тощо коректно обслуговуються Vue Router навіть без серверного SPA-fallback.
-- **Кешування:** hashed assets (`/assets/*`) — cache-first (immutable); `index.html` та інші — network-first з cache-fallback для офлайну.
-- **Офлайн-додавання вимірювань:** замір (з або без фото) зберігається в IndexedDB і синхронізується при наступному завантаженні. Ручні вимірювання — `measurements-queue`; з фото (LocalOCR) — `photos-queue` (ліміт 10, TTL 24 год., клієнтський timestamp зберігається).
-- **Web Share Target:** фотографію можна "поділитися" з галереї телефону в додаток для AI-розпізнавання.
+- **Installation** to home screen (Android/iOS).
+- **SPA navigation via SW:** Service Worker intercepts all navigation requests (`mode === 'navigate'`) and returns fresh `index.html`, allowing direct navigation to `/settings`, `/measurement/new`, etc., to work properly with Vue Router even without server SPA fallback.
+- **Caching:** hashed assets (`/assets/*`) — cache-first (immutable); `index.html` and others — network-first with cache fallback for offline.
+- **Offline measurement entry:** measurement (with or without photo) is saved in IndexedDB and synchronized on next load. Manual measurements — `measurements-queue`; with photo (LocalOCR) — `photos-queue` (limit 10, TTL 24 hours, client timestamp saved).
+- **Web Share Target:** photo can be "shared" from phone gallery into app for AI recognition.
