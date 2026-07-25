@@ -225,13 +225,18 @@ Files: `src/composables/useApi.ts`, `src/stores/measurements.ts`, `src/pages/Mea
 
 ## Configuration
 
-Backend base URL is configured in `public/config.js`. Loaded synchronously before Vue bundle, so updating it does not require a rebuild:
+The API base URL is configured at runtime in `public/config.js`, which sets `window.CONFIG.API_BASE_URL`. This file is copied directly to the build output (`dist/config.js`) and is loaded synchronously by `index.html` before the Vue bundle executes. The committed `public/config.js` holds the real API base URL used by the deployed application.
+
+Example `public/config.js`:
 
 ```javascript
 window.CONFIG = {
-    API_BASE_URL: 'https://<your-api-host>/api/v1'
+    API_BASE_URL: 'https://<your-api-host>/api/v1',
+    CHART_DAYS_LIMIT: 30
 };
 ```
+
+In local development, `VITE_API_PROXY_TARGET` (configured in `.env` or `.env.development.local`) sets the proxy target for the Vite dev server (`http://localhost:8000` by default). `VITE_API_PROXY_TARGET` only affects the local dev server and does not affect the deployed production build.
 
 ## Local Development
 
