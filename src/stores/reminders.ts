@@ -19,7 +19,7 @@ export const useReminderStore = defineStore('reminders', () => {
     try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       todayData.value = await api.getTodayReminders(tz);
-    } catch (err) {
+    } catch {
       todayData.value = null;
     }
   }

@@ -52,7 +52,8 @@ const zoomOpen = ref(false);
 
     <!-- Zoom badge (appears after beam) -->
     <div v-if="props.showZoomBadge" class="zoom-badge" aria-hidden="true">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      <svg
+width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="15 3 21 3 21 9" />
         <polyline points="9 21 3 21 3 15" />

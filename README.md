@@ -1,6 +1,15 @@
 # BP Tracker — Frontend (Vue 3 SPA)
+![CI](https://github.com/Alexsik76/bptracker-frontend/actions/workflows/deploy.yml/badge.svg)
 
 Single Page Application for tracking blood pressure. Built with **Vue 3** (Composition API) using **TypeScript** and **Vite**.
+
+## Project status
+
+This web client was built against the earlier C# backend of BP Tracker, which is now archived. It has not been migrated to the current FastAPI backend yet (https://github.com/Alexsik76/bptracker-backend-fastapi). The planned role of this client is a management and analysis panel, not a quick-entry tool. Day-to-day data entry is handled by the Android app: https://github.com/Alexsik76/bptracker-android. There is no public demo: sign-in is limited to an allow-list of addresses, so a visitor would only see the login page. Screenshots below show the interface instead.
+
+## Screenshots
+
+<!-- Screenshot placeholders will be added here -->
 
 ## Backend Integration
 
@@ -220,7 +229,7 @@ Backend base URL is configured in `public/config.js`. Loaded synchronously befor
 
 ```javascript
 window.CONFIG = {
-    API_BASE_URL: 'https://api-bptracker.home.vn.ua/api/v1'
+    API_BASE_URL: 'https://<your-api-host>/api/v1'
 };
 ```
 

@@ -108,7 +108,7 @@ async function handleLogout() {
       </svg>
     </button>
     <header class="back-header">
-      <button class="back-btn" @click="router.back()" :aria-label="$t('common.back')">
+      <button class="back-btn" :aria-label="$t('common.back')" @click="router.back()">
         <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#e8eaee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12.5 4 L6 10 L12.5 16"></path>
         </svg>
@@ -237,7 +237,7 @@ async function handleLogout() {
                 <span class="toggle-title">{{ $t('settings.params.sendPhotos') }}</span>
                 <span class="toggle-hint">{{ $t('settings.params.sendPhotosHint') }}</span>
               </span>
-              <input type="checkbox" v-model="form.sendPhotos" class="toggle-input" />
+              <input v-model="form.sendPhotos" type="checkbox" class="toggle-input" />
             </label>
           </div>
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 
-const props = defineProps<{
+defineProps<{
   modelValue: number; // 0 = Dashboard, 1 = Schedule
   hasMissedIntakes: boolean;
 }>();

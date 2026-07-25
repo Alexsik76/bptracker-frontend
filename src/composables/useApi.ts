@@ -26,17 +26,17 @@ declare global {
   }
 }
 
-const FALLBACK_API_URL = 'https://api-bptracker.home.vn.ua/api/v1';
+const FALLBACK_API_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 const DEV_PROXY_URL = '/api/v1';
 
 function resolveApiBaseUrl(): string {
   if (import.meta.env.DEV) return DEV_PROXY_URL;
   const raw = window.CONFIG?.API_BASE_URL;
-  if (!raw) return FALLBACK_API_URL;
+  if (!raw || raw.includes('<your-api-host>')) return FALLBACK_API_URL;
   try {
-    const url = new URL(raw);
-    if (url.protocol !== 'https:') {
-      console.warn('[API] API_BASE_URL must use https — falling back to default');
+    const url = new URL(raw, window.location.origin);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      console.warn('[API] API_BASE_URL must use http/https — falling back to default');
       return FALLBACK_API_URL;
     }
     return raw;

@@ -42,7 +42,7 @@ function goBack() {
   <div class="history-page">
     <!-- Header with circular back button and records count -->
     <header class="back-header">
-      <button class="back-btn" @click="goBack" :aria-label="$t('common.back')">
+      <button class="back-btn" :aria-label="$t('common.back')" @click="goBack">
         <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#e8eaee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12.5 4 L6 10 L12.5 16"></path>
         </svg>

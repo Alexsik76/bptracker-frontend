@@ -193,7 +193,8 @@ onBeforeUnmount(() => { if (beamRaf !== null) cancelAnimationFrame(beamRaf); });
     <template v-else-if="step === 'review'">
       <header class="rev-header">
         <button class="rev-back" :aria-label="$t('common.back')" @click="retryCamera">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          <svg
+width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
@@ -229,7 +230,8 @@ onBeforeUnmount(() => { if (beamRaf !== null) cancelAnimationFrame(beamRaf); });
     <template v-else-if="step === 'error'">
       <header class="header">
         <button class="back-btn" @click="retryCamera">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          <svg
+width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
           </svg>
@@ -238,7 +240,8 @@ onBeforeUnmount(() => { if (beamRaf !== null) cancelAnimationFrame(beamRaf); });
       </header>
       <div class="content">
         <div class="error-card">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          <svg
+width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="1.5" opacity="0.5">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="8" x2="12" y2="12" />

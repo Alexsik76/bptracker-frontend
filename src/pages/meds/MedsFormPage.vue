@@ -144,6 +144,7 @@ async function handleSave() {
     }
     router.replace('/meds');
   } catch (err) {
+    console.error('[MedsForm] Failed to save treatment schema:', err);
   } finally {
     saving.value = false;
   }
