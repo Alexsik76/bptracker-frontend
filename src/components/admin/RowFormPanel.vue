@@ -6,9 +6,9 @@ import { ApiError } from '../../services/api';
 import {
   toDatetimeLocal,
   fromDatetimeLocal,
-  formatLocalDateTimeWithOffset,
-  getBrowserUtcOffset,
 } from '../../utils/datetime';
+import ConfirmDialog from '../ui/ConfirmDialog.vue';
+import FieldInput from './FieldInput.vue';
 
 const props = defineProps<{
   table: TableMetadata;
@@ -43,13 +43,11 @@ const showUnsavedDialog = ref(false);
 const showDeleteConfirm = ref(false);
 const copiedPk = ref(false);
 
-const browserUtcOffset = computed(() => getBrowserUtcOffset());
-
 // Primary key display
 const pkDisplay = computed(() => {
-  if (isCreate.value) return 'Новий запис';
+  if (isCreate.value) return 'New record';
   const parts = props.table.primary_key.map((k) => `${props.row?.[k] ?? ''}`);
-  return parts.join(' · ') || 'Запис';
+  return parts.join(' · ') || 'Record';
 });
 
 function initForm() {
@@ -143,12 +141,6 @@ function handleNullToggle(colName: string) {
   }
 }
 
-function parseFk(fkStr: string | null): { table: string; column: string } | null {
-  if (!fkStr) return null;
-  const parts = fkStr.split('.');
-  return { table: parts[0], column: parts[1] || 'id' };
-}
-
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text).then(() => {
     copiedPk.value = true;
@@ -178,7 +170,7 @@ function buildValueForColumn(col: ColumnMetadata): unknown {
       return JSON.parse(raw);
     } catch (e: unknown) {
       const err = e as Error;
-      throw new Error(`Поле «${col.name}»: некоректний JSON (${err.message})`);
+      throw new Error(`Field "${col.name}": invalid JSON (${err.message})`);
     }
   }
 
@@ -188,7 +180,7 @@ function buildValueForColumn(col: ColumnMetadata): unknown {
       return col.nullable ? null : 0;
     }
     const parsed = parseInt(String(v), 10);
-    if (isNaN(parsed)) throw new Error(`Поле «${col.name}»: очікується ціле число`);
+    if (isNaN(parsed)) throw new Error(`Field "${col.name}": integer expected`);
     return parsed;
   }
 
@@ -198,7 +190,7 @@ function buildValueForColumn(col: ColumnMetadata): unknown {
       return col.nullable ? null : 0;
     }
     const parsed = parseFloat(String(v));
-    if (isNaN(parsed)) throw new Error(`Поле «${col.name}»: очікується число`);
+    if (isNaN(parsed)) throw new Error(`Field "${col.name}": number expected`);
     return parsed;
   }
 
@@ -342,14 +334,14 @@ async function handleSave() {
     console.error('Save error:', err);
     if (err instanceof ApiError) {
       if (err.status === 409) {
-        formError.value = `Конфлікт даних (409): ${err.message || 'порушення обмеження унікальності або зовнішнього ключа'}`;
+        formError.value = `Conflict (409): ${err.message || 'unique or foreign key constraint violation'}`;
       } else {
-        formError.value = `Помилка сервера (${err.status}): ${err.message}`;
+        formError.value = `Server error (${err.status}): ${err.message}`;
       }
     } else if (err instanceof Error) {
       formError.value = err.message;
     } else {
-      formError.value = 'Невідома помилка під час збереження';
+      formError.value = 'Unknown error while saving';
     }
   } finally {
     saving.value = false;
@@ -375,14 +367,14 @@ async function handleDelete() {
     showDeleteConfirm.value = false;
     if (err instanceof ApiError) {
       if (err.status === 409) {
-        formError.value = `Конфлікт даних (409): неможливо вилучити запис через зв'язані дані (${err.message})`;
+        formError.value = `Conflict (409): cannot delete record due to related data (${err.message})`;
       } else {
-        formError.value = `Помилка сервера (${err.status}): ${err.message}`;
+        formError.value = `Server error (${err.status}): ${err.message}`;
       }
     } else if (err instanceof Error) {
       formError.value = err.message;
     } else {
-      formError.value = 'Невідома помилка під час вилучення';
+      formError.value = 'Unknown error while deleting';
     }
   } finally {
     deleting.value = false;
@@ -405,7 +397,7 @@ async function handleDelete() {
       <!-- Header -->
       <div class="sheet-header">
         <div class="header-titles">
-          <div class="label">{{ table.name }} · {{ isCreate ? 'новий запис' : 'редагування' }}</div>
+          <div class="label">{{ table.name }} · {{ isCreate ? 'new record' : 'edit' }}</div>
           <h2 id="sheet-title" class="sheet-title mono">{{ pkDisplay }}</h2>
         </div>
 
@@ -413,8 +405,8 @@ async function handleDelete() {
           v-if="!isCreate"
           type="button"
           class="btn btn-icon btn-sm"
-          :title="copiedPk ? 'Скопійовано!' : 'Копіювати ідентифікатор'"
-          aria-label="Копіювати ідентифікатор"
+          :title="copiedPk ? 'Copied!' : 'Copy identifier'"
+          aria-label="Copy identifier"
           @click="copyToClipboard(pkDisplay)"
         >
           <svg class="i i-s" viewBox="0 0 24 24" aria-hidden="true">
@@ -426,7 +418,7 @@ async function handleDelete() {
         <button
           type="button"
           class="btn btn-icon btn-sm"
-          aria-label="Закрити панель"
+          aria-label="Close panel"
           @click="requestClose"
         >
           <svg class="i i-s" viewBox="0 0 24 24" aria-hidden="true">
@@ -447,164 +439,20 @@ async function handleDelete() {
 
       <!-- Form Content -->
       <form class="sheet-form" @submit.prevent="handleSave">
-        <div
+        <FieldInput
           v-for="col in table.columns"
           :key="col.name"
-          class="field"
-        >
-          <div class="field-header">
-            <label class="label" :for="'field-' + col.name">
-              <span>{{ col.name }}</span>
-              <span v-if="col.read_only" class="badge b-ro">лише для читання</span>
-            </label>
-
-            <!-- Nullable toggle -->
-            <label v-if="col.nullable && !col.read_only" class="null-toggle">
-              <input
-                type="checkbox"
-                class="check"
-                v-model="isNullMap[col.name]"
-                @change="handleNullToggle(col.name)"
-              />
-              <span class="null-hint muted">порожнє</span>
-            </label>
-          </div>
-
-          <!-- Boolean switch -->
-          <div
-            v-if="col.type === 'boolean'"
-            class="switch-row"
-          >
-            <span class="switch-label mono">{{ col.name }}</span>
-            <div class="switch-control-wrap">
-              <span class="switch-state muted mono">
-                {{ isNullMap[col.name] ? 'null' : formValues[col.name] ? 'true' : 'false' }}
-              </span>
-              <button
-                type="button"
-                class="switch"
-                role="switch"
-                :aria-checked="Boolean(formValues[col.name])"
-                :disabled="col.read_only || Boolean(isNullMap[col.name])"
-                @click="formValues[col.name] = !formValues[col.name]"
-              ></button>
-            </div>
-          </div>
-
-          <!-- Datetime input -->
-          <div v-else-if="col.type === 'datetime'" class="input-wrap">
-            <input
-              :id="'field-' + col.name"
-              type="datetime-local"
-              class="input mono"
-              v-model="datetimeLocalMap[col.name]"
-              :disabled="col.read_only || Boolean(isNullMap[col.name])"
-              :readonly="col.read_only"
-            />
-            <div class="helper-text muted mono">
-              <span v-if="isNullMap[col.name]">порожнє (null)</span>
-              <span v-else-if="!isCreate && initialValues[col.name]">
-                Сервер: {{ formatLocalDateTimeWithOffset(String(initialValues[col.name])) }}
-              </span>
-              <span v-else>
-                Місцевий час з UTC-зсувом ({{ browserUtcOffset }})
-              </span>
-            </div>
-          </div>
-
-          <!-- Date input -->
-          <div v-else-if="col.type === 'date'" class="input-wrap">
-            <input
-              :id="'field-' + col.name"
-              type="date"
-              class="input mono"
-              v-model="(formValues[col.name] as string)"
-              :disabled="col.read_only || Boolean(isNullMap[col.name])"
-              :readonly="col.read_only"
-            />
-          </div>
-
-          <!-- JSON textarea -->
-          <div v-else-if="col.type === 'json'" class="input-wrap">
-            <textarea
-              :id="'field-' + col.name"
-              class="input mono"
-              rows="5"
-              v-model="jsonStringMap[col.name]"
-              placeholder="{}"
-              :disabled="col.read_only || Boolean(isNullMap[col.name])"
-              :readonly="col.read_only"
-            ></textarea>
-          </div>
-
-          <!-- Long text textarea -->
-          <div v-else-if="col.type === 'text'" class="input-wrap">
-            <textarea
-              :id="'field-' + col.name"
-              class="input"
-              rows="3"
-              v-model="(formValues[col.name] as string)"
-              :disabled="col.read_only || Boolean(isNullMap[col.name])"
-              :readonly="col.read_only"
-            ></textarea>
-          </div>
-
-          <!-- Enum select -->
-          <div v-else-if="col.type === 'enum'" class="input-wrap">
-            <select
-              :id="'field-' + col.name"
-              class="input select"
-              v-model="formValues[col.name]"
-              :disabled="col.read_only || Boolean(isNullMap[col.name])"
-            >
-              <option v-for="opt in col.enum_values || []" :key="opt" :value="opt">
-                {{ opt }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Number / Integer input -->
-          <div v-else-if="col.type === 'integer' || col.type === 'number'" class="input-wrap">
-            <input
-              :id="'field-' + col.name"
-              type="number"
-              :step="col.type === 'integer' ? '1' : 'any'"
-              class="input mono"
-              v-model="formValues[col.name]"
-              :disabled="col.read_only || Boolean(isNullMap[col.name])"
-              :readonly="col.read_only"
-            />
-          </div>
-
-          <!-- Default: string or uuid text input -->
-          <div v-else class="input-wrap">
-            <input
-              :id="'field-' + col.name"
-              type="text"
-              :class="['input', { mono: col.type === 'uuid' || col.name === 'id' }]"
-              v-model="(formValues[col.name] as string)"
-              :disabled="col.read_only || Boolean(isNullMap[col.name])"
-              :readonly="col.read_only"
-            />
-          </div>
-
-          <!-- Foreign key raw id and link -->
-          <div v-if="col.foreign_key" class="fk-link-row">
-            <template v-if="parseFk(col.foreign_key)">
-              <router-link
-                v-if="formValues[col.name] !== null && formValues[col.name] !== undefined && formValues[col.name] !== ''"
-                :to="{
-                  path: `/tables/${parseFk(col.foreign_key)?.table}`,
-                  query: { filter: `${parseFk(col.foreign_key)?.column}:${formValues[col.name]}` },
-                }"
-                class="badge b-link"
-                @click="emit('close')"
-              >
-                <span>Перейти до {{ parseFk(col.foreign_key)?.table }} ({{ formValues[col.name] }}) →</span>
-              </router-link>
-            </template>
-          </div>
-        </div>
+          :column="col"
+          v-model="formValues[col.name]"
+          v-model:is-null="isNullMap[col.name]"
+          v-model:datetime-local="datetimeLocalMap[col.name]"
+          v-model:json-string="jsonStringMap[col.name]"
+          :is-create="isCreate"
+          :initial-value="initialValues[col.name]"
+          :disabled="saving || deleting"
+          @null-toggle="handleNullToggle(col.name)"
+          @close-panel="emit('close')"
+        />
       </form>
 
       <!-- Footer -->
@@ -619,7 +467,7 @@ async function handleDelete() {
           <svg class="i i-s" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
           </svg>
-          <span>Вилучити</span>
+          <span>Delete</span>
         </button>
 
         <span class="sheet-footer-spacer"></span>
@@ -630,7 +478,7 @@ async function handleDelete() {
           :disabled="saving || deleting"
           @click="requestClose"
         >
-          Скасувати
+          Cancel
         </button>
 
         <button
@@ -640,64 +488,37 @@ async function handleDelete() {
           :disabled="saving || deleting"
           @click="handleSave"
         >
-          <span>{{ saving ? 'Збереження...' : isCreate ? 'Створити' : 'Зберегти' }}</span>
+          <span>{{ saving ? 'Saving...' : isCreate ? 'Create' : 'Save' }}</span>
         </button>
       </div>
     </aside>
 
     <!-- Confirmation Dialog: Unsaved Changes -->
-    <div v-if="showUnsavedDialog" class="dialog-backdrop">
-      <div class="dialog card" role="alertdialog" aria-labelledby="unsaved-title">
-        <h3 id="unsaved-title" class="dialog-title">Незбережені зміни</h3>
-        <p class="dialog-desc muted">
-          У формі є незбережені зміни. Якщо ви закриєте панель, всі внесені зміни буде втрачено.
-        </p>
-        <div class="dialog-actions">
-          <button
-            type="button"
-            class="btn btn-outlined btn-sm"
-            @click="showUnsavedDialog = false"
-          >
-            Продовжити редагування
-          </button>
-          <button
-            type="button"
-            class="btn btn-danger btn-sm"
-            @click="confirmDiscardChanges"
-          >
-            Відкинути зміни і закрити
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmDialog
+      :is-open="showUnsavedDialog"
+      title="Unsaved Changes"
+      confirm-text="Discard changes and close"
+      cancel-text="Continue editing"
+      confirm-danger
+      @confirm="confirmDiscardChanges"
+      @cancel="showUnsavedDialog = false"
+    >
+      You have unsaved changes. If you close the panel, all changes will be lost.
+    </ConfirmDialog>
 
     <!-- Confirmation Dialog: Delete Row -->
-    <div v-if="showDeleteConfirm" class="dialog-backdrop">
-      <div class="dialog card" role="alertdialog" aria-labelledby="delete-title">
-        <h3 id="delete-title" class="dialog-title">Вилучити запис?</h3>
-        <p class="dialog-desc muted">
-          Ви дійсно бажаєте вилучити запис <strong class="mono dialog-strong">{{ pkDisplay }}</strong> з таблиці «{{ table.name }}»? Цю дію неможливо скасувати.
-        </p>
-        <div class="dialog-actions">
-          <button
-            type="button"
-            class="btn btn-outlined btn-sm"
-            :disabled="deleting"
-            @click="showDeleteConfirm = false"
-          >
-            Скасувати
-          </button>
-          <button
-            type="button"
-            class="btn btn-danger btn-sm"
-            :disabled="deleting"
-            @click="handleDelete"
-          >
-            {{ deleting ? 'Вилучення...' : 'Так, вилучити' }}
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmDialog
+      :is-open="showDeleteConfirm"
+      title="Delete record?"
+      :confirm-text="deleting ? 'Deleting...' : 'Yes, delete'"
+      cancel-text="Cancel"
+      confirm-danger
+      :loading="deleting"
+      @confirm="handleDelete"
+      @cancel="showDeleteConfirm = false"
+    >
+      Are you sure you want to delete record <strong class="mono dialog-strong">{{ pkDisplay }}</strong> from table "{{ table.name }}"? This action cannot be undone.
+    </ConfirmDialog>
   </div>
 </template>
 
@@ -770,64 +591,6 @@ async function handleDelete() {
   gap: var(--bpt-sp-4);
 }
 
-.field-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--bpt-sp-2);
-}
-
-.null-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.null-hint {
-  font-size: var(--bpt-fs-label);
-}
-
-.switch-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--bpt-sp-3);
-  padding: var(--bpt-sp-3) var(--bpt-sp-4);
-  border-radius: var(--bpt-radius-container);
-  background: var(--md-sys-color-surface-container-highest);
-}
-
-.switch-label {
-  font-weight: 500;
-  font-size: var(--bpt-fs-body);
-}
-
-.switch-control-wrap {
-  display: flex;
-  align-items: center;
-  gap: var(--bpt-sp-2);
-}
-
-.switch-state {
-  font-size: var(--bpt-fs-label);
-}
-
-.input-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.helper-text {
-  font-size: var(--bpt-fs-label);
-}
-
-.fk-link-row {
-  margin-top: 2px;
-}
-
 .sheet-footer {
   display: flex;
   gap: var(--bpt-sp-2);
@@ -840,52 +603,6 @@ async function handleDelete() {
 
 .sheet-footer-spacer {
   flex: 1;
-}
-
-/* Confirmation Dialog */
-.dialog-backdrop {
-  position: fixed;
-  inset: 0;
-  background: var(--bpt-scrim);
-  display: grid;
-  place-items: center;
-  padding: var(--bpt-sp-4);
-  z-index: var(--bpt-z-dialog);
-}
-
-.dialog {
-  width: 100%;
-  max-width: 420px;
-  background: var(--md-sys-color-surface-container-high);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  padding: var(--bpt-sp-6);
-  box-shadow: var(--bpt-shadow-overlay);
-  display: flex;
-  flex-direction: column;
-  gap: var(--bpt-sp-3);
-}
-
-.dialog-title {
-  font-size: var(--bpt-fs-title);
-  line-height: var(--bpt-lh-title);
-  font-weight: 600;
-  color: var(--md-sys-color-on-surface);
-}
-
-.dialog-desc {
-  font-size: var(--bpt-fs-body);
-  line-height: var(--bpt-lh-body);
-}
-
-.dialog-strong {
-  color: var(--md-sys-color-on-surface);
-}
-
-.dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--bpt-sp-2);
-  margin-top: var(--bpt-sp-3);
 }
 
 @keyframes fadeIn {

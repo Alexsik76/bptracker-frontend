@@ -55,7 +55,7 @@ export const useAuthStore = defineStore('auth', () => {
         setStoredRefreshToken(null);
         error.value = null;
       } else {
-        error.value = "Немає з'єднання з сервером";
+        error.value = 'No connection to server';
       }
       return false;
     }
@@ -79,7 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
       return me;
     } catch (err: unknown) {
       status.value = 'anonymous';
-      const msg = err instanceof Error ? err.message : 'Помилка входу ключем доступу';
+      const msg = err instanceof Error ? err.message : 'Passkey sign-in failed';
       error.value = msg;
       throw err;
     }
@@ -110,7 +110,7 @@ export const useAuthStore = defineStore('auth', () => {
       return me;
     } catch (err: unknown) {
       status.value = 'anonymous';
-      const msg = err instanceof Error ? err.message : 'Недійсне або прострочене посилання для входу';
+      const msg = err instanceof Error ? err.message : 'Invalid or expired login link';
       error.value = msg;
       throw err;
     }

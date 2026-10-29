@@ -23,7 +23,7 @@ export interface ColumnMetadata {
 
 export interface TableMetadata {
   name: string;
-  label: string;
+  module?: string;
   primary_key: string[];
   columns: ColumnMetadata[];
   can_create: boolean;

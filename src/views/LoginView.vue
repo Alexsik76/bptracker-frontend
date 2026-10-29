@@ -31,7 +31,7 @@ async function handlePasskeyLogin() {
   } catch (err: unknown) {
     console.error('Passkey login error:', err);
     errorMessage.value =
-      err instanceof Error ? err.message : 'Не вдалося увійти ключем доступу';
+      err instanceof Error ? err.message : 'Failed to sign in with passkey';
   } finally {
     loadingPasskey.value = false;
   }
@@ -39,7 +39,7 @@ async function handlePasskeyLogin() {
 
 async function handleMagicLinkRequest() {
   if (!email.value || !email.value.includes('@')) {
-    errorMessage.value = 'Введіть коректну адресу електронної пошти';
+    errorMessage.value = 'Enter a valid email address';
     return;
   }
 
@@ -52,7 +52,7 @@ async function handleMagicLinkRequest() {
   } catch (err: unknown) {
     console.error('Magic link request error:', err);
     errorMessage.value =
-      err instanceof Error ? err.message : 'Не вдалося надіслати посилання для входу';
+      err instanceof Error ? err.message : 'Failed to send login link';
   } finally {
     loadingMagicLink.value = false;
   }
@@ -77,7 +77,7 @@ onMounted(async () => {
     } catch (err: unknown) {
       console.error('Magic link confirmation error:', err);
       errorMessage.value =
-        err instanceof Error ? err.message : 'Недійсне або прострочене посилання для входу';
+        err instanceof Error ? err.message : 'Invalid or expired login link';
     } finally {
       loadingMagicLink.value = false;
     }
@@ -90,8 +90,8 @@ onMounted(async () => {
     <div class="login-card">
       <div class="header-section">
         <div class="brand-badge">BP Tracker</div>
-        <h1 class="page-title">Панель адміністратора</h1>
-        <p class="page-subtitle">Вхід до системи керування</p>
+        <h1 class="page-title">Admin Panel</h1>
+        <p class="page-subtitle">Sign in to management panel</p>
       </div>
 
       <div v-if="authStore.error || errorMessage" class="error-banner" role="alert">
@@ -109,7 +109,7 @@ onMounted(async () => {
             :disabled="authStore.status === 'loading'"
             @click="handleRetryInit"
           >
-            {{ authStore.status === 'loading' ? 'Перевірка...' : 'Повторити' }}
+            {{ authStore.status === 'loading' ? 'Checking...' : 'Retry' }}
           </button>
         </div>
       </div>
@@ -125,19 +125,19 @@ onMounted(async () => {
           <svg class="i" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M21 2l-2 2m-1-1l-3 3m1 1l-2 2m-2-2l-1 1m-1-1l-2 2M3 21l3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78z" />
           </svg>
-          <span>{{ loadingPasskey ? 'Авторизація...' : 'Увійти ключем доступу' }}</span>
+          <span>{{ loadingPasskey ? 'Signing in...' : 'Sign in with passkey' }}</span>
         </button>
       </div>
 
       <div class="divider">
-        <span class="divider-text">або за посиланням</span>
+        <span class="divider-text">or with magic link</span>
       </div>
 
       <!-- Magic link login -->
       <div v-if="!magicLinkSent" class="section">
         <form @submit.prevent="handleMagicLinkRequest">
           <div class="field email-field">
-            <label class="label" for="email">Електронна пошта</label>
+            <label class="label" for="email">Email</label>
             <input
               id="email"
               v-model="email"
@@ -154,7 +154,7 @@ onMounted(async () => {
             class="btn btn-outlined btn-full"
             :disabled="loadingPasskey || loadingMagicLink"
           >
-            {{ loadingMagicLink ? 'Надсилання...' : 'Отримати посилання для входу' }}
+            {{ loadingMagicLink ? 'Sending...' : 'Send magic link' }}
           </button>
         </form>
       </div>
@@ -166,16 +166,16 @@ onMounted(async () => {
             <polyline points="22,6 12,13 2,6" />
           </svg>
         </div>
-        <h3 class="magic-sent-title">Перевірте пошту</h3>
+        <h3 class="magic-sent-title">Check your email</h3>
         <p class="magic-sent-desc">
-          Посилання для входу надіслано на <strong class="mono">{{ email }}</strong>. Перейдіть за ним для авторизації.
+          A sign-in link has been sent to <strong class="mono">{{ email }}</strong>. Follow the link to authenticate.
         </p>
         <button
           type="button"
           class="btn btn-outlined btn-sm"
           @click="magicLinkSent = false"
         >
-          Надіслати іншу адресу
+          Use a different email
         </button>
       </div>
     </div>
