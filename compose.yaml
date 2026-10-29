@@ -1,0 +1,10 @@
+services:
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      API_URL: ${API_URL:-https://api2-bptracker-dev.home.vn.ua}
+    ports:
+      - "${ADMIN_PORT:-8095}:80"
+    restart: unless-stopped

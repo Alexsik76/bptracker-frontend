@@ -1,96 +1,144 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import type { User } from '../types/api';
-import { useApi } from '../composables/useApi';
+import { ref, computed } from 'vue';
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
-import { useMeasurementStore } from './measurements';
-import { useSettingsStore } from './settings';
-
-const DEV_BYPASS = import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_AUTH === 'true';
-const DEV_USER: User = { id: 'dev-bypass', email: 'dev@localhost' };
+import type { User } from '../types/auth';
+import {
+  authApi,
+  getStoredRefreshToken,
+  setAccessToken,
+  setStoredRefreshToken,
+  setOnUnauthorized,
+  broadcastLogout,
+  broadcastTokenRefreshed,
+} from '../services/api';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
   const status = ref<'idle' | 'loading' | 'authenticated' | 'anonymous'>('idle');
-  const api = useApi();
+  const error = ref<string | null>(null);
 
-  async function checkSession() {
-    if (DEV_BYPASS) {
-      user.value = DEV_USER;
-      status.value = 'authenticated';
-      return user.value;
-    }
-    status.value = 'loading';
-    const data = await api.checkMe();
-    if (data) {
-      user.value = data;
-      status.value = 'authenticated';
-    } else {
-      user.value = null;
-      status.value = 'anonymous';
-    }
-    return user.value;
-  }
+  const isAuthenticated = computed(() => status.value === 'authenticated' && user.value !== null);
+  const isAdmin = computed(() => Boolean(user.value?.is_admin));
 
-  async function loginPasskey() {
-    if (DEV_BYPASS) return checkSession();
-    try {
-      const options = await api.loginPasskeyBegin();
-      const assertion = await startAuthentication(options);
-      await api.loginPasskeyComplete(assertion);
-      return await checkSession();
-    } catch (err) {
-      console.error('Passkey login failed:', err);
-      throw err;
-    }
-  }
-
-  async function registerPasskey(email: string) {
-    if (DEV_BYPASS) return checkSession();
-    try {
-      const options = await api.registerPasskeyBegin(email);
-      const attestation = await startRegistration(options);
-      await api.registerPasskeyComplete(attestation);
-      return await checkSession();
-    } catch (err) {
-      console.error('Passkey registration failed:', err);
-      throw err;
-    }
-  }
-
-  async function requestMagicLink(email: string) {
-    if (DEV_BYPASS) return checkSession().then(() => true);
-    return await api.requestMagicLink(email);
-  }
-
-  async function consumeMagicLink(token: string) {
-    await api.consumeMagicLink(token);
-    return await checkSession();
-  }
-
-  // Clears all user state without making an API call.
-  // Used both by logout() and by the api:unauthorized handler (expired session).
-  function clearSession() {
-    useMeasurementStore().reset();
-    useSettingsStore().reset();
+  setOnUnauthorized(() => {
     user.value = null;
     status.value = 'anonymous';
+    setAccessToken(null);
+    setStoredRefreshToken(null);
+  });
+
+  async function initAuth(): Promise<boolean> {
+    const refreshToken = getStoredRefreshToken();
+    if (!refreshToken) {
+      status.value = 'anonymous';
+      return false;
+    }
+
+    status.value = 'loading';
+    error.value = null;
+    try {
+      const me = await authApi.getMe();
+      user.value = me;
+      status.value = 'authenticated';
+      return true;
+    } catch {
+      user.value = null;
+      status.value = 'anonymous';
+      setAccessToken(null);
+      setStoredRefreshToken(null);
+      return false;
+    }
   }
 
-  async function logout() {
-    await api.logout();
-    clearSession();
+  async function loginPasskey(): Promise<User> {
+    status.value = 'loading';
+    error.value = null;
+    try {
+      const options = await authApi.getPasskeyOptions();
+      const assertion = await startAuthentication({ optionsJSON: options });
+      const tokenResp = await authApi.verifyPasskey(assertion);
+
+      setAccessToken(tokenResp.access_token);
+      setStoredRefreshToken(tokenResp.refresh_token);
+      broadcastTokenRefreshed(tokenResp.access_token);
+
+      const me = await authApi.getMe();
+      user.value = me;
+      status.value = 'authenticated';
+      return me;
+    } catch (err: unknown) {
+      status.value = 'anonymous';
+      const msg = err instanceof Error ? err.message : 'Помилка входу ключем доступу';
+      error.value = msg;
+      throw err;
+    }
+  }
+
+  async function requestMagicLink(email: string): Promise<string> {
+    error.value = null;
+    const loginUrl = `${window.location.origin}/login`;
+    const res = await authApi.requestMagicLink({
+      email,
+      login_url: loginUrl,
+    });
+    return res.detail;
+  }
+
+  async function confirmMagicLink(token: string): Promise<User> {
+    status.value = 'loading';
+    error.value = null;
+    try {
+      const tokenResp = await authApi.confirmMagicLink({ token });
+      setAccessToken(tokenResp.access_token);
+      setStoredRefreshToken(tokenResp.refresh_token);
+      broadcastTokenRefreshed(tokenResp.access_token);
+
+      const me = await authApi.getMe();
+      user.value = me;
+      status.value = 'authenticated';
+      return me;
+    } catch (err: unknown) {
+      status.value = 'anonymous';
+      const msg = err instanceof Error ? err.message : 'Недійсне або прострочене посилання для входу';
+      error.value = msg;
+      throw err;
+    }
+  }
+
+  async function registerPasskey(): Promise<void> {
+    const options = await authApi.getRegisterPasskeyOptions();
+    const attestation = await startRegistration({ optionsJSON: options });
+    await authApi.verifyRegisterPasskey(attestation);
+  }
+
+  async function logout(): Promise<void> {
+    const refreshToken = getStoredRefreshToken();
+    if (refreshToken) {
+      try {
+        await authApi.logout(refreshToken);
+      } catch (err) {
+        console.warn('Logout request failed:', err);
+      }
+    }
+
+    user.value = null;
+    status.value = 'anonymous';
+    setAccessToken(null);
+    setStoredRefreshToken(null);
+    broadcastLogout();
   }
 
   return {
     user,
     status,
-    checkSession,
+    error,
+    isAuthenticated,
+    isAdmin,
+    initAuth,
     loginPasskey,
-    registerPasskey,
     requestMagicLink,
-    consumeMagicLink,
+    confirmMagicLink,
+    registerPasskey,
     logout,
-    clearSession,
   };
 });

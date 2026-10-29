@@ -1,4 +1,3 @@
-window.CONFIG = {
-    API_BASE_URL: 'https://api-bptracker.home.vn.ua/api/v1',
-    CHART_DAYS_LIMIT: 30
+window.__APP_CONFIG__ = {
+  apiUrl: 'https://api2-bptracker-dev.home.vn.ua',
 };
