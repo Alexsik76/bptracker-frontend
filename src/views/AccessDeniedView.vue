@@ -15,9 +15,9 @@ async function handleLogout() {
   <div class="forbidden-page">
     <div class="forbidden-card">
       <div class="icon-wrap">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+        <svg class="i forbidden-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
         </svg>
       </div>
 
@@ -27,11 +27,11 @@ async function handleLogout() {
       </p>
 
       <div class="actions">
-        <button type="button" class="btn btn-outline btn-full" @click="handleLogout">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
+        <button type="button" class="btn btn-outlined btn-full" @click="handleLogout">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
           <span>Вийти</span>
         </button>
@@ -46,19 +46,19 @@ async function handleLogout() {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: var(--space-20);
-  background-color: var(--bg-primary);
+  padding: var(--bpt-sp-5);
+  background-color: var(--md-sys-color-surface);
 }
 
 .forbidden-card {
   width: 100%;
   max-width: 440px;
-  background: var(--surface);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-card);
-  padding: var(--space-32) var(--space-24);
+  background: var(--md-sys-color-surface-container-low);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--bpt-radius-card);
+  padding: var(--bpt-sp-8) var(--bpt-sp-6);
   text-align: center;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--bpt-shadow-overlay);
 }
 
 .icon-wrap {
@@ -68,27 +68,37 @@ async function handleLogout() {
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: var(--danger-bg-chip);
-  color: var(--danger);
-  margin-bottom: var(--space-20);
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+  margin-bottom: var(--bpt-sp-5);
+}
+
+.forbidden-icon-svg {
+  width: var(--bpt-h-control-sm);
+  height: var(--bpt-h-control-sm);
 }
 
 .title {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: var(--space-12);
+  font-size: var(--bpt-fs-title-page);
+  line-height: var(--bpt-lh-title-page);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  margin-bottom: var(--bpt-sp-3);
 }
 
 .subtitle {
-  font-size: 14px;
-  color: var(--text-muted);
-  line-height: 1.5;
-  margin-bottom: var(--space-28);
+  font-size: var(--bpt-fs-body);
+  color: var(--md-sys-color-on-surface-variant);
+  line-height: var(--bpt-lh-body);
+  margin-bottom: var(--bpt-sp-6);
 }
 
 .actions {
   display: flex;
   justify-content: center;
+}
+
+.btn-full {
+  width: 100%;
 }
 </style>

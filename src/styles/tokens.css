@@ -1,0 +1,131 @@
+/* =====================================================================
+   BP Tracker admin panel — design tokens (dark theme)
+   Color system: Material Design 3, scheme TonalSpot, seed #4f6f95
+   Generated with @material/material-color-utilities 0.3.0
+   Spec: docs/design/DESIGN.md
+   ===================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* ---------- MD3 color roles ---------- */
+  --md-sys-color-primary: #a1cafd;
+  --md-sys-color-on-primary: #003259;
+  --md-sys-color-primary-container: #1a4975;
+  --md-sys-color-on-primary-container: #d2e4ff;
+
+  --md-sys-color-secondary: #bbc7db;
+  --md-sys-color-on-secondary: #253140;
+  --md-sys-color-secondary-container: #3b4858;
+  --md-sys-color-on-secondary-container: #d7e3f8;
+
+  --md-sys-color-tertiary: #d7bee4;
+  --md-sys-color-on-tertiary: #3b2947;
+  --md-sys-color-tertiary-container: #523f5f;
+  --md-sys-color-on-tertiary-container: #f3daff;
+
+  --md-sys-color-error: #ffb4ab;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000a;
+  --md-sys-color-on-error-container: #ffdad6;
+
+  --md-sys-color-surface: #111418;
+  --md-sys-color-on-surface: #e1e2e8;
+  --md-sys-color-on-surface-variant: #c3c6cf;
+  --md-sys-color-surface-dim: #111418;
+  --md-sys-color-surface-bright: #36393e;
+  --md-sys-color-surface-container-lowest: #0b0e13;
+  --md-sys-color-surface-container-low: #191c20;
+  --md-sys-color-surface-container: #1d2024;
+  --md-sys-color-surface-container-high: #272a2f;
+  --md-sys-color-surface-container-highest: #32353a;
+
+  --md-sys-color-outline: #8d9199;
+  --md-sys-color-outline-variant: #43474e;
+
+  --md-sys-color-inverse-surface: #e1e2e8;
+  --md-sys-color-inverse-on-surface: #2e3135;
+  --md-sys-color-inverse-primary: #36618e;
+  --md-sys-color-scrim: #000000;
+  --md-sys-color-shadow: #000000;
+
+  /* ---------- Extended colors (harmonized with seed) ---------- */
+  --md-extended-color-success-color: #76daa1;
+  --md-extended-color-success-on-color: #003920;
+  --md-extended-color-success-color-container: #005231;
+  --md-extended-color-success-on-color-container: #92f7bc;
+
+  --md-extended-color-warning-color: #ffb68a;
+  --md-extended-color-warning-on-color: #522300;
+  --md-extended-color-warning-color-container: #743400;
+  --md-extended-color-warning-on-color-container: #ffdbc8;
+
+  /* ---------- State layers (opacity of the content color overlay) ---------- */
+  --md-sys-state-hover-opacity: 0.08;
+  --md-sys-state-focus-opacity: 0.10;
+  --md-sys-state-pressed-opacity: 0.10;
+  --md-sys-state-dragged-opacity: 0.16;
+  --md-sys-state-disabled-content-opacity: 0.38;
+  --md-sys-state-disabled-container-opacity: 0.12;
+  --bpt-state-hover: rgba(225, 226, 232, 0.08);       /* on-surface @ 8% */
+  --bpt-state-hover-primary: rgba(161, 202, 253, 0.08); /* primary @ 8% */
+  --bpt-row-selected: rgba(59, 72, 88, 0.55);         /* secondary-container over surface-container-low */
+  --bpt-scrim: rgba(0, 0, 0, 0.5);
+
+  /* ---------- Elevation ---------- */
+  --bpt-shadow-overlay: 0 8px 28px rgba(0, 0, 0, 0.45); /* side sheet, menus, dialogs */
+
+  /* ---------- Typography ---------- */
+  --bpt-font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --bpt-font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --bpt-fs-title-page: 22px;  --bpt-lh-title-page: 30px;   /* 500, mono for table names */
+  --bpt-fs-title: 17px;       --bpt-lh-title: 24px;        /* 600 */
+  --bpt-fs-topbar: 16px;      --bpt-lh-topbar: 24px;       /* 600 */
+  --bpt-fs-body: 14px;        --bpt-lh-body: 20px;         /* 400 */
+  --bpt-fs-cell: 13px;        --bpt-lh-cell: 18px;         /* table cells, small buttons */
+  --bpt-fs-label: 12px;       --bpt-lh-label: 16px;        /* 500, field labels, column headers */
+  --bpt-fs-mono: 13px;        --bpt-lh-mono: 20px;
+  --bpt-fs-log: 12.5px;       --bpt-lh-log: 20px;          /* log rows, traceback */
+
+  /* ---------- Shape ---------- */
+  --bpt-radius-badge: 6px;
+  --bpt-radius-chip: 8px;
+  --bpt-radius-control: 10px;   /* text fields, selects, code blocks */
+  --bpt-radius-container: 12px; /* bulk-action bar, nested panels */
+  --bpt-radius-card: 16px;      /* cards, side sheet leading corners */
+  --bpt-radius-full: 999px;     /* buttons, nav items, segmented buttons, switches */
+
+  /* ---------- Sizing ---------- */
+  --bpt-h-topbar: 64px;
+  --bpt-h-control: 40px;
+  --bpt-h-control-sm: 32px;
+  --bpt-h-nav-item: 44px;
+  --bpt-h-row: 44px;          /* data table row */
+  --bpt-h-row-dense: 34px;    /* log row */
+  --bpt-h-touch-min: 44px;    /* phone */
+  --bpt-w-sidebar: 240px;
+  --bpt-w-table-list: 220px;
+  --bpt-w-side-sheet: 460px;
+
+  /* ---------- Spacing (4 px grid) ---------- */
+  --bpt-sp-1: 4px;
+  --bpt-sp-2: 8px;
+  --bpt-sp-3: 12px;
+  --bpt-sp-4: 16px;
+  --bpt-sp-5: 20px;
+  --bpt-sp-6: 24px;
+  --bpt-sp-8: 32px;
+
+  /* ---------- Z-index ---------- */
+  --bpt-z-sticky: 10;
+  --bpt-z-dropdown: 100;
+  --bpt-z-side-sheet: 200;
+  --bpt-z-dialog: 300;
+  --bpt-z-snackbar: 400;
+  --bpt-z-tooltip: 500;
+
+  /* ---------- Motion ---------- */
+  --bpt-dur-short: 150ms;
+  --bpt-dur-medium: 250ms;
+  --bpt-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}

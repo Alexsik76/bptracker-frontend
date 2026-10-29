@@ -5,6 +5,7 @@ import LoginView from '../views/LoginView.vue';
 import AccessDeniedView from '../views/AccessDeniedView.vue';
 import AdminLayout from '../components/layout/AdminLayout.vue';
 import PlaceholderView from '../views/PlaceholderView.vue';
+import TablesView from '../views/TablesView.vue';
 
 const routes = [
   {
@@ -29,8 +30,12 @@ const routes = [
       {
         path: 'tables',
         name: 'tables',
-        component: PlaceholderView,
-        props: { title: 'Таблиці' },
+        component: TablesView,
+      },
+      {
+        path: 'tables/:name',
+        name: 'table-detail',
+        component: TablesView,
       },
       {
         path: 'stats',
