@@ -152,9 +152,11 @@ async function refreshAccessToken(): Promise<string | null> {
       });
 
       if (!res.ok) {
-        setAccessToken(null);
-        setStoredRefreshToken(null);
-        authChannel?.postMessage({ type: 'TOKEN_CLEARED' });
+        if (res.status === 401 || res.status === 403) {
+          setAccessToken(null);
+          setStoredRefreshToken(null);
+          authChannel?.postMessage({ type: 'TOKEN_CLEARED' });
+        }
         return null;
       }
 
@@ -167,10 +169,7 @@ async function refreshAccessToken(): Promise<string | null> {
       });
       return data.access_token;
     } catch (err) {
-      console.error('Failed to refresh token:', err);
-      setAccessToken(null);
-      setStoredRefreshToken(null);
-      authChannel?.postMessage({ type: 'TOKEN_CLEARED' });
+      console.error('Failed to refresh token due to network error:', err);
       return null;
     }
   };
@@ -219,10 +218,13 @@ export async function request<T>(
     if (newToken) {
       return request<T>(path, options, true);
     } else {
-      if (onUnauthorizedCallback) {
-        onUnauthorizedCallback();
+      if (!getStoredRefreshToken()) {
+        if (onUnauthorizedCallback) {
+          onUnauthorizedCallback();
+        }
+        throw new ApiError('Сесія завершилась. Будь ласка, увійдіть знову.', 401);
       }
-      throw new ApiError('Сесія завершилась. Будь ласка, увійдіть знову.', 401);
+      throw new Error("Немає з'єднання з сервером");
     }
   }
 

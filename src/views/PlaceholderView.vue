@@ -10,10 +10,10 @@ defineProps<{
       <h1 class="page-title">{{ title }}</h1>
     </div>
 
-    <div class="content-card">
+    <div class="content-card card">
       <div class="placeholder-icon">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+        <svg class="i placeholder-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
         </svg>
       </div>
       <h2 class="placeholder-title">Розділ у розробці</h2>
@@ -28,7 +28,8 @@ defineProps<{
 .placeholder-page {
   display: flex;
   flex-direction: column;
-  gap: var(--space-20);
+  gap: var(--bpt-sp-5);
+  padding-top: var(--bpt-sp-1);
 }
 
 .page-header {
@@ -38,9 +39,10 @@ defineProps<{
 }
 
 .page-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: var(--bpt-fs-title-page);
+  line-height: var(--bpt-lh-title-page);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
 }
 
 .content-card {
@@ -49,10 +51,10 @@ defineProps<{
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: var(--surface);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-card);
-  padding: 64px var(--space-24);
+  background: var(--md-sys-color-surface-container-low);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--bpt-radius-card);
+  padding: 64px var(--bpt-sp-6);
   min-height: 380px;
 }
 
@@ -60,25 +62,31 @@ defineProps<{
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  background: var(--primary-bg-chip);
-  color: var(--primary);
-  margin-bottom: var(--space-20);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  margin-bottom: var(--bpt-sp-5);
+}
+
+.placeholder-icon-svg {
+  width: var(--bpt-h-control);
+  height: var(--bpt-h-control);
 }
 
 .placeholder-title {
-  font-size: 20px;
+  font-size: var(--bpt-fs-title);
+  line-height: var(--bpt-lh-title);
   font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--space-8);
+  color: var(--md-sys-color-on-surface);
+  margin-bottom: var(--bpt-sp-2);
 }
 
 .placeholder-desc {
-  font-size: 14px;
-  color: var(--text-muted);
+  font-size: var(--bpt-fs-body);
+  color: var(--md-sys-color-on-surface-variant);
   max-width: 480px;
-  line-height: 1.5;
+  line-height: var(--bpt-lh-body);
 }
 </style>

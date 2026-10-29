@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
 import type { User } from '../types/auth';
 import {
+  ApiError,
   authApi,
   getStoredRefreshToken,
   setAccessToken,
@@ -40,12 +41,22 @@ export const useAuthStore = defineStore('auth', () => {
       const me = await authApi.getMe();
       user.value = me;
       status.value = 'authenticated';
+      error.value = null;
       return true;
-    } catch {
+    } catch (err: unknown) {
       user.value = null;
       status.value = 'anonymous';
-      setAccessToken(null);
-      setStoredRefreshToken(null);
+
+      const isServerAuthFailure =
+        err instanceof ApiError && (err.status === 401 || err.status === 403);
+
+      if (isServerAuthFailure) {
+        setAccessToken(null);
+        setStoredRefreshToken(null);
+        error.value = null;
+      } else {
+        error.value = "Немає з'єднання з сервером";
+      }
       return false;
     }
   }

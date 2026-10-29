@@ -24,6 +24,7 @@ function handleAuthSuccess(isAdmin: boolean) {
 async function handlePasskeyLogin() {
   loadingPasskey.value = true;
   errorMessage.value = null;
+  authStore.error = null;
   try {
     const user = await authStore.loginPasskey();
     handleAuthSuccess(user.is_admin);
@@ -44,6 +45,7 @@ async function handleMagicLinkRequest() {
 
   loadingMagicLink.value = true;
   errorMessage.value = null;
+  authStore.error = null;
   try {
     await authStore.requestMagicLink(email.value.trim());
     magicLinkSent.value = true;
@@ -53,6 +55,14 @@ async function handleMagicLinkRequest() {
       err instanceof Error ? err.message : 'Не вдалося надіслати посилання для входу';
   } finally {
     loadingMagicLink.value = false;
+  }
+}
+
+async function handleRetryInit() {
+  errorMessage.value = null;
+  const success = await authStore.initAuth();
+  if (success) {
+    handleAuthSuccess(authStore.isAdmin);
   }
 }
 
@@ -67,7 +77,7 @@ onMounted(async () => {
     } catch (err: unknown) {
       console.error('Magic link confirmation error:', err);
       errorMessage.value =
-        err instanceof Error ? err.message : 'Не вдалося підтвердити посилання для входу';
+        err instanceof Error ? err.message : 'Недійсне або прострочене посилання для входу';
     } finally {
       loadingMagicLink.value = false;
     }
@@ -84,25 +94,36 @@ onMounted(async () => {
         <p class="page-subtitle">Вхід до системи керування</p>
       </div>
 
-      <div v-if="errorMessage" class="error-banner">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      <div v-if="authStore.error || errorMessage" class="error-banner" role="alert">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
-        <span>{{ errorMessage }}</span>
+        <div class="error-content">
+          <span>{{ authStore.error || errorMessage }}</span>
+          <button
+            v-if="authStore.error"
+            type="button"
+            class="btn btn-outlined btn-sm retry-btn"
+            :disabled="authStore.status === 'loading'"
+            @click="handleRetryInit"
+          >
+            {{ authStore.status === 'loading' ? 'Перевірка...' : 'Повторити' }}
+          </button>
+        </div>
       </div>
 
       <!-- Passkey login -->
       <div class="section">
         <button
           type="button"
-          class="btn btn-primary btn-full"
+          class="btn btn-filled btn-full"
           :disabled="loadingPasskey || loadingMagicLink"
           @click="handlePasskeyLogin"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 2l-2 2m-1-1l-3 3m1 1l-2 2m-2-2l-1 1m-1-1l-2 2M3 21l3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78z"></path>
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 2l-2 2m-1-1l-3 3m1 1l-2 2m-2-2l-1 1m-1-1l-2 2M3 21l3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78z" />
           </svg>
           <span>{{ loadingPasskey ? 'Авторизація...' : 'Увійти ключем доступу' }}</span>
         </button>
@@ -115,13 +136,13 @@ onMounted(async () => {
       <!-- Magic link login -->
       <div v-if="!magicLinkSent" class="section">
         <form @submit.prevent="handleMagicLinkRequest">
-          <div class="form-group">
-            <label class="form-label" for="email">Електронна пошта</label>
+          <div class="field email-field">
+            <label class="label" for="email">Електронна пошта</label>
             <input
               id="email"
               v-model="email"
               type="email"
-              class="form-input"
+              class="input"
               placeholder="admin@example.com"
               required
               autocomplete="email"
@@ -130,7 +151,7 @@ onMounted(async () => {
           </div>
           <button
             type="submit"
-            class="btn btn-secondary btn-full"
+            class="btn btn-outlined btn-full"
             :disabled="loadingPasskey || loadingMagicLink"
           >
             {{ loadingMagicLink ? 'Надсилання...' : 'Отримати посилання для входу' }}
@@ -140,9 +161,9 @@ onMounted(async () => {
 
       <div v-else class="magic-sent-box">
         <div class="magic-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-            <polyline points="22,6 12,13 2,6"></polyline>
+          <svg class="i magic-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+            <polyline points="22,6 12,13 2,6" />
           </svg>
         </div>
         <h3 class="magic-sent-title">Перевірте пошту</h3>
@@ -151,7 +172,7 @@ onMounted(async () => {
         </p>
         <button
           type="button"
-          class="btn btn-outline btn-sm"
+          class="btn btn-outlined btn-sm"
           @click="magicLinkSent = false"
         >
           Надіслати іншу адресу
@@ -167,18 +188,18 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: var(--space-20);
-  background: radial-gradient(circle at 50% 20%, #161f33 0%, var(--bg-primary) 70%);
+  padding: var(--bpt-sp-5);
+  background: var(--md-sys-color-surface);
 }
 
 .login-card {
   width: 100%;
   max-width: 420px;
-  background: var(--surface);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-card);
-  padding: var(--space-32) var(--space-24);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  background: var(--md-sys-color-surface-container-low);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--bpt-radius-card);
+  padding: var(--bpt-sp-8) var(--bpt-sp-6);
+  box-shadow: var(--bpt-shadow-overlay);
 }
 
 .header-section {
@@ -186,45 +207,63 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  margin-bottom: var(--space-28);
+  margin-bottom: var(--bpt-sp-6);
 }
 
 .brand-badge {
   display: inline-flex;
-  padding: var(--space-4) var(--space-12);
-  border-radius: var(--radius-pill);
-  background: var(--primary-bg-chip);
-  color: var(--primary);
-  font-size: 12px;
+  padding: 2px var(--bpt-sp-3);
+  border-radius: var(--bpt-radius-full);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  font-size: var(--bpt-fs-label);
   font-weight: 600;
   letter-spacing: 0.05em;
-  margin-bottom: var(--space-12);
+  margin-bottom: var(--bpt-sp-3);
   text-transform: uppercase;
 }
 
 .page-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: var(--space-4);
+  font-size: var(--bpt-fs-title-page);
+  line-height: var(--bpt-lh-title-page);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  margin-bottom: var(--bpt-sp-1);
 }
 
 .page-subtitle {
-  font-size: 14px;
-  color: var(--text-muted);
+  font-size: var(--bpt-fs-body);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .error-banner {
   display: flex;
   align-items: center;
-  gap: var(--space-12);
-  background: var(--danger-bg-chip);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: var(--danger);
-  padding: var(--space-12) var(--space-16);
-  border-radius: var(--radius-control);
-  font-size: 13px;
-  margin-bottom: var(--space-20);
+  gap: var(--bpt-sp-3);
+  background: var(--md-sys-color-error-container);
+  border: 1px solid var(--md-sys-color-error);
+  color: var(--md-sys-color-on-error-container);
+  padding: var(--bpt-sp-3) var(--bpt-sp-4);
+  border-radius: var(--bpt-radius-control);
+  font-size: var(--bpt-fs-cell);
+  margin-bottom: var(--bpt-sp-5);
+}
+
+.error-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bpt-sp-3);
+  flex: 1;
+}
+
+.retry-btn {
+  border-color: var(--md-sys-color-error);
+  color: var(--md-sys-color-on-error-container);
+}
+
+.email-field {
+  margin-bottom: var(--bpt-sp-4);
 }
 
 .section {
@@ -232,27 +271,32 @@ onMounted(async () => {
   flex-direction: column;
 }
 
+.btn-full {
+  width: 100%;
+}
+
 .divider {
   display: flex;
   align-items: center;
   text-align: center;
-  margin: var(--space-24) 0;
+  margin: var(--bpt-sp-6) 0;
 }
 
 .divider::before,
 .divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid var(--surface-border);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .divider-text {
-  padding: 0 var(--space-12);
-  font-size: 11px;
+  padding: 0 var(--bpt-sp-3);
+  font-size: var(--bpt-fs-label);
+  line-height: var(--bpt-lh-label);
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .magic-sent-box {
@@ -260,27 +304,32 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: var(--space-20);
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-control);
+  padding: var(--bpt-sp-5);
+  background: var(--md-sys-color-surface-container);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--bpt-radius-control);
 }
 
 .magic-icon {
-  color: var(--success);
-  margin-bottom: var(--space-12);
+  color: var(--md-extended-color-success-color);
+  margin-bottom: var(--bpt-sp-3);
+}
+
+.magic-icon-svg {
+  width: var(--bpt-h-control-sm);
+  height: var(--bpt-h-control-sm);
 }
 
 .magic-sent-title {
-  font-size: 16px;
+  font-size: var(--bpt-fs-topbar);
   font-weight: 600;
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--bpt-sp-2);
 }
 
 .magic-sent-desc {
-  font-size: 13px;
-  color: var(--text-muted);
-  line-height: 1.5;
-  margin-bottom: var(--space-16);
+  font-size: var(--bpt-fs-cell);
+  color: var(--md-sys-color-on-surface-variant);
+  line-height: var(--bpt-lh-body);
+  margin-bottom: var(--bpt-sp-4);
 }
 </style>
