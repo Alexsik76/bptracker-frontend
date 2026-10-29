@@ -1,126 +1,113 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 
-const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  scrollBehavior(to, _from, savedPosition) {
-    if (savedPosition) return savedPosition;
-    if (to.hash) return { el: to.hash, behavior: 'smooth', top: 80 };
-    return { top: 0 };
+import LoginView from '../views/LoginView.vue';
+import AccessDeniedView from '../views/AccessDeniedView.vue';
+import AdminLayout from '../components/layout/AdminLayout.vue';
+import PlaceholderView from '../views/PlaceholderView.vue';
+
+const routes = [
+  {
+    path: '/login',
+    name: 'login',
+    component: LoginView,
+    meta: { public: true },
   },
-  routes: [
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('../pages/LoginPage.vue'),
-      meta: { guest: true },
-    },
-    {
-      path: '/',
-      component: () => import('../layouts/AppShell.vue'),
-      meta: { auth: true },
-      children: [
-        {
-          path: '',
-          name: 'dashboard',
-          component: () => import('../pages/DashboardPage.vue'),
-          meta: { tab: 'dashboard' },
-        },
-        {
-          path: 'history',
-          name: 'history',
-          component: () => import('../pages/HistoryPage.vue'),
-          meta: { tab: 'dashboard' },
-        },
-        {
-          path: 'schedule',
-          name: 'schedule',
-          component: () => import('../pages/SchedulePage.vue'),
-          meta: { tab: 'schedule' },
-        },
-        {
-          path: 'prescriptions',
-          name: 'prescriptions',
-          component: () => import('../pages/meds/MedsListPage.vue'),
-          meta: { tab: 'schedule' },
-        },
-      ],
-    },
-    {
-      path: '/settings',
-      name: 'settings',
-      component: () => import('../pages/SettingsPage.vue'),
-      meta: { auth: true },
-    },
-    {
-      path: '/info',
-      name: 'info',
-      component: () => import('../pages/InfoPage.vue'),
-      meta: { auth: true },
-    },
-    {
-      path: '/measurement/local',
-      name: 'measurement-local',
-      component: () => import('../pages/LocalOcrPage.vue'),
-      meta: { auth: true },
-    },
-    {
-      path: '/measurement/new',
-      name: 'measurement-new',
-      component: () => import('../pages/MeasurementPage.vue'),
-      meta: { auth: true },
-    },
-    {
-      path: '/meds/new',
-      name: 'meds-new',
-      component: () => import('../pages/meds/MedsFormPage.vue'),
-      meta: { auth: true },
-    },
-    {
-      path: '/meds/:id',
-      name: 'meds-detail',
-      component: () => import('../pages/meds/MedsDetailPage.vue'),
-      meta: { auth: true },
-    },
-    {
-      path: '/meds/:id/edit',
-      name: 'meds-edit',
-      component: () => import('../pages/meds/MedsFormPage.vue'),
-      meta: { auth: true },
-    },
-    {
-      path: '/:pathMatch(.*)*',
-      redirect: { name: 'dashboard' },
-    },
-  ],
+  {
+    path: '/forbidden',
+    name: 'forbidden',
+    component: AccessDeniedView,
+  },
+  {
+    path: '/',
+    component: AdminLayout,
+    children: [
+      {
+        path: '',
+        redirect: '/tables',
+      },
+      {
+        path: 'tables',
+        name: 'tables',
+        component: PlaceholderView,
+        props: { title: 'Таблиці' },
+      },
+      {
+        path: 'stats',
+        name: 'stats',
+        component: PlaceholderView,
+        props: { title: 'Статистика' },
+      },
+      {
+        path: 'logs',
+        name: 'logs',
+        component: PlaceholderView,
+        props: { title: 'Журнали' },
+      },
+      {
+        path: 'settings',
+        name: 'settings',
+        component: PlaceholderView,
+        props: { title: 'Налаштування' },
+      },
+      {
+        path: 'ocr',
+        name: 'ocr',
+        component: PlaceholderView,
+        props: { title: 'Розпізнавання' },
+      },
+    ],
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/tables',
+  },
+];
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
 });
 
-router.beforeEach(async (to) => {
-  const auth = useAuthStore();
+router.beforeEach(async (to, _from, next) => {
+  const authStore = useAuthStore();
 
-  if (auth.status === 'idle') {
-    await auth.checkSession();
+  if (authStore.status === 'idle') {
+    await authStore.initAuth();
   }
 
-  if (to.meta.auth && auth.status !== 'authenticated') {
-    return { name: 'login' };
-  }
-  if (to.meta.guest && auth.status === 'authenticated') {
-    return { name: 'dashboard' };
-  }
-});
+  const isAuth = authStore.isAuthenticated;
+  const isAdmin = authStore.isAdmin;
 
-router.onError((error, to) => {
-  const isChunkLoadFailed = error.message.includes('Failed to fetch dynamically imported module') || 
-                            error.name === 'ChunkLoadError';
-  if (isChunkLoadFailed) {
-    const targetPath = to.fullPath;
-    const reloadKey = `chunk-reload-${targetPath}`;
-    if (!sessionStorage.getItem(reloadKey)) {
-      sessionStorage.setItem(reloadKey, 'true');
-      window.location.href = targetPath;
+  if (to.path === '/login') {
+    if (to.query.token) {
+      return next();
     }
+    if (isAuth) {
+      return next(isAdmin ? '/tables' : '/forbidden');
+    }
+    return next();
   }
+
+  if (!isAuth) {
+    return next({
+      path: '/login',
+      query: to.fullPath !== '/' && to.fullPath !== '/tables' ? { redirect: to.fullPath } : undefined,
+    });
+  }
+
+  if (!isAdmin) {
+    if (to.path !== '/forbidden') {
+      return next('/forbidden');
+    }
+    return next();
+  }
+
+  if (to.path === '/forbidden') {
+    return next('/tables');
+  }
+
+  next();
 });
 
 export default router;
