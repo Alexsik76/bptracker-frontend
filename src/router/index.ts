@@ -8,6 +8,7 @@ import PlaceholderView from '../views/PlaceholderView.vue';
 import TablesView from '../views/TablesView.vue';
 import StatsView from '../views/StatsView.vue';
 import LogsView from '../views/LogsView.vue';
+import SettingsView from '../views/SettingsView.vue';
 
 const routes = [
   {
@@ -52,8 +53,7 @@ const routes = [
       {
         path: 'settings',
         name: 'settings',
-        component: PlaceholderView,
-        props: { title: 'Settings' },
+        component: SettingsView,
       },
       {
         path: 'ocr',
