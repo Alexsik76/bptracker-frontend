@@ -43,10 +43,10 @@ async function handleAddPasskey() {
   registerLoading.value = true;
   try {
     await authStore.registerPasskey();
-    showToast('Ключ доступу успішно додано!', 'success');
+    showToast('Passkey added successfully!', 'success');
   } catch (err: unknown) {
     console.error('Passkey registration error:', err);
-    const msg = err instanceof Error ? err.message : 'Не вдалося додати ключ доступу';
+    const msg = err instanceof Error ? err.message : 'Failed to add passkey';
     showToast(msg, 'error');
   } finally {
     registerLoading.value = false;
@@ -61,27 +61,27 @@ async function handleLogout() {
 
 const navItems = [
   {
-    name: 'Таблиці',
+    name: 'Tables',
     path: '/tables',
     icon: 'table',
   },
   {
-    name: 'Статистика',
+    name: 'Statistics',
     path: '/stats',
     icon: 'chart',
   },
   {
-    name: 'Журнали',
+    name: 'Logs',
     path: '/logs',
     icon: 'file-text',
   },
   {
-    name: 'Налаштування',
+    name: 'Settings',
     path: '/settings',
     icon: 'settings',
   },
   {
-    name: 'Розпізнавання',
+    name: 'Recognition',
     path: '/ocr',
     icon: 'camera',
   },
@@ -91,7 +91,7 @@ const breadcrumb = computed(() => {
   if (route.path.startsWith('/tables')) {
     const tableName = route.params.name as string | undefined;
     return {
-      section: 'Таблиці',
+      section: 'Tables',
       sectionPath: '/tables',
       sub: tableName || null,
     };
@@ -117,7 +117,7 @@ onUnmounted(() => {
 <template>
   <div class="admin-app">
     <!-- Left Navigation Sidebar -->
-    <aside class="sidebar" aria-label="Розділи">
+    <aside class="sidebar" aria-label="Navigation">
       <div class="brand">
         <span class="mark">
           <svg class="i i-s" viewBox="0 0 24 24" aria-hidden="true">
@@ -175,7 +175,7 @@ onUnmounted(() => {
     <div class="main-column">
       <!-- Top Header Bar -->
       <header class="topbar">
-        <nav aria-label="Шлях" class="breadcrumbs">
+        <nav aria-label="Breadcrumbs" class="breadcrumbs">
           <router-link :to="breadcrumb.sectionPath" class="breadcrumb-link">
             {{ breadcrumb.section }}
           </router-link>
@@ -208,7 +208,7 @@ onUnmounted(() => {
           <!-- Dropdown Menu -->
           <div v-if="accountMenuOpen" class="dropdown-menu" role="menu">
             <div class="dropdown-header">
-              <div class="dropdown-label">Вхід виконано як</div>
+              <div class="dropdown-label">Signed in as</div>
               <div class="dropdown-email mono">{{ authStore.user?.email }}</div>
             </div>
             <div class="dropdown-divider"></div>
@@ -223,7 +223,7 @@ onUnmounted(() => {
               <svg class="i i-s" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M21 2l-2 2m-1-1l-3 3m1 1l-2 2m-2-2l-1 1m-1-1l-2 2M3 21l3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78z" />
               </svg>
-              <span>{{ registerLoading ? 'Створення...' : 'Додати ключ доступу' }}</span>
+              <span>{{ registerLoading ? 'Creating...' : 'Add passkey' }}</span>
             </button>
 
             <div class="dropdown-divider"></div>
@@ -239,7 +239,7 @@ onUnmounted(() => {
                 <polyline points="16 17 21 12 16 7" />
                 <line x1="21" y1="12" x2="9" y2="12" />
               </svg>
-              <span>Вийти</span>
+              <span>Sign out</span>
             </button>
           </div>
         </div>

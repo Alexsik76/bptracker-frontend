@@ -21,9 +21,9 @@ async function handleLogout() {
         </svg>
       </div>
 
-      <h1 class="title">Немає доступу</h1>
+      <h1 class="title">Access Denied</h1>
       <p class="subtitle">
-        Обліковий запис <strong class="mono">{{ authStore.user?.email || 'користувача' }}</strong> не має прав адміністратора для перегляду цієї панелі.
+        Account <strong class="mono">{{ authStore.user?.email || 'user' }}</strong> does not have administrator privileges to view this panel.
       </p>
 
       <div class="actions">
@@ -33,7 +33,7 @@ async function handleLogout() {
             <polyline points="16 17 21 12 16 7" />
             <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
-          <span>Вийти</span>
+          <span>Sign out</span>
         </button>
       </div>
     </div>

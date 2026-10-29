@@ -222,9 +222,9 @@ export async function request<T>(
         if (onUnauthorizedCallback) {
           onUnauthorizedCallback();
         }
-        throw new ApiError('Сесія завершилась. Будь ласка, увійдіть знову.', 401);
+        throw new ApiError('Session expired. Please sign in again.', 401);
       }
-      throw new Error("Немає з'єднання з сервером");
+      throw new Error('No connection to server');
     }
   }
 
@@ -233,7 +233,7 @@ export async function request<T>(
   }
 
   if (!response.ok) {
-    let errorDetail = `Помилка ${response.status}`;
+    let errorDetail = `Error ${response.status}`;
     let errorData: unknown = null;
     try {
       errorData = await response.json();
