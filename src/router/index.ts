@@ -6,6 +6,8 @@ import AccessDeniedView from '../views/AccessDeniedView.vue';
 import AdminLayout from '../components/layout/AdminLayout.vue';
 import PlaceholderView from '../views/PlaceholderView.vue';
 import TablesView from '../views/TablesView.vue';
+import StatsView from '../views/StatsView.vue';
+import LogsView from '../views/LogsView.vue';
 
 const routes = [
   {
@@ -40,14 +42,12 @@ const routes = [
       {
         path: 'stats',
         name: 'stats',
-        component: PlaceholderView,
-        props: { title: 'Statistics' },
+        component: StatsView,
       },
       {
         path: 'logs',
         name: 'logs',
-        component: PlaceholderView,
-        props: { title: 'Logs' },
+        component: LogsView,
       },
       {
         path: 'settings',
